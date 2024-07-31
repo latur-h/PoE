@@ -4,32 +4,24 @@
 _windowTitle := "ahk_exe PathOfExile.exe"
 _flag := false
 
-_D1Key := "1"
-_D2Key := "2"
-_D3Key := "3"
-_D4Key := "4"
-_D5Key := "5"
+_abilityKeys := Map("Q", "Q", "W", "W", "E", "E", "R", "R", "T", "T", "A", "A", "S", "S", "D", "D", "F", "F", "G", "G")
 
-_ability1Key := "Q"
-_ability2Key := "W"
-_ability3Key := "E"
-_ability4Key := "R"
-_ability5Key := "T"
+_flaskKeys := Map("1", "1", "2", "2", "3", "3", "4", "4", "5", "5")
 
-_health := Map("X", 154, "Y", 1294, "Color", "A11822")
-_mana := Map("X", 2409, "Y", 1399, "Color", "112348")
+_flask1 := Map("Top", Map("X", 441, "Y", 1344, "Color", ""), "Bottom", Map("X", 416, "Y", 1432, "Color", "0xF9D799"), "Time", "", "Key", "1")
+_flask2 := Map("Top", Map("X", 502, "Y", 1344, "Color", ""), "Bottom", Map("X", 477, "Y", 1432, "Color", "0xF9D799"), "Time", "", "Key", "2")
+_flask3 := Map("Top", Map("X", 563, "Y", 1344, "Color", ""), "Bottom", Map("X", 539, "Y", 1432, "Color", "0xF9D799"), "Time", "", "Key", "3")
+_flask4 := Map("Top", Map("X", 624, "Y", 1344, "Color", ""), "Bottom", Map("X", 600, "Y", 1432, "Color", "0xF9D799"), "Time", "", "Key", "4")
+_flask5 := Map("Top", Map("X", 685, "Y", 1344, "Color", ""), "Bottom", Map("X", 661, "Y", 1432, "Color", "0xF9D799"), "Time", "", "Key", "5")
 
-_flask1 := Map("X", 416, "Y", 1432, "Color", "F9D799")
-_flask2 := Map("X", 478, "Y", 1432, "Color", "F9D799")
-_flask3 := Map("X", 542, "Y", 1432, "Color", "F9D799")
-_flask4 := Map("X", 602, "Y", 1432, "Color", "F9D799")
-_flask5 := Map("X", 661, "Y", 1432, "Color", "F9D799")
+_tincture1 := Map("Top", Map("X", 463, "Y", 1345, "Color", "0xC47129"), "Bottom", _flask1["Bottom"], "Time", "", "Key", "1")
+_tincture2 := Map("Top", Map("X", 524, "Y", 1344, "Color", "0xF2D33D"), "Bottom", _flask2["Bottom"], "Time", "", "Key", "2")
+_tincture3 := Map("Top", Map("X", 584, "Y", 1342, "Color", "0xDA8857"), "Bottom", _flask3["Bottom"], "Time", "", "Key", "3")
+_tincture4 := Map("Top", Map("X", 646, "Y", 1346, "Color", "0xAB461C"), "Bottom", _flask4["Bottom"], "Time", "", "Key", "4")
+_tincture5 := Map("Top", Map("X", 707, "Y", 1343, "Color", "0xF3D344"), "Bottom", _flask5["Bottom"], "Time", "", "Key", "5")
 
-_tincture1 := Map("X", 463, "Y", 1345, "Color", "C47129")
-_tincture2 := Map("X", 524, "Y", 1344, "Color", "F2D33D")
-_tincture3 := Map("X", 584, "Y", 1342, "Color", "DA8857")
-_tincture4 := Map("X", 646, "Y", 1346, "Color", "AB461C")
-_tincture5 := Map("X", 707, "Y", 1343, "Color", "F3D344")
+_health := Map("X", 154, "Y", 1294, "Color", "0xA11822", "Time", "")
+_mana := Map("X", 2409, "Y", 1399, "Color", "0x112348", "Time", "")
 
 #HotIf WinActive(_windowTitle)
 ~$*F2::
@@ -41,23 +33,41 @@ _tincture5 := Map("X", 707, "Y", 1343, "Color", "F3D344")
 
     global _flag := true
     
+    _bloodrageTime := A_Now
+
     while(_flag && WinActive(_windowTitle))
     {
-        SendInput(_ability5Key["D"])
+        if(DateDiff(_bloodrageTime, A_Now, "S") < 0)
+        {
+            SendInput(_abilityKeys["T"]["D"])
+            Sleep(5)
+            SendInput(_abilityKeys["T"]["U"])
+
+            _bloodrageTime := DateAdd(A_Now, 8, "S")
+        }
+
+        local healthTime := _health["Time"]
+        Health(_health["X"], _health["Y"], _health["Color"], &healthTime, _flaskKeys["1"])
+        _health["Time"] := healthTime
         Sleep(5)
-        SendInput(_ability5Key["U"])
-        Sleep(100)
-        Health(_health["X"], _health["Y"], _health["Color"], _D1Key)
-        Sleep(100)
-        Mana(_mana["X"], _mana["Y"], _mana["Color"], _D5Key)
-        Sleep(100)
-        FlaskRefresh(_flask2["X"], _flask2["Y"], _flask2["Color"], _D2Key)
-        Sleep(200)
-        FlaskRefresh(_flask3["X"], _flask3["Y"], _flask3["Color"], _D3Key)
-        Sleep(200)
-        FlaskRefresh(_flask4["X"], _flask4["Y"], _flask4["Color"], _D4Key)
-        Sleep(200)
+        local flask2Time := _flask2["Time"]
+        FlaskRefresh(_flask2["Top"]["X"], _flask2["Top"]["Y"], _flask2["Top"]["Color"], _flask2["Bottom"]["X"], _flask2["Bottom"]["Y"], _flask2["Bottom"]["Color"], &flask2Time, _flask2["Key"])
+        _flask2["Time"] := flask2Time
+        Sleep(5)
+        local flask3Time := _flask3["Time"]
+        FlaskRefresh(_flask3["Top"]["X"], _flask3["Top"]["Y"], _flask3["Top"]["Color"], _flask3["Bottom"]["X"], _flask3["Bottom"]["Y"], _flask3["Bottom"]["Color"], &flask3Time, _flask3["Key"])
+        _flask3["Time"] := flask3Time
+        Sleep(5)
+        local flask4Time := _flask4["Time"]
+        FlaskRefresh(_flask4["Top"]["X"], _flask4["Top"]["Y"], _flask4["Top"]["Color"], _flask4["Bottom"]["X"], _flask4["Bottom"]["Y"], _flask4["Bottom"]["Color"], &flask4Time, _flask4["Key"])
+        _flask4["Time"] := flask4Time
+        Sleep(5)
+        local flask5Time := _flask5["Time"]
+        FlaskRefresh(_flask5["Top"]["X"], _flask5["Top"]["Y"], _flask5["Top"]["Color"], _flask5["Bottom"]["X"], _flask5["Bottom"]["Y"], _flask5["Bottom"]["Color"], &flask5Time, _flask5["Key"])
+        _flask5["Time"] := flask5Time
     }
+
+    global _flag := false
 }
 ~$*F4::
 {
@@ -65,49 +75,97 @@ _tincture5 := Map("X", 707, "Y", 1343, "Color", "F3D344")
     {
         return
     }
+
     global _flag := false
+}
+~$*F5::
+{
+    RegisterUtilityFlaskColor()
 }
 #HotIf
 
-Health(x, y, color, key)
+Health(x, y, color, &time, key)
 {
-    if(PixelGetColor(x, y) != "0x" color)
+    if(DateDiff(time, A_Now, "S") < 0)
     {
-        SendInput(key["D"])
-        Sleep(5)
-        SendInput(key["U"])
+        if(PixelGetColor(x, y) != color)
+        {
+            SendInput(key["D"])
+            Sleep(5)
+            SendInput(key["U"])
+        }
+
+        time := DateAdd(A_Now, 1, "S")
     }
 }
 Mana(x, y, color, key)
 {
-    if(PixelGetColor(x, y) != "0x" color)
+    if(PixelGetColor(x, y) != color)
     {
         SendInput(key["D"])
         Sleep(5)
         SendInput(key["U"])
     }
 }
-FlaskRefresh(x, y, color, key)
+FlaskRefresh(x1, y1, color1, x2, y2, color2, &time, key)
 {
-    if(PixelGetColor(x, y) != "0x" color)
+    if(DateDiff(time, A_Now, "S") < 0)
     {
-        SendInput(key["D"])
-        Sleep(5)
-        SendInput(key["U"])
+        if(PixelGetColor(x1, y1) = color1 && PixelGetColor(x2, y2) != color2)
+        {
+            SendInput(key["D"])
+            Sleep(5)
+            SendInput(key["U"])
+        }
+
+        time := DateAdd(A_Now, 2, "S")
     }
 }
+RegisterUtilityFlaskColor()
+{
+    _flask1["Top"]["Color"] := PixelGetColor(_flask1["Top"]["X"], _flask1["Top"]["Y"])
+    _flask2["Top"]["Color"] := PixelGetColor(_flask2["Top"]["X"], _flask2["Top"]["Y"])
+    _flask3["Top"]["Color"] := PixelGetColor(_flask3["Top"]["X"], _flask3["Top"]["Y"])
+    _flask4["Top"]["Color"] := PixelGetColor(_flask4["Top"]["X"], _flask4["Top"]["Y"])
+    _flask5["Top"]["Color"] := PixelGetColor(_flask5["Top"]["X"], _flask5["Top"]["Y"])
 
-_D1Key := GetMap(_D1Key)
-_D2Key := GetMap(_D2Key)
-_D3Key := GetMap(_D3Key)
-_D4Key := GetMap(_D4Key)
-_D5Key := GetMap(_D5Key)
+    _flask1["Time"] := A_Now
+    _flask2["Time"] := A_Now
+    _flask3["Time"] := A_Now
+    _flask4["Time"] := A_Now
+    _flask5["Time"] := A_Now
 
-_ability1Key := GetMap(_ability1Key)
-_ability2Key := GetMap(_ability2Key)
-_ability3Key := GetMap(_ability3Key)
-_ability4Key := GetMap(_ability4Key)
-_ability5Key := GetMap(_ability5Key)
+    _health["Time"] := A_Now
+}
+
+_flaskKeys["1"] := GetMap(_flaskKeys["1"])
+_flaskKeys["2"] := GetMap(_flaskKeys["2"])
+_flaskKeys["3"] := GetMap(_flaskKeys["3"])
+_flaskKeys["4"] := GetMap(_flaskKeys["4"])
+_flaskKeys["5"] := GetMap(_flaskKeys["5"])
+
+_abilityKeys["Q"] := GetMap(_abilityKeys["Q"])
+_abilityKeys["W"] := GetMap(_abilityKeys["W"])
+_abilityKeys["E"] := GetMap(_abilityKeys["E"])
+_abilityKeys["R"] := GetMap(_abilityKeys["R"])
+_abilityKeys["T"] := GetMap(_abilityKeys["T"])
+_abilityKeys["A"] := GetMap(_abilityKeys["A"])
+_abilityKeys["S"] := GetMap(_abilityKeys["S"])
+_abilityKeys["D"] := GetMap(_abilityKeys["D"])
+_abilityKeys["F"] := GetMap(_abilityKeys["F"])
+_abilityKeys["G"] := GetMap(_abilityKeys["G"])
+
+_flask1["Key"] := _flaskKeys["1"]
+_flask2["Key"] := _flaskKeys["2"]
+_flask3["Key"] := _flaskKeys["3"]
+_flask4["Key"] := _flaskKeys["4"]
+_flask5["Key"] := _flaskKeys["5"]
+
+_tincture1["Key"] := _flaskKeys["1"]
+_tincture2["Key"] := _flaskKeys["2"]
+_tincture3["Key"] := _flaskKeys["3"]
+_tincture4["Key"] := _flaskKeys["4"]
+_tincture5["Key"] := _flaskKeys["5"]
 
 GetMap(key)
 {
