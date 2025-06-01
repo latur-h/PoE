@@ -1,0 +1,538 @@
+19:40:37 | Info | [Gambler] Initialize 'Gambler'...
+19:40:37 | Info | [Gambler] Gambler initialized with type: Alt, delay: 40
+19:40:37 | Info | [Gambler] Starting gambling...
+19:40:38 | Info | ----------------------------
+19:40:38 | Info | Type=Implicit, Tier=0, Name=, Content=+24 to Dexterity and Intelligence (implicit)
+19:40:38 | Info | Type=Prefix, Tier=7, Name=Protective, Content=2% increased maximum Energy Shield
+19:40:38 | Info | Type=Prefix, Tier=10, Name=Sapphire, Content=+34 to maximum Mana
+19:40:38 | Info | Type=Prefix, Tier=3, Name=Thickened, Content=26% increased Armour
+19:40:39 | Info | ----------------------------
+19:40:39 | Info | Type=Implicit, Tier=0, Name=, Content=+24 to Dexterity and Intelligence (implicit)
+19:40:39 | Info | Type=Prefix, Tier=7, Name=Opalescent, Content=+48 to maximum Mana
+19:40:39 | Info | Type=Prefix, Tier=6, Name=Seething, Content=+26 to maximum Energy Shield
+19:40:39 | Info | Type=Prefix, Tier=1, Name=Vaporous, Content=35% increased Evasion Rating
+19:40:39 | Info | Type=Suffix, Tier=4, Name=of Dispersion, Content=+14% to Damage over Time Multiplier
+19:40:39 | Info | Type=Suffix, Tier=2, Name=of the Infinite, Content=+32 to all Attributes
+(Attributes are Strength, Dexterity, and Intelligence)
+19:40:39 | Info | ----------------------------
+19:40:39 | Info | Type=Implicit, Tier=0, Name=, Content=+24 to Dexterity and Intelligence (implicit)
+19:40:39 | Info | Type=Prefix, Tier=2, Name=Tempered, Content=Adds 12 to 21 Physical Damage to Attacks
+19:40:39 | Info | Type=Prefix, Tier=7, Name=Protective, Content=4% increased maximum Energy Shield
+19:40:39 | Info | Type=Suffix, Tier=2, Name=of the Phantom, Content=+49 to Dexterity
+19:40:39 | Info | Type=Suffix, Tier=7, Name=of the Meteor, Content=+9 to all Attributes
+(Attributes are Strength, Dexterity, and Intelligence)
+19:40:39 | Info | ----------------------------
+19:40:39 | Info | Type=Implicit, Tier=0, Name=, Content=+24 to Dexterity and Intelligence (implicit)
+19:40:39 | Info | Type=Prefix, Tier=7, Name=Pulsing, Content=+21 to maximum Energy Shield
+19:40:39 | Info | Type=Prefix, Tier=6, Name=Dancer's, Content=12% increased Evasion Rating
+19:40:39 | Info | Type=Suffix, Tier=7, Name=of the Bear, Content=+18 to Strength
+19:40:40 | Info | ----------------------------
+19:40:40 | Info | Type=Implicit, Tier=0, Name=, Content=+24 to Dexterity and Intelligence (implicit)
+19:40:40 | Info | Type=Prefix, Tier=3, Name=Blue, Content=+66 to maximum Mana
+19:40:40 | Info | Type=Prefix, Tier=5, Name=Lobstered, Content=18% increased Armour
+19:40:40 | Info | Type=Suffix, Tier=7, Name=of the Lizard, Content=Regenerate 3.6(2.1-8) Life per second
+19:40:40 | Info | ----------------------------
+19:40:40 | Info | Type=Implicit, Tier=0, Name=, Content=+24 to Dexterity and Intelligence (implicit)
+19:40:40 | Info | Type=Prefix, Tier=6, Name=Strong-Willed, Content=6% increased maximum Energy Shield
+19:40:40 | Info | Type=Suffix, Tier=2, Name=of the Magma, Content=+42% to Fire Resistance
+19:40:40 | Info | Type=Suffix, Tier=5, Name=of the Heavens, Content=+17 to all Attributes
+(Attributes are Strength, Dexterity, and Intelligence)
+19:40:41 | Info | ----------------------------
+19:40:41 | Info | Type=Implicit, Tier=0, Name=, Content=+24 to Dexterity and Intelligence (implicit)
+19:40:41 | Info | Type=Prefix, Tier=2, Name=Phased, Content=30% increased Evasion Rating
+19:40:41 | Info | Type=Prefix, Tier=4, Name=Fearless, Content=11% increased maximum Energy Shield
+19:40:41 | Info | Type=Suffix, Tier=1, Name=of Consumption, Content=Gain 5 Mana per Enemy Killed
+19:40:41 | Info | Type=Suffix, Tier=2, Name=of Ryslatha, Content=Regenerate 63.9(48.1-64) Life per second
+19:40:41 | Info | ----------------------------
+19:40:41 | Info | Type=Implicit, Tier=0, Name=, Content=+24 to Dexterity and Intelligence (implicit)
+19:40:41 | Info | Type=Prefix, Tier=5, Name=Chalybeous, Content=+55 to maximum Mana
+19:40:41 | Info | Type=Prefix, Tier=3, Name=Shocking, Content=Adds 5 to 48 Lightning Damage to Attacks
+19:40:41 | Info | Type=Suffix, Tier=4, Name=of Static, Content=12% increased Lightning Damage
+19:40:41 | Info | Type=Suffix, Tier=2, Name=of Archaeology, Content=16% increased Rarity of Items found
+19:40:41 | Info | ----------------------------
+19:40:41 | Info | Type=Implicit, Tier=0, Name=, Content=+24 to Dexterity and Intelligence (implicit)
+19:40:41 | Info | Type=Prefix, Tier=7, Name=Opalescent, Content=+49 to maximum Mana
+19:40:41 | Info | Type=Prefix, Tier=2, Name=Lamprey's, Content=0.63(0.6-0.8)% of Physical Attack Damage Leeched as Life
+(Leeched Life is recovered over time. Multiple Leeches can occur simultaneously, up to a maximum rate)
+19:40:41 | Info | Type=Prefix, Tier=9, Name=Hale, Content=+4 to maximum Life
+19:40:41 | Info | Type=Suffix, Tier=8, Name=of the Wrestler, Content=+17 to Strength
+19:40:41 | Info | Type=Suffix, Tier=2, Name=of Penetrating, Content=31% increased Global Critical Strike Chance
+19:40:42 | Info | ----------------------------
+19:40:42 | Info | Type=Implicit, Tier=0, Name=, Content=+24 to Dexterity and Intelligence (implicit)
+19:40:42 | Info | Type=Prefix, Tier=1, Name=Flaring, Content=Adds 15 to 24 Physical Damage to Attacks
+19:40:42 | Info | Type=Suffix, Tier=2, Name=of Flames, Content=18% increased Fire Damage
+19:40:42 | Info | Type=Suffix, Tier=1, Name=of the Span, Content=+18% to all Elemental Resistances
+19:40:42 | Info | ----------------------------
+19:40:42 | Info | Type=Implicit, Tier=0, Name=, Content=+24 to Dexterity and Intelligence (implicit)
+19:40:42 | Info | Type=Prefix, Tier=6, Name=Honed, Content=Adds 5 to 9 Physical Damage to Attacks
+19:40:42 | Info | Type=Prefix, Tier=1, Name=Wizard's, Content=23% increased Spell Damage
+19:40:42 | Info | Type=Suffix, Tier=5, Name=of Sparks, Content=3% increased Lightning Damage
+19:40:42 | Info | Type=Suffix, Tier=4, Name=of the Leopard, Content=+37 to Dexterity
+19:40:43 | Info | ----------------------------
+19:40:43 | Info | Type=Implicit, Tier=0, Name=, Content=+24 to Dexterity and Intelligence (implicit)
+19:40:43 | Info | Type=Prefix, Tier=2, Name=Thirsty, Content=0.37(0.2-0.4)% of Physical Attack Damage Leeched as Mana
+(Leeched Mana is recovered over time. Multiple Leeches can occur simultaneously, up to a maximum rate)
+19:40:43 | Info | Type=Suffix, Tier=1, Name=of the Gods, Content=+52 to Strength
+19:40:43 | Info | Type=Suffix, Tier=3, Name=of Success, Content=Gain 6 Life per Enemy Killed
+19:40:43 | Info | ----------------------------
+19:40:43 | Info | Type=Implicit, Tier=0, Name=, Content=+24 to Dexterity and Intelligence (implicit)
+19:40:43 | Info | Type=Prefix, Tier=7, Name=Opalescent, Content=+49 to maximum Mana
+19:40:43 | Info | Type=Suffix, Tier=4, Name=of Plunder, Content=9% increased Rarity of Items found
+19:40:43 | Info | Type=Suffix, Tier=3, Name=of Absorption, Content=Gain 1 Mana per Enemy Killed
+19:40:43 | Info | ----------------------------
+19:40:43 | Info | Type=Implicit, Tier=0, Name=, Content=+24 to Dexterity and Intelligence (implicit)
+19:40:43 | Info | Type=Prefix, Tier=2, Name=Girded, Content=31% increased Armour
+19:40:43 | Info | Type=Prefix, Tier=5, Name=Acrobat's, Content=18% increased Evasion Rating
+19:40:43 | Info | Type=Prefix, Tier=8, Name=Smouldering, Content=Adds 5 to 8 Fire Damage to Attacks
+19:40:43 | Info | Type=Suffix, Tier=4, Name=of the Sage, Content=+35 to Intelligence
+19:40:44 | Info | ----------------------------
+19:40:44 | Info | Type=Implicit, Tier=0, Name=, Content=+24 to Dexterity and Intelligence (implicit)
+19:40:44 | Info | Type=Prefix, Tier=12, Name=Cobalt, Content=+20 to maximum Mana
+19:40:44 | Info | Type=Suffix, Tier=3, Name=of Cinders, Content=14% increased Fire Damage
+19:40:44 | Info | Type=Suffix, Tier=5, Name=of Steadiness, Content=+94 to Accuracy Rating
+19:40:44 | Info | ----------------------------
+19:40:44 | Info | Type=Implicit, Tier=0, Name=, Content=+24 to Dexterity and Intelligence (implicit)
+19:40:44 | Info | Type=Prefix, Tier=5, Name=Blazing, Content=+29 to maximum Energy Shield
+19:40:44 | Info | Type=Prefix, Tier=1, Name=Rimedweller's, Content=+1 to Level of all Cold Skill Gems
+19:40:44 | Info | Type=Suffix, Tier=3, Name=of the Leviathan, Content=+41 to Strength
+19:40:45 | Info | ----------------------------
+19:40:45 | Info | Type=Implicit, Tier=0, Name=, Content=+24 to Dexterity and Intelligence (implicit)
+19:40:45 | Info | Type=Prefix, Tier=3, Name=Dauntless, Content=15% increased maximum Energy Shield
+19:40:45 | Info | Type=Suffix, Tier=4, Name=of the Kaleidoscope, Content=+11% to all Elemental Resistances
+19:40:45 | Info | Type=Suffix, Tier=3, Name=of the Savant, Content=+42 to Intelligence
+19:40:45 | Info | ----------------------------
+19:40:45 | Info | Type=Implicit, Tier=0, Name=, Content=+24 to Dexterity and Intelligence (implicit)
+19:40:45 | Info | Type=Prefix, Tier=5, Name=Chanter's, Content=6% increased Spell Damage
+19:40:45 | Info | Type=Prefix, Tier=4, Name=Mazarine, Content=+61 to maximum Mana
+19:40:45 | Info | Type=Prefix, Tier=5, Name=Resolute, Content=10% increased maximum Energy Shield
+19:40:45 | Info | ----------------------------
+19:40:45 | Info | Type=Implicit, Tier=0, Name=, Content=+24 to Dexterity and Intelligence (implicit)
+19:40:45 | Info | Type=Prefix, Tier=3, Name=Blue, Content=+68 to maximum Mana
+19:40:45 | Info | Type=Prefix, Tier=9, Name=Glinting, Content=Adds 1 to 2 Physical Damage to Attacks
+19:40:45 | Info | Type=Prefix, Tier=4, Name=Magpie's, Content=12% increased Rarity of Items found
+19:40:45 | Info | Type=Suffix, Tier=4, Name=of the Hydra, Content=Regenerate 25(24.1-32) Life per second
+19:40:46 | Info | ----------------------------
+19:40:46 | Info | Type=Implicit, Tier=0, Name=, Content=+24 to Dexterity and Intelligence (implicit)
+19:40:46 | Info | Type=Prefix, Tier=11, Name=Azure, Content=+25 to maximum Mana
+19:40:46 | Info | Type=Prefix, Tier=7, Name=Icy, Content=Adds 7 to 12 Cold Damage to Attacks
+19:40:46 | Info | Type=Suffix, Tier=5, Name=of the Kiln, Content=+24% to Fire Resistance
+19:40:46 | Info | Type=Suffix, Tier=1, Name=of the Genius, Content=+55 to Intelligence
+19:40:46 | Info | ----------------------------
+19:40:46 | Info | Type=Implicit, Tier=0, Name=, Content=+24 to Dexterity and Intelligence (implicit)
+19:40:46 | Info | Type=Prefix, Tier=6, Name=Strong-Willed, Content=5% increased maximum Energy Shield
+19:40:46 | Info | Type=Prefix, Tier=8, Name=Radiating, Content=+16 to maximum Energy Shield
+19:40:46 | Info | Type=Suffix, Tier=8, Name=of the Newt, Content=Regenerate 1.1 Life per second
+19:40:46 | Info | Type=Suffix, Tier=9, Name=of the Pupil, Content=+12 to Intelligence
+19:40:47 | Info | ----------------------------
+19:40:47 | Info | Type=Implicit, Tier=0, Name=, Content=+24 to Dexterity and Intelligence (implicit)
+19:40:47 | Info | Type=Prefix, Tier=7, Name=Agile, Content=8% increased Evasion Rating
+19:40:47 | Info | Type=Prefix, Tier=1, Name=Stormbrewer's, Content=+1 to Level of all Lightning Skill Gems
+19:40:47 | Info | Type=Prefix, Tier=6, Name=Honed, Content=Adds 5 to 10 Physical Damage to Attacks
+19:40:47 | Info | Type=Suffix, Tier=6, Name=of Needling, Content=13% increased Global Critical Strike Chance
+19:40:47 | Info | ----------------------------
+19:40:47 | Info | Type=Implicit, Tier=0, Name=, Content=+24 to Dexterity and Intelligence (implicit)
+19:40:47 | Info | Type=Prefix, Tier=1, Name=Impregnable, Content=34% increased Armour
+19:40:47 | Info | Type=Prefix, Tier=7, Name=Sanguine, Content=+30 to maximum Life
+19:40:47 | Info | Type=Prefix, Tier=9, Name=Glinting, Content=Adds 1 to 2 Physical Damage to Attacks
+19:40:47 | Info | Type=Suffix, Tier=6, Name=of Needling, Content=12% increased Global Critical Strike Chance
+19:40:47 | Info | Type=Suffix, Tier=7, Name=of the Lizard, Content=Regenerate 6(2.1-8) Life per second
+19:40:47 | Info | ----------------------------
+19:40:47 | Info | Type=Implicit, Tier=0, Name=, Content=+24 to Dexterity and Intelligence (implicit)
+19:40:47 | Info | Type=Prefix, Tier=5, Name=Flaming, Content=Adds 9 to 22 Fire Damage to Attacks
+19:40:47 | Info | Type=Prefix, Tier=3, Name=Dauntless, Content=15% increased maximum Energy Shield
+19:40:47 | Info | Type=Suffix, Tier=2, Name=of Victory, Content=Gain 7 Life per Enemy Killed
+19:40:48 | Info | ----------------------------
+19:40:48 | Info | Type=Implicit, Tier=0, Name=, Content=+24 to Dexterity and Intelligence (implicit)
+19:40:48 | Info | Type=Prefix, Tier=3, Name=Pirate's, Content=13% increased Rarity of Items found
+19:40:48 | Info | Type=Prefix, Tier=5, Name=Acrobat's, Content=15% increased Evasion Rating
+19:40:48 | Info | Type=Suffix, Tier=8, Name=of the Student, Content=+17 to Intelligence
+19:40:48 | Info | ----------------------------
+19:40:48 | Info | Type=Implicit, Tier=0, Name=, Content=+24 to Dexterity and Intelligence (implicit)
+19:40:48 | Info | Type=Prefix, Tier=4, Name=Mazarine, Content=+63 to maximum Mana
+19:40:48 | Info | Type=Prefix, Tier=9, Name=Glowing, Content=+14 to maximum Energy Shield
+19:40:48 | Info | Type=Suffix, Tier=2, Name=of the Lightning, Content=+43% to Lightning Resistance
+19:40:49 | Info | ----------------------------
+19:40:49 | Info | Type=Implicit, Tier=0, Name=, Content=+24 to Dexterity and Intelligence (implicit)
+19:40:49 | Info | Type=Prefix, Tier=7, Name=Protective, Content=3% increased maximum Energy Shield
+19:40:49 | Info | Type=Prefix, Tier=1, Name=Ultramarine, Content=+74 to maximum Mana
+19:40:49 | Info | Type=Suffix, Tier=5, Name=of the Kiln, Content=+27% to Fire Resistance
+19:40:49 | Info | Type=Suffix, Tier=5, Name=of the Starfish, Content=Regenerate 22.1(16.1-24) Life per second
+19:40:49 | Info | ----------------------------
+19:40:49 | Info | Type=Implicit, Tier=0, Name=, Content=+24 to Dexterity and Intelligence (implicit)
+19:40:49 | Info | Type=Prefix, Tier=4, Name=Robust, Content=+81 to maximum Life
+19:40:49 | Info | Type=Prefix, Tier=1, Name=Perandus', Content=26% increased Rarity of Items found
+19:40:49 | Info | Type=Suffix, Tier=3, Name=of Nimbleness, Content=12% increased Cast Speed
+19:40:49 | Info | Type=Suffix, Tier=5, Name=of the Heavens, Content=+18 to all Attributes
+(Attributes are Strength, Dexterity, and Intelligence)
+19:40:49 | Info | ----------------------------
+19:40:49 | Info | Type=Implicit, Tier=0, Name=, Content=+24 to Dexterity and Intelligence (implicit)
+19:40:49 | Info | Type=Prefix, Tier=5, Name=Chalybeous, Content=+56 to maximum Mana
+19:40:49 | Info | Type=Prefix, Tier=4, Name=Mage's, Content=8% increased Spell Damage
+19:40:49 | Info | Type=Suffix, Tier=6, Name=of the Crystal, Content=+3% to all Elemental Resistances
+19:40:49 | Info | Type=Suffix, Tier=1, Name=of Tzteosh, Content=+47% to Fire Resistance
+19:40:50 | Info | ----------------------------
+19:40:50 | Info | Type=Implicit, Tier=0, Name=, Content=+24 to Dexterity and Intelligence (implicit)
+19:40:50 | Info | Type=Prefix, Tier=4, Name=Magpie's, Content=11% increased Rarity of Items found
+19:40:50 | Info | Type=Prefix, Tier=5, Name=Resolute, Content=9% increased maximum Energy Shield
+19:40:50 | Info | Type=Prefix, Tier=4, Name=Scintillating, Content=+37 to maximum Energy Shield
+19:40:50 | Info | ----------------------------
+19:40:50 | Info | Type=Implicit, Tier=0, Name=, Content=+24 to Dexterity and Intelligence (implicit)
+19:40:50 | Info | Type=Prefix, Tier=1, Name=Impregnable, Content=36% increased Armour
+19:40:50 | Info | Type=Prefix, Tier=3, Name=Rotund, Content=+94 to maximum Life
+19:40:50 | Info | Type=Suffix, Tier=7, Name=of the Bear, Content=+20 to Strength
+19:40:51 | Info | ----------------------------
+19:40:51 | Info | Type=Implicit, Tier=0, Name=, Content=+24 to Dexterity and Intelligence (implicit)
+19:40:51 | Info | Type=Prefix, Tier=4, Name=Annealed, Content=Adds 9 to 14 Physical Damage to Attacks
+19:40:51 | Info | Type=Suffix, Tier=1, Name=of the Genius, Content=+51 to Intelligence
+19:40:51 | Info | Type=Suffix, Tier=1, Name=of the Wind, Content=+52 to Dexterity
+19:40:51 | Info | ----------------------------
+19:40:51 | Info | Type=Implicit, Tier=0, Name=, Content=+24 to Dexterity and Intelligence (implicit)
+19:40:51 | Info | Type=Prefix, Tier=6, Name=Honed, Content=Adds 4 to 10 Physical Damage to Attacks
+19:40:51 | Info | Type=Prefix, Tier=9, Name=Cerulean, Content=+39 to maximum Mana
+19:40:51 | Info | Type=Suffix, Tier=4, Name=of Piercing, Content=22% increased Global Critical Strike Chance
+19:40:51 | Info | ----------------------------
+19:40:51 | Info | Type=Implicit, Tier=0, Name=, Content=+24 to Dexterity and Intelligence (implicit)
+19:40:51 | Info | Type=Prefix, Tier=1, Name=Dazzling, Content=+49 to maximum Energy Shield
+19:40:51 | Info | Type=Prefix, Tier=13, Name=Beryl, Content=+19 to maximum Mana
+19:40:51 | Info | Type=Suffix, Tier=2, Name=of the Titan, Content=+47 to Strength
+19:40:51 | Info | Type=Suffix, Tier=6, Name=of the Penguin, Content=+19% to Cold Resistance
+19:40:52 | Info | ----------------------------
+19:40:52 | Info | Type=Implicit, Tier=0, Name=, Content=+24 to Dexterity and Intelligence (implicit)
+19:40:52 | Info | Type=Prefix, Tier=8, Name=Burnished, Content=Adds 2 to 4 Physical Damage to Attacks
+19:40:52 | Info | Type=Prefix, Tier=1, Name=Ultramarine, Content=+74 to maximum Mana
+19:40:52 | Info | Type=Prefix, Tier=12, Name=Shining, Content=+1 to maximum Energy Shield
+19:40:52 | Info | Type=Suffix, Tier=5, Name=of the Kiln, Content=+26% to Fire Resistance
+19:40:52 | Info | ----------------------------
+19:40:52 | Info | Type=Implicit, Tier=0, Name=, Content=+24 to Dexterity and Intelligence (implicit)
+19:40:52 | Info | Type=Prefix, Tier=11, Name=Azure, Content=+25 to maximum Mana
+19:40:52 | Info | Type=Prefix, Tier=6, Name=Stalwart, Content=+50 to maximum Life
+19:40:52 | Info | Type=Suffix, Tier=1, Name=of Nirvana, Content=64% increased Mana Regeneration Rate
+19:40:53 | Info | ----------------------------
+19:40:53 | Info | Type=Implicit, Tier=0, Name=, Content=+24 to Dexterity and Intelligence (implicit)
+19:40:53 | Info | Type=Prefix, Tier=5, Name=Lobstered, Content=18% increased Armour
+19:40:53 | Info | Type=Prefix, Tier=10, Name=Glittering, Content=+12 to maximum Energy Shield
+19:40:53 | Info | Type=Suffix, Tier=1, Name=of the Gods, Content=+53 to Strength
+19:40:53 | Info | Type=Suffix, Tier=2, Name=of Restoration, Content=Gain 3 Life per Enemy Hit with Attacks
+19:40:53 | Info | ----------------------------
+19:40:53 | Info | Type=Implicit, Tier=0, Name=, Content=+24 to Dexterity and Intelligence (implicit)
+19:40:53 | Info | Type=Prefix, Tier=3, Name=Unleashed, Content=35% increased Elemental Damage with Attack Skills
+19:40:53 | Info | Type=Prefix, Tier=9, Name=Heated, Content=Adds 1 to 2 Fire Damage to Attacks
+19:40:53 | Info | Type=Suffix, Tier=2, Name=of Voltage, Content=19% increased Lightning Damage
+19:40:54 | Info | ----------------------------
+19:40:54 | Info | Type=Implicit, Tier=0, Name=, Content=+24 to Dexterity and Intelligence (implicit)
+19:40:54 | Info | Type=Prefix, Tier=2, Name=Indomitable, Content=18% increased maximum Energy Shield
+19:40:54 | Info | Type=Prefix, Tier=2, Name=Discharging, Content=Adds 4 to 57 Lightning Damage to Attacks
+19:40:54 | Info | Type=Suffix, Tier=1, Name=of the Ranger, Content=+397 to Accuracy Rating
+19:40:54 | Info | Type=Suffix, Tier=5, Name=of the Starfish, Content=Regenerate 16.1(16.1-24) Life per second
+19:40:54 | Info | ----------------------------
+19:40:54 | Info | Type=Implicit, Tier=0, Name=, Content=+24 to Dexterity and Intelligence (implicit)
+19:40:54 | Info | Type=Prefix, Tier=4, Name=Frozen, Content=Adds 11 to 24 Cold Damage to Attacks
+19:40:54 | Info | Type=Prefix, Tier=7, Name=Polished, Content=Adds 4 to 6 Physical Damage to Attacks
+19:40:54 | Info | Type=Suffix, Tier=2, Name=of Euphoria, Content=59% increased Mana Regeneration Rate
+19:40:54 | Info | Type=Suffix, Tier=2, Name=of Penetrating, Content=34% increased Global Critical Strike Chance
+19:40:54 | Info | ----------------------------
+19:40:54 | Info | Type=Implicit, Tier=0, Name=, Content=+24 to Dexterity and Intelligence (implicit)
+19:40:54 | Info | Type=Prefix, Tier=7, Name=Opalescent, Content=+49 to maximum Mana
+19:40:54 | Info | Type=Prefix, Tier=4, Name=Scorching, Content=Adds 12 to 23 Fire Damage to Attacks
+19:40:54 | Info | Type=Prefix, Tier=8, Name=Buzzing, Content=Adds 1 to 14 Lightning Damage to Attacks
+19:40:55 | Info | ----------------------------
+19:40:55 | Info | Type=Implicit, Tier=0, Name=, Content=+24 to Dexterity and Intelligence (implicit)
+19:40:55 | Info | Type=Prefix, Tier=2, Name=Thirsty, Content=0.4(0.2-0.4)% of Physical Attack Damage Leeched as Mana
+(Leeched Mana is recovered over time. Multiple Leeches can occur simultaneously, up to a maximum rate)
+19:40:55 | Info | Type=Suffix, Tier=8, Name=of the Wrestler, Content=+17 to Strength
+19:40:55 | Info | Type=Suffix, Tier=2, Name=of the Lightning, Content=+44% to Lightning Resistance
+19:40:55 | Info | ----------------------------
+19:40:55 | Info | Type=Implicit, Tier=0, Name=, Content=+24 to Dexterity and Intelligence (implicit)
+19:40:55 | Info | Type=Prefix, Tier=6, Name=Burning, Content=Adds 10 to 16 Fire Damage to Attacks
+19:40:55 | Info | Type=Prefix, Tier=6, Name=Dancer's, Content=11% increased Evasion Rating
+19:40:55 | Info | Type=Suffix, Tier=3, Name=of the Leviathan, Content=+41 to Strength
+19:40:56 | Info | ----------------------------
+19:40:56 | Info | Type=Implicit, Tier=0, Name=, Content=+24 to Dexterity and Intelligence (implicit)
+19:40:56 | Info | Type=Prefix, Tier=1, Name=Wizard's, Content=26% increased Spell Damage
+19:40:56 | Info | Type=Prefix, Tier=2, Name=Indomitable, Content=17% increased maximum Energy Shield
+19:40:56 | Info | Type=Prefix, Tier=1, Name=Parched, Content=0.63(0.6-0.8)% of Physical Attack Damage Leeched as Mana
+(Leeched Mana is recovered over time. Multiple Leeches can occur simultaneously, up to a maximum rate)
+19:40:56 | Info | Type=Suffix, Tier=7, Name=of the Squall, Content=+15% to Lightning Resistance
+19:40:56 | Info | ----------------------------
+19:40:56 | Info | Type=Implicit, Tier=0, Name=, Content=+24 to Dexterity and Intelligence (implicit)
+19:40:56 | Info | Type=Prefix, Tier=7, Name=Opalescent, Content=+46 to maximum Mana
+19:40:56 | Info | Type=Suffix, Tier=2, Name=of Victory, Content=Gain 8 Life per Enemy Killed
+19:40:56 | Info | Type=Suffix, Tier=3, Name=of the Universe, Content=+28 to all Attributes
+(Attributes are Strength, Dexterity, and Intelligence)
+19:40:56 | Info | ----------------------------
+19:40:56 | Info | Type=Implicit, Tier=0, Name=, Content=+24 to Dexterity and Intelligence (implicit)
+19:40:56 | Info | Type=Prefix, Tier=10, Name=Glittering, Content=+12 to maximum Energy Shield
+19:40:56 | Info | Type=Suffix, Tier=1, Name=of the Gods, Content=+52 to Strength
+19:40:56 | Info | Type=Suffix, Tier=1, Name=of the Ranger, Content=+381 to Accuracy Rating
+19:40:57 | Info | ----------------------------
+19:40:57 | Info | Type=Implicit, Tier=0, Name=, Content=+24 to Dexterity and Intelligence (implicit)
+19:40:57 | Info | Type=Prefix, Tier=4, Name=Scintillating, Content=+35 to maximum Energy Shield
+19:40:57 | Info | Type=Prefix, Tier=4, Name=Robust, Content=+76 to maximum Life
+19:40:57 | Info | Type=Suffix, Tier=2, Name=of the Infinite, Content=+31 to all Attributes
+(Attributes are Strength, Dexterity, and Intelligence)
+19:40:57 | Info | Type=Suffix, Tier=3, Name=of Raiding, Content=13% increased Rarity of Items found
+19:40:57 | Info | ----------------------------
+19:40:57 | Info | Type=Implicit, Tier=0, Name=, Content=+24 to Dexterity and Intelligence (implicit)
+19:40:57 | Info | Type=Prefix, Tier=8, Name=Radiating, Content=+18 to maximum Energy Shield
+19:40:57 | Info | Type=Prefix, Tier=3, Name=Shocking, Content=Adds 5 to 49 Lightning Damage to Attacks
+19:40:57 | Info | Type=Suffix, Tier=3, Name=of the Jaguar, Content=+40 to Dexterity
+19:40:58 | Info | ----------------------------
+19:40:58 | Info | Type=Implicit, Tier=0, Name=, Content=+24 to Dexterity and Intelligence (implicit)
+19:40:58 | Info | Type=Prefix, Tier=11, Name=Azure, Content=+26 to maximum Mana
+19:40:58 | Info | Type=Prefix, Tier=5, Name=Blazing, Content=+27 to maximum Energy Shield
+19:40:58 | Info | Type=Prefix, Tier=4, Name=Mage's, Content=9% increased Spell Damage
+19:40:58 | Info | ----------------------------
+19:40:58 | Info | Type=Implicit, Tier=0, Name=, Content=+24 to Dexterity and Intelligence (implicit)
+19:40:58 | Info | Type=Prefix, Tier=10, Name=Glittering, Content=+12 to maximum Energy Shield
+19:40:58 | Info | Type=Prefix, Tier=9, Name=Hale, Content=+7 to maximum Life
+19:40:58 | Info | Type=Suffix, Tier=5, Name=of the Yeti, Content=+24% to Cold Resistance
+19:40:58 | Info | ----------------------------
+19:40:58 | Info | Type=Implicit, Tier=0, Name=, Content=+24 to Dexterity and Intelligence (implicit)
+19:40:58 | Info | Type=Prefix, Tier=5, Name=Chanter's, Content=4% increased Spell Damage
+19:40:58 | Info | Type=Suffix, Tier=1, Name=of Haast, Content=+48% to Cold Resistance
+19:40:58 | Info | Type=Suffix, Tier=2, Name=of the Magma, Content=+45% to Fire Resistance
+19:40:59 | Info | ----------------------------
+19:40:59 | Info | Type=Implicit, Tier=0, Name=, Content=+24 to Dexterity and Intelligence (implicit)
+19:40:59 | Info | Type=Prefix, Tier=3, Name=Incandescent, Content=+38 to maximum Energy Shield
+19:40:59 | Info | Type=Suffix, Tier=2, Name=of Rime, Content=21% increased Cold Damage
+19:40:59 | Info | Type=Suffix, Tier=1, Name=of Regrowth, Content=Gain 4 Life per Enemy Hit with Attacks
+19:40:59 | Info | ----------------------------
+19:40:59 | Info | Type=Implicit, Tier=0, Name=, Content=+24 to Dexterity and Intelligence (implicit)
+19:40:59 | Info | Type=Prefix, Tier=4, Name=Fleet, Content=19% increased Evasion Rating
+19:40:59 | Info | Type=Prefix, Tier=9, Name=Glinting, Content=Adds 1 to 2 Physical Damage to Attacks
+19:40:59 | Info | Type=Suffix, Tier=6, Name=of the Flatworm, Content=Regenerate 12.1(8.1-16) Life per second
+19:40:59 | Info | Type=Suffix, Tier=6, Name=of the Comet, Content=+16 to all Attributes
+(Attributes are Strength, Dexterity, and Intelligence)
+19:41:00 | Info | ----------------------------
+19:41:00 | Info | Type=Implicit, Tier=0, Name=, Content=+24 to Dexterity and Intelligence (implicit)
+19:41:00 | Info | Type=Prefix, Tier=7, Name=Reinforced, Content=4% increased Armour
+19:41:00 | Info | Type=Prefix, Tier=7, Name=Agile, Content=4% increased Evasion Rating
+19:41:00 | Info | Type=Prefix, Tier=6, Name=Strong-Willed, Content=5% increased maximum Energy Shield
+19:41:00 | Info | ----------------------------
+19:41:00 | Info | Type=Implicit, Tier=0, Name=, Content=+24 to Dexterity and Intelligence (implicit)
+19:41:00 | Info | Type=Prefix, Tier=4, Name=Buttressed, Content=21% increased Armour
+19:41:00 | Info | Type=Suffix, Tier=4, Name=of the Leopard, Content=+33 to Dexterity
+19:41:00 | Info | Type=Suffix, Tier=1, Name=of Legerdemain, Content=19% increased Cast Speed
+19:41:00 | Info | ----------------------------
+19:41:00 | Info | Type=Implicit, Tier=0, Name=, Content=+24 to Dexterity and Intelligence (implicit)
+19:41:00 | Info | Type=Prefix, Tier=7, Name=Sanguine, Content=+31 to maximum Life
+19:41:00 | Info | Type=Prefix, Tier=6, Name=Seething, Content=+26 to maximum Energy Shield
+19:41:00 | Info | Type=Suffix, Tier=2, Name=of Osmosis, Content=Gain 2 Mana per Enemy Killed
+19:41:01 | Info | ----------------------------
+19:41:01 | Info | Type=Implicit, Tier=0, Name=, Content=+24 to Dexterity and Intelligence (implicit)
+19:41:01 | Info | Type=Prefix, Tier=3, Name=Razor-sharp, Content=Adds 7 to 15 Physical Damage to Attacks
+19:41:01 | Info | Type=Prefix, Tier=10, Name=Glittering, Content=+12 to maximum Energy Shield
+19:41:01 | Info | Type=Suffix, Tier=7, Name=of the Fox, Content=+21 to Dexterity
+19:41:01 | Info | Type=Suffix, Tier=5, Name=of the Yeti, Content=+28% to Cold Resistance
+19:41:01 | Info | ----------------------------
+19:41:01 | Info | Type=Implicit, Tier=0, Name=, Content=+24 to Dexterity and Intelligence (implicit)
+19:41:01 | Info | Type=Prefix, Tier=6, Name=Stalwart, Content=+43 to maximum Life
+19:41:01 | Info | Type=Suffix, Tier=7, Name=of the Lizard, Content=Regenerate 6.1(2.1-8) Life per second
+19:41:01 | Info | Type=Suffix, Tier=3, Name=of Bliss, Content=40% increased Mana Regeneration Rate
+19:41:02 | Info | ----------------------------
+19:41:02 | Info | Type=Implicit, Tier=0, Name=, Content=+24 to Dexterity and Intelligence (implicit)
+19:41:02 | Info | Type=Prefix, Tier=8, Name=Healthy, Content=+15 to maximum Life
+19:41:02 | Info | Type=Prefix, Tier=7, Name=Protective, Content=3% increased maximum Energy Shield
+19:41:02 | Info | Type=Suffix, Tier=6, Name=of the Lion, Content=+26 to Strength
+19:41:02 | Info | Type=Suffix, Tier=4, Name=of the Hydra, Content=Regenerate 29.2(24.1-32) Life per second
+19:41:02 | Info | ----------------------------
+19:41:02 | Info | Type=Implicit, Tier=0, Name=, Content=+24 to Dexterity and Intelligence (implicit)
+19:41:02 | Info | Type=Prefix, Tier=8, Name=Healthy, Content=+10 to maximum Life
+19:41:02 | Info | Type=Suffix, Tier=5, Name=of the Thunderhead, Content=+24% to Lightning Resistance
+19:41:02 | Info | Type=Suffix, Tier=3, Name=of Electricity, Content=15% increased Lightning Damage
+19:41:02 | Info | ----------------------------
+19:41:02 | Info | Type=Implicit, Tier=0, Name=, Content=+24 to Dexterity and Intelligence (implicit)
+19:41:02 | Info | Type=Prefix, Tier=4, Name=Robust, Content=+73 to maximum Life
+19:41:02 | Info | Type=Suffix, Tier=6, Name=of the Augur, Content=+24 to Intelligence
+19:41:02 | Info | Type=Suffix, Tier=2, Name=of Ryslatha, Content=Regenerate 62.3(48.1-64) Life per second
+19:41:03 | Info | ----------------------------
+19:41:03 | Info | Type=Implicit, Tier=0, Name=, Content=+24 to Dexterity and Intelligence (implicit)
+19:41:03 | Info | Type=Prefix, Tier=4, Name=Mazarine, Content=+60 to maximum Mana
+19:41:03 | Info | Type=Prefix, Tier=4, Name=Scorching, Content=Adds 15 to 26 Fire Damage to Attacks
+19:41:03 | Info | Type=Suffix, Tier=3, Name=of Bliss, Content=45% increased Mana Regeneration Rate
+19:41:03 | Info | ----------------------------
+19:41:03 | Info | Type=Implicit, Tier=0, Name=, Content=+24 to Dexterity and Intelligence (implicit)
+19:41:03 | Info | Type=Prefix, Tier=6, Name=Layered, Content=9% increased Armour
+19:41:03 | Info | Type=Prefix, Tier=9, Name=Hale, Content=+6 to maximum Life
+19:41:03 | Info | Type=Prefix, Tier=4, Name=Annealed, Content=Adds 6 to 14 Physical Damage to Attacks
+19:41:03 | Info | Type=Suffix, Tier=2, Name=of the Ice, Content=+44% to Cold Resistance
+19:41:03 | Info | Type=Suffix, Tier=5, Name=of the Philosopher, Content=+31 to Intelligence
+19:41:04 | Info | ----------------------------
+19:41:04 | Info | Type=Implicit, Tier=0, Name=, Content=+24 to Dexterity and Intelligence (implicit)
+19:41:04 | Info | Type=Prefix, Tier=2, Name=Thirsty, Content=0.39(0.2-0.4)% of Physical Attack Damage Leeched as Mana
+(Leeched Mana is recovered over time. Multiple Leeches can occur simultaneously, up to a maximum rate)
+19:41:04 | Info | Type=Prefix, Tier=5, Name=Chalybeous, Content=+55 to maximum Mana
+19:41:04 | Info | Type=Suffix, Tier=7, Name=of the Bear, Content=+20 to Strength
+19:41:04 | Info | ----------------------------
+19:41:04 | Info | Type=Implicit, Tier=0, Name=, Content=+24 to Dexterity and Intelligence (implicit)
+19:41:04 | Info | Type=Prefix, Tier=9, Name=Glinting, Content=Adds 1 to 2 Physical Damage to Attacks
+19:41:04 | Info | Type=Suffix, Tier=3, Name=of Success, Content=Gain 4 Life per Enemy Killed
+19:41:04 | Info | Type=Suffix, Tier=5, Name=of Sparks, Content=6% increased Lightning Damage
+19:41:04 | Info | ----------------------------
+19:41:04 | Info | Type=Implicit, Tier=0, Name=, Content=+24 to Dexterity and Intelligence (implicit)
+19:41:04 | Info | Type=Prefix, Tier=11, Name=Glimmering, Content=+7 to maximum Energy Shield
+19:41:04 | Info | Type=Prefix, Tier=6, Name=Burning, Content=Adds 8 to 17 Fire Damage to Attacks
+19:41:04 | Info | Type=Suffix, Tier=7, Name=of the Meteor, Content=+10 to all Attributes
+(Attributes are Strength, Dexterity, and Intelligence)
+19:41:05 | Info | ----------------------------
+19:41:05 | Info | Type=Implicit, Tier=0, Name=, Content=+24 to Dexterity and Intelligence (implicit)
+19:41:05 | Info | Type=Prefix, Tier=4, Name=Annealed, Content=Adds 8 to 13 Physical Damage to Attacks
+19:41:05 | Info | Type=Suffix, Tier=1, Name=of Excavation, Content=25% increased Rarity of Items found
+19:41:05 | Info | Type=Suffix, Tier=6, Name=of the Comet, Content=+13 to all Attributes
+(Attributes are Strength, Dexterity, and Intelligence)
+19:41:05 | Info | ----------------------------
+19:41:05 | Info | Type=Implicit, Tier=0, Name=, Content=+24 to Dexterity and Intelligence (implicit)
+19:41:05 | Info | Type=Prefix, Tier=7, Name=Pulsing, Content=+20 to maximum Energy Shield
+19:41:05 | Info | Type=Prefix, Tier=4, Name=Buttressed, Content=21% increased Armour
+19:41:05 | Info | Type=Suffix, Tier=6, Name=of Excitement, Content=18% increased Mana Regeneration Rate
+19:41:05 | Info | Type=Suffix, Tier=2, Name=of Ryslatha, Content=Regenerate 61(48.1-64) Life per second
+19:41:06 | Info | ----------------------------
+19:41:06 | Info | Type=Implicit, Tier=0, Name=, Content=+24 to Dexterity and Intelligence (implicit)
+19:41:06 | Info | Type=Prefix, Tier=4, Name=Mage's, Content=9% increased Spell Damage
+19:41:06 | Info | Type=Suffix, Tier=1, Name=of Dissolution, Content=+26% to Damage over Time Multiplier
+19:41:06 | Info | Type=Suffix, Tier=5, Name=of the Yeti, Content=+25% to Cold Resistance
+19:41:06 | Info | ----------------------------
+19:41:06 | Info | Type=Implicit, Tier=0, Name=, Content=+24 to Dexterity and Intelligence (implicit)
+19:41:06 | Info | Type=Prefix, Tier=13, Name=Beryl, Content=+19 to maximum Mana
+19:41:06 | Info | Type=Prefix, Tier=4, Name=Empowering, Content=29% increased Elemental Damage with Attack Skills
+19:41:06 | Info | Type=Suffix, Tier=5, Name=of the Heavens, Content=+19 to all Attributes
+(Attributes are Strength, Dexterity, and Intelligence)
+19:41:06 | Info | ----------------------------
+19:41:06 | Info | Type=Implicit, Tier=0, Name=, Content=+24 to Dexterity and Intelligence (implicit)
+19:41:06 | Info | Type=Prefix, Tier=6, Name=Frigid, Content=Adds 8 to 14 Cold Damage to Attacks
+19:41:06 | Info | Type=Suffix, Tier=4, Name=of Coals, Content=8% increased Fire Damage
+19:41:06 | Info | Type=Suffix, Tier=1, Name=of the Span, Content=+17% to all Elemental Resistances
+19:41:07 | Info | ----------------------------
+19:41:07 | Info | Type=Implicit, Tier=0, Name=, Content=+24 to Dexterity and Intelligence (implicit)
+19:41:07 | Info | Type=Prefix, Tier=3, Name=Blurred, Content=28% increased Evasion Rating
+19:41:07 | Info | Type=Suffix, Tier=1, Name=of Tzteosh, Content=+48% to Fire Resistance
+19:41:07 | Info | Type=Suffix, Tier=1, Name=of Nirvana, Content=69% increased Mana Regeneration Rate
+19:41:07 | Info | ----------------------------
+19:41:07 | Info | Type=Implicit, Tier=0, Name=, Content=+24 to Dexterity and Intelligence (implicit)
+19:41:07 | Info | Type=Prefix, Tier=2, Name=Thaumaturgist's, Content=18% increased Spell Damage
+19:41:07 | Info | Type=Prefix, Tier=2, Name=Dragon's, Content=20% increased Rarity of Items found
+19:41:07 | Info | Type=Suffix, Tier=3, Name=of the Volcano, Content=+40% to Fire Resistance
+19:41:08 | Info | ----------------------------
+19:41:08 | Info | Type=Implicit, Tier=0, Name=, Content=+24 to Dexterity and Intelligence (implicit)
+19:41:08 | Info | Type=Prefix, Tier=1, Name=Athlete's, Content=+125 to maximum Life
+19:41:08 | Info | Type=Prefix, Tier=1, Name=Ultramarine, Content=+77 to maximum Mana
+19:41:08 | Info | Type=Suffix, Tier=4, Name=of Plunder, Content=10% increased Rarity of Items found
+19:41:08 | Info | Type=Suffix, Tier=6, Name=of the Penguin, Content=+18% to Cold Resistance
+19:41:08 | Info | ----------------------------
+19:41:08 | Info | Type=Implicit, Tier=0, Name=, Content=+24 to Dexterity and Intelligence (implicit)
+19:41:08 | Info | Type=Prefix, Tier=3, Name=Razor-sharp, Content=Adds 10 to 17 Physical Damage to Attacks
+19:41:08 | Info | Type=Prefix, Tier=5, Name=Lobstered, Content=18% increased Armour
+19:41:08 | Info | Type=Suffix, Tier=3, Name=of Rejuvenation, Content=Gain 2 Life per Enemy Hit with Attacks
+19:41:08 | Info | Type=Suffix, Tier=5, Name=of Steadiness, Content=+89 to Accuracy Rating
+19:41:09 | Info | ----------------------------
+19:41:09 | Info | Type=Implicit, Tier=0, Name=, Content=+24 to Dexterity and Intelligence (implicit)
+19:41:09 | Info | Type=Prefix, Tier=6, Name=Layered, Content=9% increased Armour
+19:41:09 | Info | Type=Prefix, Tier=1, Name=Vaporous, Content=34% increased Evasion Rating
+19:41:09 | Info | Type=Prefix, Tier=1, Name=Wizard's, Content=26% increased Spell Damage
+19:41:09 | Info | Type=Suffix, Tier=2, Name=of Euphoria, Content=56% increased Mana Regeneration Rate
+19:41:09 | Info | ----------------------------
+19:41:09 | Info | Type=Implicit, Tier=0, Name=, Content=+24 to Dexterity and Intelligence (implicit)
+19:41:09 | Info | Type=Prefix, Tier=8, Name=Aqua, Content=+42 to maximum Mana
+19:41:09 | Info | Type=Prefix, Tier=6, Name=Crackling, Content=Adds 1 to 28 Lightning Damage to Attacks
+19:41:09 | Info | Type=Suffix, Tier=3, Name=of the Jaguar, Content=+39 to Dexterity
+19:41:09 | Info | Type=Suffix, Tier=2, Name=of the Virtuoso, Content=+49 to Intelligence
+19:41:09 | Info | ----------------------------
+19:41:09 | Info | Type=Implicit, Tier=0, Name=, Content=+24 to Dexterity and Intelligence (implicit)
+19:41:09 | Info | Type=Prefix, Tier=9, Name=Hale, Content=+3 to maximum Life
+19:41:09 | Info | Type=Suffix, Tier=1, Name=of Bameth, Content=+34% to Chaos Resistance
+19:41:09 | Info | Type=Suffix, Tier=5, Name=of Stinging, Content=15% increased Global Critical Strike Chance
+19:41:10 | Info | ----------------------------
+19:41:10 | Info | Type=Implicit, Tier=0, Name=, Content=+24 to Dexterity and Intelligence (implicit)
+19:41:10 | Info | Type=Prefix, Tier=12, Name=Cobalt, Content=+21 to maximum Mana
+19:41:10 | Info | Type=Prefix, Tier=4, Name=Arcing, Content=Adds 3 to 42 Lightning Damage to Attacks
+19:41:10 | Info | Type=Suffix, Tier=3, Name=of the Maelstrom, Content=+36% to Lightning Resistance
+19:41:10 | Info | Type=Suffix, Tier=5, Name=of the Philosopher, Content=+31 to Intelligence
+19:41:10 | Info | ----------------------------
+19:41:10 | Info | Type=Implicit, Tier=0, Name=, Content=+24 to Dexterity and Intelligence (implicit)
+19:41:10 | Info | Type=Prefix, Tier=4, Name=Arcing, Content=Adds 1 to 41 Lightning Damage to Attacks
+19:41:10 | Info | Type=Suffix, Tier=2, Name=of Penetrating, Content=33% increased Global Critical Strike Chance
+19:41:10 | Info | Type=Suffix, Tier=8, Name=of the Cloud, Content=+8% to Lightning Resistance
+19:41:11 | Info | ----------------------------
+19:41:11 | Info | Type=Implicit, Tier=0, Name=, Content=+24 to Dexterity and Intelligence (implicit)
+19:41:11 | Info | Type=Prefix, Tier=9, Name=Humming, Content=Adds 1 to 5 Lightning Damage to Attacks
+19:41:11 | Info | Type=Prefix, Tier=4, Name=Fleet, Content=23% increased Evasion Rating
+19:41:11 | Info | Type=Prefix, Tier=3, Name=Glaciated, Content=Adds 15 to 27 Cold Damage to Attacks
+19:41:11 | Info | Type=Suffix, Tier=4, Name=of Plunder, Content=8% increased Rarity of Items found
+19:41:11 | Info | Type=Suffix, Tier=2, Name=of Ryslatha, Content=Regenerate 56.2(48.1-64) Life per second
+19:41:11 | Info | ----------------------------
+19:41:11 | Info | Type=Implicit, Tier=0, Name=, Content=+24 to Dexterity and Intelligence (implicit)
+19:41:11 | Info | Type=Prefix, Tier=4, Name=Mazarine, Content=+62 to maximum Mana
+19:41:11 | Info | Type=Suffix, Tier=3, Name=of Expulsion, Content=+23% to Chaos Resistance
+19:41:11 | Info | Type=Suffix, Tier=6, Name=of the Storm, Content=+19% to Lightning Resistance
+19:41:11 | Info | ----------------------------
+19:41:11 | Info | Type=Implicit, Tier=0, Name=, Content=+24 to Dexterity and Intelligence (implicit)
+19:41:11 | Info | Type=Prefix, Tier=2, Name=Phased, Content=29% increased Evasion Rating
+19:41:11 | Info | Type=Prefix, Tier=10, Name=Glittering, Content=+11 to maximum Energy Shield
+19:41:11 | Info | Type=Prefix, Tier=1, Name=Parched, Content=0.74(0.6-0.8)% of Physical Attack Damage Leeched as Mana
+(Leeched Mana is recovered over time. Multiple Leeches can occur simultaneously, up to a maximum rate)
+19:41:12 | Info | ----------------------------
+19:41:12 | Info | Type=Implicit, Tier=0, Name=, Content=+24 to Dexterity and Intelligence (implicit)
+19:41:12 | Info | Type=Prefix, Tier=4, Name=Scorching, Content=Adds 13 to 25 Fire Damage to Attacks
+19:41:12 | Info | Type=Prefix, Tier=4, Name=Frozen, Content=Adds 13 to 20 Cold Damage to Attacks
+19:41:12 | Info | Type=Suffix, Tier=1, Name=of Bameth, Content=+32% to Chaos Resistance
+19:41:12 | Info | Type=Suffix, Tier=1, Name=of the Phoenix, Content=Regenerate 84.6(64.1-96) Life per second
+19:41:12 | Info | ----------------------------
+19:41:12 | Info | Type=Implicit, Tier=0, Name=, Content=+24 to Dexterity and Intelligence (implicit)
+19:41:12 | Info | Type=Prefix, Tier=5, Name=Freezing, Content=Adds 11 to 19 Cold Damage to Attacks
+19:41:12 | Info | Type=Prefix, Tier=10, Name=Sapphire, Content=+34 to maximum Mana
+19:41:12 | Info | Type=Prefix, Tier=6, Name=Stalwart, Content=+51 to maximum Life
+19:41:12 | Info | Type=Suffix, Tier=2, Name=of the Rainbow, Content=+16% to all Elemental Resistances
+19:41:12 | Info | Type=Suffix, Tier=2, Name=of the Ice, Content=+42% to Cold Resistance
+19:41:13 | Info | ----------------------------
+19:41:13 | Info | Type=Implicit, Tier=0, Name=, Content=+24 to Dexterity and Intelligence (implicit)
+19:41:13 | Info | Type=Prefix, Tier=4, Name=Mazarine, Content=+63 to maximum Mana
+19:41:13 | Info | Type=Suffix, Tier=3, Name=of Rejuvenation, Content=Gain 2 Life per Enemy Hit with Attacks
+19:41:13 | Info | Type=Suffix, Tier=3, Name=of Absorption, Content=Gain 1 Mana per Enemy Killed
+19:41:13 | Info | ----------------------------
+19:41:13 | Info | Type=Implicit, Tier=0, Name=, Content=+24 to Dexterity and Intelligence (implicit)
+19:41:13 | Info | Type=Prefix, Tier=10, Name=Sapphire, Content=+30 to maximum Mana
+19:41:13 | Info | Type=Prefix, Tier=7, Name=Pulsing, Content=+21 to maximum Energy Shield
+19:41:13 | Info | Type=Suffix, Tier=2, Name=of the Virtuoso, Content=+46 to Intelligence
+19:41:13 | Info | ----------------------------
+19:41:13 | Info | Type=Implicit, Tier=0, Name=, Content=+24 to Dexterity and Intelligence (implicit)
+19:41:13 | Info | Type=Prefix, Tier=10, Name=Glittering, Content=+11 to maximum Energy Shield
+19:41:13 | Info | Type=Suffix, Tier=7, Name=of the Seal, Content=+12% to Cold Resistance
+19:41:13 | Info | Type=Suffix, Tier=6, Name=of the Falcon, Content=+25 to Dexterity
+19:41:14 | Info | ----------------------------
+19:41:14 | Info | Type=Implicit, Tier=0, Name=, Content=+24 to Dexterity and Intelligence (implicit)
+19:41:14 | Info | Type=Prefix, Tier=3, Name=Remora's, Content=0.22(0.2-0.4)% of Physical Attack Damage Leeched as Life
+(Leeched Life is recovered over time. Multiple Leeches can occur simultaneously, up to a maximum rate)
+19:41:14 | Info | Type=Prefix, Tier=2, Name=Phased, Content=32% increased Evasion Rating
+19:41:14 | Info | Type=Suffix, Tier=3, Name=of Variegation, Content=+12% to all Elemental Resistances
+19:41:14 | Info | Type=Suffix, Tier=6, Name=of Needling, Content=10% increased Global Critical Strike Chance
+19:41:14 | Info | ----------------------------
+19:41:14 | Info | Type=Implicit, Tier=0, Name=, Content=+24 to Dexterity and Intelligence (implicit)
+19:41:14 | Info | Type=Prefix, Tier=5, Name=Resolute, Content=8% increased maximum Energy Shield
+19:41:14 | Info | Type=Prefix, Tier=8, Name=Healthy, Content=+13 to maximum Life
+19:41:14 | Info | Type=Prefix, Tier=3, Name=Blurred, Content=28% increased Evasion Rating
+19:41:15 | Info | ----------------------------
+19:41:15 | Info | Type=Implicit, Tier=0, Name=, Content=+24 to Dexterity and Intelligence (implicit)
+19:41:15 | Info | Type=Prefix, Tier=1, Name=Parched, Content=0.74(0.6-0.8)% of Physical Attack Damage Leeched as Mana
+(Leeched Mana is recovered over time. Multiple Leeches can occur simultaneously, up to a maximum rate)
+19:41:15 | Info | Type=Suffix, Tier=4, Name=of the Sage, Content=+34 to Intelligence
+19:41:15 | Info | Type=Suffix, Tier=3, Name=of Absorption, Content=Gain 1 Mana per Enemy Killed
+19:41:15 | Info | ----------------------------
+19:41:15 | Info | Type=Implicit, Tier=0, Name=, Content=+24 to Dexterity and Intelligence (implicit)
+19:41:15 | Info | Type=Prefix, Tier=6, Name=Dancer's, Content=10% increased Evasion Rating
+19:41:15 | Info | Type=Suffix, Tier=2, Name=of Euphoria, Content=58% increased Mana Regeneration Rate
+19:41:15 | Info | Type=Suffix, Tier=3, Name=of the Leviathan, Content=+42 to Strength
+19:41:15 | Info | ----------------------------
+19:41:15 | Info | Type=Implicit, Tier=0, Name=, Content=+24 to Dexterity and Intelligence (implicit)
+19:41:15 | Info | Type=Prefix, Tier=6, Name=Seething, Content=+26 to maximum Energy Shield
+19:41:15 | Info | Type=Prefix, Tier=3, Name=Blurred, Content=25% increased Evasion Rating
+19:41:15 | Info | Type=Suffix, Tier=5, Name=of the Philosopher, Content=+29 to Intelligence
+19:41:16 | Info | ----------------------------
+19:41:16 | Info | Type=Implicit, Tier=0, Name=, Content=+24 to Dexterity and Intelligence (implicit)
+19:41:16 | Info | Type=Prefix, Tier=5, Name=Acrobat's, Content=14% increased Evasion Rating
+19:41:16 | Info | Type=Prefix, Tier=6, Name=Seething, Content=+26 to maximum Energy Shield
+19:41:16 | Info | Type=Prefix, Tier=7, Name=Icy, Content=Adds 7 to 12 Cold Damage to Attacks
+19:41:16 | Info | Type=Suffix, Tier=5, Name=of the Yeti, Content=+28% to Cold Resistance
+19:41:16 | Info | Type=Suffix, Tier=3, Name=of the Volcano, Content=+39% to Fire Resistance
+19:41:16 | Info | [Gambler] Stop gambling is requested
+19:41:16 | Info | [Gambler] [Warning] Failed to get item content from clipboard. Try to increase the delay between actions if error is persist.
+19:41:16 | Info | [Gambler] [Cancelled] Gambling was cancelled
