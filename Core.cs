@@ -178,13 +178,11 @@ namespace PoE
             if (_getCoordinatesItem)
             {
                 var coordinates = InteropHelper.GetMousePos();
-
-                _settings.Modifiers.Item.X = coordinates.X;
-                _settings.Modifiers.Item.Y = coordinates.Y;
+                _settings.Modifiers.Mode.Item = coordinates;
 
                 Invoke(() =>
                 {
-                    textBox_ItemXY._textBox.Text = $"{_settings.Modifiers.Item.X}, {_settings.Modifiers.Item.Y}";
+                    textBox_ItemXY._textBox.Text = $"{_settings.Modifiers.Mode.Item.X}, {_settings.Modifiers.Mode.Item.Y}";
 
                     button_Record1.Text = "Rec";
                     button_Record1.ForeColor = Color.Black;
@@ -197,13 +195,11 @@ namespace PoE
             else if (_getCoordinatesBase)
             {
                 var coordinates = InteropHelper.GetMousePos();
-
-                _settings.Modifiers.Base.X = coordinates.X;
-                _settings.Modifiers.Base.Y = coordinates.Y;
+                _settings.Modifiers.Mode.Base = coordinates;
 
                 Invoke(() =>
                 {
-                    textBox_BaseXY._textBox.Text = $"{_settings.Modifiers.Base.X}, {_settings.Modifiers.Base.Y}";
+                    textBox_BaseXY._textBox.Text = $"{_settings.Modifiers.Mode.Base.X}, {_settings.Modifiers.Mode.Base.Y}";
                     button_Record2.Text = "Rec";
                     button_Record2.ForeColor = Color.Black;
                 });
@@ -215,13 +211,11 @@ namespace PoE
             else if (_getCoordinatesSecond)
             {
                 var coordinates = InteropHelper.GetMousePos();
-
-                _settings.Modifiers.Second.X = coordinates.X;
-                _settings.Modifiers.Second.Y = coordinates.Y;
+                _settings.Modifiers.Mode.Second = coordinates;
 
                 Invoke(() =>
                 {
-                    textBox_SecondXY._textBox.Text = $"{_settings.Modifiers.Second.X}, {_settings.Modifiers.Second.Y}";
+                    textBox_SecondXY._textBox.Text = $"{_settings.Modifiers.Mode.Second.X}, {_settings.Modifiers.Mode.Second.Y}";
                     button_Record3.Text = "Rec";
                     button_Record3.ForeColor = Color.Black;
                 });
@@ -240,28 +234,29 @@ namespace PoE
 
             List<Rule> rules = new List<Rule>();
 
-            if (_settings.Modifiers.Priority1 > 0)
-                rules.Add(new Rule(_settings.Modifiers.Priority1, _settings.Modifiers.modifierType1, _settings.Modifiers.Tier1, _settings.Modifiers.Content1));
-            if (_settings.Modifiers.Priority2 > 0)
-                rules.Add(new Rule(_settings.Modifiers.Priority2, _settings.Modifiers.modifierType2, _settings.Modifiers.Tier2, _settings.Modifiers.Content2));
-            if (_settings.Modifiers.Priority3 > 0)
-                rules.Add(new Rule(_settings.Modifiers.Priority3, _settings.Modifiers.modifierType3, _settings.Modifiers.Tier3, _settings.Modifiers.Content3));
-            if (_settings.Modifiers.Priority4 > 0)
-                rules.Add(new Rule(_settings.Modifiers.Priority4, _settings.Modifiers.modifierType4, _settings.Modifiers.Tier4, _settings.Modifiers.Content4));
-            if (_settings.Modifiers.Priority5 > 0)
-                rules.Add(new Rule(_settings.Modifiers.Priority5, _settings.Modifiers.modifierType5, _settings.Modifiers.Tier5, _settings.Modifiers.Content5));
-            if (_settings.Modifiers.Priority6 > 0)
-                rules.Add(new Rule(_settings.Modifiers.Priority6, _settings.Modifiers.modifierType6, _settings.Modifiers.Tier6, _settings.Modifiers.Content6));
-            if (_settings.Modifiers.Priority7 > 0)
-                rules.Add(new Rule(_settings.Modifiers.Priority7, _settings.Modifiers.modifierType7, _settings.Modifiers.Tier7, _settings.Modifiers.Content7));
-            if (_settings.Modifiers.Priority8 > 0)
-                rules.Add(new Rule(_settings.Modifiers.Priority8, _settings.Modifiers.modifierType8, _settings.Modifiers.Tier8, _settings.Modifiers.Content8));
+            if (_settings.Modifiers.Mode.Priority1 > 0)
+                rules.Add(new Rule(_settings.Modifiers.Mode.Priority1, _settings.Modifiers.Mode.modifierType1, _settings.Modifiers.Mode.Tier1, _settings.Modifiers.Mode.Content1));
+            if (_settings.Modifiers.Mode.Priority2 > 0)
+                rules.Add(new Rule(_settings.Modifiers.Mode.Priority2, _settings.Modifiers.Mode.modifierType2, _settings.Modifiers.Mode.Tier2, _settings.Modifiers.Mode.Content2));
+            if (_settings.Modifiers.Mode.Priority3 > 0)
+                rules.Add(new Rule(_settings.Modifiers.Mode.Priority3, _settings.Modifiers.Mode.modifierType3, _settings.Modifiers.Mode.Tier3, _settings.Modifiers.Mode.Content3));
+            if (_settings.Modifiers.Mode.Priority4 > 0)
+                rules.Add(new Rule(_settings.Modifiers.Mode.Priority4, _settings.Modifiers.Mode.modifierType4, _settings.Modifiers.Mode.Tier4, _settings.Modifiers.Mode.Content4));
+            if (_settings.Modifiers.Mode.Priority5 > 0)
+                rules.Add(new Rule(_settings.Modifiers.Mode.Priority5, _settings.Modifiers.Mode.modifierType5, _settings.Modifiers.Mode.Tier5, _settings.Modifiers.Mode.Content5));
+            if (_settings.Modifiers.Mode.Priority6 > 0)
+                rules.Add(new Rule(_settings.Modifiers.Mode.Priority6, _settings.Modifiers.Mode.modifierType6, _settings.Modifiers.Mode.Tier6, _settings.Modifiers.Mode.Content6));
+            if (_settings.Modifiers.Mode.Priority7 > 0)
+                rules.Add(new Rule(_settings.Modifiers.Mode.Priority7, _settings.Modifiers.Mode.modifierType7, _settings.Modifiers.Mode.Tier7, _settings.Modifiers.Mode.Content7));
+            if (_settings.Modifiers.Mode.Priority8 > 0)
+                rules.Add(new Rule(_settings.Modifiers.Mode.Priority8, _settings.Modifiers.Mode.modifierType8, _settings.Modifiers.Mode.Tier8, _settings.Modifiers.Mode.Content8));
 
             if (rules.Count == 0)
                 return;
 
+            Gambler = new Gambler(this, _input, TimeSpan.FromMilliseconds(_settings.Modifiers.Delay),
+                _settings.Modifiers.GambleType, _settings.Modifiers.Mode.Item, _settings.Modifiers.Mode.Base, _settings.Modifiers.Mode.Second, rules);
 
-            Gambler = new Gambler(this, _input, TimeSpan.FromMilliseconds(_settings.Modifiers.Delay), _settings.Modifiers.GambleType, _settings.Modifiers.Item, _settings.Modifiers.Base, _settings.Modifiers.Second, rules);
             await Gambler.StartGambling();
 
             Gambler = null;

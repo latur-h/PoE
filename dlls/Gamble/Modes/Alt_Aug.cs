@@ -36,6 +36,10 @@ namespace PoE.dlls.Gamble.Modes
 
         private bool _isShiftHeld = false;
 
+        private int _hash = 0;
+        private int count = 0;
+        private int maxAttempts = 10;
+
         public Alt_Aug(Main main, Simulator simulator, CancellationTokenSource cts, TimeSpan delay, Coordinates item, Coordinates alt, Coordinates aug, List<Rule> rules)
         {
             _main = main;
@@ -160,6 +164,22 @@ namespace PoE.dlls.Gamble.Modes
             }
             _main.Invoke(Clipboard.Clear);
 
+            int hash = itemContent.GetHashCode();
+
+            if (_hash != hash)
+                _hash = hash;
+            else
+            {
+                if (count >= maxAttempts)
+                {
+                    Console.WriteLine("[Gambler] [Failed] Maximum attempts reached. Cancelling.");
+                    _cts.Cancel();
+                    return Response.Failure;
+                }
+
+                count++;
+            }
+
             Regex getModifiers = new(@"\{.*?\}.*?(?={|--------|$)", RegexOptions.IgnoreCase | RegexOptions.Singleline);
             Regex getType = new(@"\{.*?(?'Type'implicit|prefix|suffix).*?\}", RegexOptions.IgnoreCase);
             Regex getName = new(@"\{.*?""(?'Name'.*?)"".*?\}", RegexOptions.IgnoreCase);
@@ -188,7 +208,7 @@ namespace PoE.dlls.Gamble.Modes
                 string content = getContent.Match(mod.Value).Groups["Content"].Value.Trim();
                 content = strip.Replace(content, string.Empty).Trim();
 
-                if (!Regex.IsMatch(content, @"fractured", RegexOptions.IgnoreCase))
+                if (!Regex.IsMatch(content, @"fractured", RegexOptions.IgnoreCase) && type != ModifierType.Implicit)
                     Console.WriteLine($"Type={type}, Tier={tier}, Name={name}, Content={content}");
 
                 Modifier parsedMod = new(type, tier, name, content);

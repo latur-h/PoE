@@ -1,5 +1,4 @@
-﻿using PoE.dlls.Gamble;
-using PoE.dlls.Gamble.Modifiers;
+﻿using PoE.dlls.Gamble.Modifiers;
 using PoE.dlls.InteropServices;
 using System;
 using System.Collections.Generic;
@@ -7,18 +6,13 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace PoE.dlls.Settings
+namespace PoE.dlls.Settings.Mods
 {
-    public class UIModifiers
+    public class UIAlt_Aug : IUIMods
     {
-        public GambleType GambleType { get; set; } = GambleType.Alt;
-        public Coordinates Item = new Coordinates(0, 0);
-        public Coordinates Base = new Coordinates(0, 0);
-        public Coordinates Second = new Coordinates(0, 0);
-        public string GetCoorinatesKey = "F6";
-        public string GamblerStart = "F7";
-        public string GamblerStop = "F8";
-        public int Delay { get; set; } = 40;
+        public Coordinates Item { get; set; } = new Coordinates(0, 0);
+        public Coordinates Base { get; set; } = new Coordinates(0, 0);
+        public Coordinates Second { get; set; } = new Coordinates(0, 0);
 
         public decimal Priority1 { get; set; } = 0;
         public decimal Priority2 { get; set; } = 0;

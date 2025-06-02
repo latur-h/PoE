@@ -286,6 +286,53 @@ namespace PoE
             {
                 GambleType gambleType = Enum.Parse<GambleType>(comboBox_GambleType.SelectedItem?.ToString() ?? string.Empty);
                 _settings.Modifiers.GambleType = gambleType;
+
+                _settings.Modifiers.Mode = gambleType switch
+                {
+                    GambleType.Alt => _settings.Modifiers._uialt,
+                    GambleType.Alt_Aug => _settings.Modifiers._uialt_aug,
+                    _ => _settings.Modifiers._uialt
+                };
+
+                textBox_ItemXY._textBox.Text = $"{_settings.Modifiers.Mode.Item.X}, {_settings.Modifiers.Mode.Item.Y}";
+                textBox_BaseXY._textBox.Text = $"{_settings.Modifiers.Mode.Base.X}, {_settings.Modifiers.Mode.Base.Y}";
+                textBox_SecondXY._textBox.Text = $"{_settings.Modifiers.Mode.Second.X}, {_settings.Modifiers.Mode.Second.Y}";
+
+                comboBox_Mod1.SelectedItem = _settings.Modifiers.Mode.modifierType1.ToString();
+                comboBox_Mod2.SelectedItem = _settings.Modifiers.Mode.modifierType2.ToString();
+                comboBox_Mod3.SelectedItem = _settings.Modifiers.Mode.modifierType3.ToString();
+                comboBox_Mod4.SelectedItem = _settings.Modifiers.Mode.modifierType4.ToString();
+                comboBox_Mod5.SelectedItem = _settings.Modifiers.Mode.modifierType5.ToString();
+                comboBox_Mod6.SelectedItem = _settings.Modifiers.Mode.modifierType6.ToString();
+                comboBox_Mod7.SelectedItem = _settings.Modifiers.Mode.modifierType7.ToString();
+                comboBox_Mod8.SelectedItem = _settings.Modifiers.Mode.modifierType8.ToString();
+
+                textBox_Priority1._textBox.Text = _settings.Modifiers.Mode.Priority1.ToString();
+                textBox_Priority2._textBox.Text = _settings.Modifiers.Mode.Priority2.ToString();
+                textBox_Priority3._textBox.Text = _settings.Modifiers.Mode.Priority3.ToString();
+                textBox_Priority4._textBox.Text = _settings.Modifiers.Mode.Priority4.ToString();
+                textBox_Priority5._textBox.Text = _settings.Modifiers.Mode.Priority5.ToString();
+                textBox_Priority6._textBox.Text = _settings.Modifiers.Mode.Priority6.ToString();
+                textBox_Priority7._textBox.Text = _settings.Modifiers.Mode.Priority7.ToString();
+                textBox_Priority8._textBox.Text = _settings.Modifiers.Mode.Priority8.ToString();
+
+                textBox_Tier1._textBox.Text = _settings.Modifiers.Mode.Tier1.ToString();
+                textBox_Tier2._textBox.Text = _settings.Modifiers.Mode.Tier2.ToString();
+                textBox_Tier3._textBox.Text = _settings.Modifiers.Mode.Tier3.ToString();
+                textBox_Tier4._textBox.Text = _settings.Modifiers.Mode.Tier4.ToString();
+                textBox_Tier5._textBox.Text = _settings.Modifiers.Mode.Tier5.ToString();
+                textBox_Tier6._textBox.Text = _settings.Modifiers.Mode.Tier6.ToString();
+                textBox_Tier7._textBox.Text = _settings.Modifiers.Mode.Tier7.ToString();
+                textBox_Tier8._textBox.Text = _settings.Modifiers.Mode.Tier8.ToString();
+
+                textBox_Mod1._textBox.Text = _settings.Modifiers.Mode.Content1;
+                textBox_Mod2._textBox.Text = _settings.Modifiers.Mode.Content2;
+                textBox_Mod3._textBox.Text = _settings.Modifiers.Mode.Content3;
+                textBox_Mod4._textBox.Text = _settings.Modifiers.Mode.Content4;
+                textBox_Mod5._textBox.Text = _settings.Modifiers.Mode.Content5;
+                textBox_Mod6._textBox.Text = _settings.Modifiers.Mode.Content6;
+                textBox_Mod7._textBox.Text = _settings.Modifiers.Mode.Content7;
+                textBox_Mod8._textBox.Text = _settings.Modifiers.Mode.Content8;
             };
 
             comboBox_Mod1.Items.AddRange(Enum.GetNames<ModifierType>());
@@ -293,7 +340,7 @@ namespace PoE
             comboBox_Mod1.SelectedIndexChanged += (s, e) =>
             {
                 ModifierType modifierType = Enum.Parse<ModifierType>(comboBox_Mod1.SelectedItem?.ToString() ?? string.Empty);
-                _settings.Modifiers.modifierType1 = modifierType;
+                _settings.Modifiers.Mode.modifierType1 = modifierType;
             };
 
             comboBox_Mod2.Items.AddRange(Enum.GetNames<ModifierType>());
@@ -301,7 +348,7 @@ namespace PoE
             comboBox_Mod2.SelectedIndexChanged += (s, e) =>
             {
                 ModifierType modifierType = Enum.Parse<ModifierType>(comboBox_Mod2.SelectedItem?.ToString() ?? string.Empty);
-                _settings.Modifiers.modifierType2 = modifierType;
+                _settings.Modifiers.Mode.modifierType2 = modifierType;
             };
 
             comboBox_Mod3.Items.AddRange(Enum.GetNames<ModifierType>());
@@ -309,7 +356,7 @@ namespace PoE
             comboBox_Mod3.SelectedIndexChanged += (s, e) =>
             {
                 ModifierType modifierType = Enum.Parse<ModifierType>(comboBox_Mod3.SelectedItem?.ToString() ?? string.Empty);
-                _settings.Modifiers.modifierType3 = modifierType;
+                _settings.Modifiers.Mode.modifierType3 = modifierType;
             };
 
             comboBox_Mod4.Items.AddRange(Enum.GetNames<ModifierType>());
@@ -317,7 +364,7 @@ namespace PoE
             comboBox_Mod4.SelectedIndexChanged += (s, e) =>
             {
                 ModifierType modifierType = Enum.Parse<ModifierType>(comboBox_Mod4.SelectedItem?.ToString() ?? string.Empty);
-                _settings.Modifiers.modifierType4 = modifierType;
+                _settings.Modifiers.Mode.modifierType4 = modifierType;
             };
 
             comboBox_Mod5.Items.AddRange(Enum.GetNames<ModifierType>());
@@ -325,7 +372,7 @@ namespace PoE
             comboBox_Mod5.SelectedIndexChanged += (s, e) =>
             {
                 ModifierType modifierType = Enum.Parse<ModifierType>(comboBox_Mod5.SelectedItem?.ToString() ?? string.Empty);
-                _settings.Modifiers.modifierType5 = modifierType;
+                _settings.Modifiers.Mode.modifierType5 = modifierType;
             };
 
             comboBox_Mod6.Items.AddRange(Enum.GetNames<ModifierType>());
@@ -333,7 +380,7 @@ namespace PoE
             comboBox_Mod6.SelectedIndexChanged += (s, e) =>
             {
                 ModifierType modifierType = Enum.Parse<ModifierType>(comboBox_Mod6.SelectedItem?.ToString() ?? string.Empty);
-                _settings.Modifiers.modifierType6 = modifierType;
+                _settings.Modifiers.Mode.modifierType6 = modifierType;
             };
 
             comboBox_Mod7.Items.AddRange(Enum.GetNames<ModifierType>());
@@ -341,7 +388,7 @@ namespace PoE
             comboBox_Mod7.SelectedIndexChanged += (s, e) =>
             {
                 ModifierType modifierType = Enum.Parse<ModifierType>(comboBox_Mod7.SelectedItem?.ToString() ?? string.Empty);
-                _settings.Modifiers.modifierType7 = modifierType;
+                _settings.Modifiers.Mode.modifierType7 = modifierType;
             };
 
             comboBox_Mod8.Items.AddRange(Enum.GetNames<ModifierType>());
@@ -349,53 +396,53 @@ namespace PoE
             comboBox_Mod8.SelectedIndexChanged += (s, e) =>
             {
                 ModifierType modifierType = Enum.Parse<ModifierType>(comboBox_Mod8.SelectedItem?.ToString() ?? string.Empty);
-                _settings.Modifiers.modifierType8 = modifierType;
+                _settings.Modifiers.Mode.modifierType8 = modifierType;
             };
 
             comboBox_GambleType.SelectedItem = _settings.Modifiers.GambleType.ToString();
             textBox_GamblerGetCoordinatesKey._textBox.Text = _settings.Modifiers.GetCoorinatesKey;
             textBox_GamblerStartKey._textBox.Text = _settings.Modifiers.GamblerStart;
             textBox_GamblerStopKey._textBox.Text = _settings.Modifiers.GamblerStop;
-            textBox_ItemXY._textBox.Text = $"{_settings.Modifiers.Item.X}, {_settings.Modifiers.Item.Y}";
-            textBox_BaseXY._textBox.Text = $"{_settings.Modifiers.Base.X}, {_settings.Modifiers.Base.Y}";
-            textBox_SecondXY._textBox.Text = $"{_settings.Modifiers.Second.X}, {_settings.Modifiers.Second.Y}";
+            textBox_ItemXY._textBox.Text = $"{_settings.Modifiers.Mode.Item.X}, {_settings.Modifiers.Mode.Item.Y}";
+            textBox_BaseXY._textBox.Text = $"{_settings.Modifiers.Mode.Base.X}, {_settings.Modifiers.Mode.Base.Y}";
+            textBox_SecondXY._textBox.Text = $"{_settings.Modifiers.Mode.Second.X}, {_settings.Modifiers.Mode.Second.Y}";
             textBox_GamblerDelay._textBox.Text = _settings.Modifiers.Delay.ToString();
 
-            comboBox_Mod1.SelectedItem = _settings.Modifiers.modifierType1.ToString();
-            comboBox_Mod2.SelectedItem = _settings.Modifiers.modifierType2.ToString();
-            comboBox_Mod3.SelectedItem = _settings.Modifiers.modifierType3.ToString();
-            comboBox_Mod4.SelectedItem = _settings.Modifiers.modifierType4.ToString();
-            comboBox_Mod5.SelectedItem = _settings.Modifiers.modifierType5.ToString();
-            comboBox_Mod6.SelectedItem = _settings.Modifiers.modifierType6.ToString();
-            comboBox_Mod7.SelectedItem = _settings.Modifiers.modifierType7.ToString();
-            comboBox_Mod8.SelectedItem = _settings.Modifiers.modifierType8.ToString();
+            comboBox_Mod1.SelectedItem = _settings.Modifiers.Mode.modifierType1.ToString();
+            comboBox_Mod2.SelectedItem = _settings.Modifiers.Mode.modifierType2.ToString();
+            comboBox_Mod3.SelectedItem = _settings.Modifiers.Mode.modifierType3.ToString();
+            comboBox_Mod4.SelectedItem = _settings.Modifiers.Mode.modifierType4.ToString();
+            comboBox_Mod5.SelectedItem = _settings.Modifiers.Mode.modifierType5.ToString();
+            comboBox_Mod6.SelectedItem = _settings.Modifiers.Mode.modifierType6.ToString();
+            comboBox_Mod7.SelectedItem = _settings.Modifiers.Mode.modifierType7.ToString();
+            comboBox_Mod8.SelectedItem = _settings.Modifiers.Mode.modifierType8.ToString();
 
-            textBox_Priority1._textBox.Text = _settings.Modifiers.Priority1.ToString();
-            textBox_Priority2._textBox.Text = _settings.Modifiers.Priority2.ToString();
-            textBox_Priority3._textBox.Text = _settings.Modifiers.Priority3.ToString();
-            textBox_Priority4._textBox.Text = _settings.Modifiers.Priority4.ToString();
-            textBox_Priority5._textBox.Text = _settings.Modifiers.Priority5.ToString();
-            textBox_Priority6._textBox.Text = _settings.Modifiers.Priority6.ToString();
-            textBox_Priority7._textBox.Text = _settings.Modifiers.Priority7.ToString();
-            textBox_Priority8._textBox.Text = _settings.Modifiers.Priority8.ToString();
+            textBox_Priority1._textBox.Text = _settings.Modifiers.Mode.Priority1.ToString();
+            textBox_Priority2._textBox.Text = _settings.Modifiers.Mode.Priority2.ToString();
+            textBox_Priority3._textBox.Text = _settings.Modifiers.Mode.Priority3.ToString();
+            textBox_Priority4._textBox.Text = _settings.Modifiers.Mode.Priority4.ToString();
+            textBox_Priority5._textBox.Text = _settings.Modifiers.Mode.Priority5.ToString();
+            textBox_Priority6._textBox.Text = _settings.Modifiers.Mode.Priority6.ToString();
+            textBox_Priority7._textBox.Text = _settings.Modifiers.Mode.Priority7.ToString();
+            textBox_Priority8._textBox.Text = _settings.Modifiers.Mode.Priority8.ToString();
 
-            textBox_Tier1._textBox.Text = _settings.Modifiers.Tier1.ToString();
-            textBox_Tier2._textBox.Text = _settings.Modifiers.Tier2.ToString();
-            textBox_Tier3._textBox.Text = _settings.Modifiers.Tier3.ToString();
-            textBox_Tier4._textBox.Text = _settings.Modifiers.Tier4.ToString();
-            textBox_Tier5._textBox.Text = _settings.Modifiers.Tier5.ToString();
-            textBox_Tier6._textBox.Text = _settings.Modifiers.Tier6.ToString();
-            textBox_Tier7._textBox.Text = _settings.Modifiers.Tier7.ToString();
-            textBox_Tier8._textBox.Text = _settings.Modifiers.Tier8.ToString();
+            textBox_Tier1._textBox.Text = _settings.Modifiers.Mode.Tier1.ToString();
+            textBox_Tier2._textBox.Text = _settings.Modifiers.Mode.Tier2.ToString();
+            textBox_Tier3._textBox.Text = _settings.Modifiers.Mode.Tier3.ToString();
+            textBox_Tier4._textBox.Text = _settings.Modifiers.Mode.Tier4.ToString();
+            textBox_Tier5._textBox.Text = _settings.Modifiers.Mode.Tier5.ToString();
+            textBox_Tier6._textBox.Text = _settings.Modifiers.Mode.Tier6.ToString();
+            textBox_Tier7._textBox.Text = _settings.Modifiers.Mode.Tier7.ToString();
+            textBox_Tier8._textBox.Text = _settings.Modifiers.Mode.Tier8.ToString();
 
-            textBox_Mod1._textBox.Text = _settings.Modifiers.Content1;
-            textBox_Mod2._textBox.Text = _settings.Modifiers.Content2;
-            textBox_Mod3._textBox.Text = _settings.Modifiers.Content3;
-            textBox_Mod4._textBox.Text = _settings.Modifiers.Content4;
-            textBox_Mod5._textBox.Text = _settings.Modifiers.Content5;
-            textBox_Mod6._textBox.Text = _settings.Modifiers.Content6;
-            textBox_Mod7._textBox.Text = _settings.Modifiers.Content7;
-            textBox_Mod8._textBox.Text = _settings.Modifiers.Content8;
+            textBox_Mod1._textBox.Text = _settings.Modifiers.Mode.Content1;
+            textBox_Mod2._textBox.Text = _settings.Modifiers.Mode.Content2;
+            textBox_Mod3._textBox.Text = _settings.Modifiers.Mode.Content3;
+            textBox_Mod4._textBox.Text = _settings.Modifiers.Mode.Content4;
+            textBox_Mod5._textBox.Text = _settings.Modifiers.Mode.Content5;
+            textBox_Mod6._textBox.Text = _settings.Modifiers.Mode.Content6;
+            textBox_Mod7._textBox.Text = _settings.Modifiers.Mode.Content7;
+            textBox_Mod8._textBox.Text = _settings.Modifiers.Mode.Content8;
 
             textBox_ItemXY._textBox.KeyUp += (s, e) =>
             {
@@ -404,8 +451,9 @@ namespace PoE
                     string[] coords = textBox_ItemXY._textBox.Text.Split(',');
                     if (coords.Length == 2 && int.TryParse(coords[0], out int x) && int.TryParse(coords[1], out int y))
                     {
-                        _settings.Modifiers.Base.X = x;
-                        _settings.Modifiers.Base.Y = y;
+                        Coordinates coordinates = new Coordinates(x, y);
+                        _settings.Modifiers.Mode.Item = coordinates;
+
                         textBox_ItemXY._textBox.ForeColor = StaticColors.ForeGround;
                     }
                     else
@@ -425,8 +473,9 @@ namespace PoE
                     string[] coords = textBox_BaseXY._textBox.Text.Split(',');
                     if (coords.Length == 2 && int.TryParse(coords[0], out int x) && int.TryParse(coords[1], out int y))
                     {
-                        _settings.Modifiers.Second.X = x;
-                        _settings.Modifiers.Second.Y = y;
+                        Coordinates coordinates = new Coordinates(x, y);
+                        _settings.Modifiers.Mode.Base = coordinates;
+
                         textBox_BaseXY._textBox.ForeColor = StaticColors.ForeGround;
                     }
                     else
@@ -446,8 +495,9 @@ namespace PoE
                     string[] coords = textBox_SecondXY._textBox.Text.Split(',');
                     if (coords.Length == 2 && int.TryParse(coords[0], out int x) && int.TryParse(coords[1], out int y))
                     {
-                        _settings.Modifiers.Item.X = x;
-                        _settings.Modifiers.Item.Y = y;
+                        Coordinates coordinates = new Coordinates(x, y);
+                        _settings.Modifiers.Mode.Second = coordinates;
+
                         textBox_SecondXY._textBox.ForeColor = StaticColors.ForeGround;
                     }
                     else
@@ -532,116 +582,116 @@ namespace PoE
             textBox_Priority1._textBox.KeyUp += (s, e) =>
             {
                 if (Priority_NumberOnly(textBox_Priority1._textBox))
-                    _settings.Modifiers.Priority1 = decimal.Parse(textBox_Priority1._textBox.Text);
+                    _settings.Modifiers.Mode.Priority1 = decimal.Parse(textBox_Priority1._textBox.Text);
             };
             textBox_Priority2._textBox.KeyUp += (s, e) =>
             {
                 if (Priority_NumberOnly(textBox_Priority2._textBox))
-                    _settings.Modifiers.Priority2 = decimal.Parse(textBox_Priority2._textBox.Text);
+                    _settings.Modifiers.Mode.Priority2 = decimal.Parse(textBox_Priority2._textBox.Text);
             };
             textBox_Priority3._textBox.KeyUp += (s, e) =>
             {
                 if (Priority_NumberOnly(textBox_Priority3._textBox))
-                    _settings.Modifiers.Priority3 = decimal.Parse(textBox_Priority3._textBox.Text);
+                    _settings.Modifiers.Mode.Priority3 = decimal.Parse(textBox_Priority3._textBox.Text);
             };
             textBox_Priority4._textBox.KeyUp += (s, e) =>
             {
                 if (Priority_NumberOnly(textBox_Priority4._textBox))
-                    _settings.Modifiers.Priority4 = decimal.Parse(textBox_Priority4._textBox.Text);
+                    _settings.Modifiers.Mode.Priority4 = decimal.Parse(textBox_Priority4._textBox.Text);
             };
             textBox_Priority5._textBox.KeyUp += (s, e) =>
             {
                 if (Priority_NumberOnly(textBox_Priority5._textBox))
-                    _settings.Modifiers.Priority5 = decimal.Parse(textBox_Priority5._textBox.Text);
+                    _settings.Modifiers.Mode.Priority5 = decimal.Parse(textBox_Priority5._textBox.Text);
             };
             textBox_Priority6._textBox.KeyUp += (s, e) =>
             {
                 if (Priority_NumberOnly(textBox_Priority6._textBox))
-                    _settings.Modifiers.Priority6 = decimal.Parse(textBox_Priority6._textBox.Text);
+                    _settings.Modifiers.Mode.Priority6 = decimal.Parse(textBox_Priority6._textBox.Text);
             };
             textBox_Priority7._textBox.KeyUp += (s, e) =>
             {
                 if (Priority_NumberOnly(textBox_Priority7._textBox))
-                    _settings.Modifiers.Priority7 = decimal.Parse(textBox_Priority7._textBox.Text);
+                    _settings.Modifiers.Mode.Priority7 = decimal.Parse(textBox_Priority7._textBox.Text);
             };
             textBox_Priority8._textBox.KeyUp += (s, e) =>
             {
                 if (Priority_NumberOnly(textBox_Priority8._textBox))
-                    _settings.Modifiers.Priority8 = decimal.Parse(textBox_Priority8._textBox.Text);
+                    _settings.Modifiers.Mode.Priority8 = decimal.Parse(textBox_Priority8._textBox.Text);
             };
 
             textBox_Tier1._textBox.KeyUp += (s, e) =>
             {
                if (Tier_NumberOnly(textBox_Tier1._textBox))
-                    _settings.Modifiers.Tier1 = int.Parse(textBox_Tier1._textBox.Text);
+                    _settings.Modifiers.Mode.Tier1 = int.Parse(textBox_Tier1._textBox.Text);
             };
             textBox_Tier2._textBox.KeyUp += (s, e) =>
             {
                 if (Tier_NumberOnly(textBox_Tier2._textBox))
-                    _settings.Modifiers.Tier2 = int.Parse(textBox_Tier2._textBox.Text);
+                    _settings.Modifiers.Mode.Tier2 = int.Parse(textBox_Tier2._textBox.Text);
             };
             textBox_Tier3._textBox.KeyUp += (s, e) =>
             {
                 if (Tier_NumberOnly(textBox_Tier3._textBox))
-                    _settings.Modifiers.Tier3 = int.Parse(textBox_Tier3._textBox.Text);
+                    _settings.Modifiers.Mode.Tier3 = int.Parse(textBox_Tier3._textBox.Text);
             };
             textBox_Tier4._textBox.KeyUp += (s, e) =>
             {
                 if (Tier_NumberOnly(textBox_Tier4._textBox))
-                    _settings.Modifiers.Tier4 = int.Parse(textBox_Tier4._textBox.Text);
+                    _settings.Modifiers.Mode.Tier4 = int.Parse(textBox_Tier4._textBox.Text);
             };
             textBox_Tier5._textBox.KeyUp += (s, e) =>
             {
                 if (Tier_NumberOnly(textBox_Tier5._textBox))
-                    _settings.Modifiers.Tier5 = int.Parse(textBox_Tier5._textBox.Text);
+                    _settings.Modifiers.Mode.Tier5 = int.Parse(textBox_Tier5._textBox.Text);
             };
             textBox_Tier6._textBox.KeyUp += (s, e) =>
             {
                 if (Tier_NumberOnly(textBox_Tier6._textBox))
-                    _settings.Modifiers.Tier6 = int.Parse(textBox_Tier6._textBox.Text);
+                    _settings.Modifiers.Mode.Tier6 = int.Parse(textBox_Tier6._textBox.Text);
             };
             textBox_Tier7._textBox.KeyUp += (s, e) =>
             {
                 if (Tier_NumberOnly(textBox_Tier7._textBox))
-                    _settings.Modifiers.Tier7 = int.Parse(textBox_Tier7._textBox.Text);
+                    _settings.Modifiers.Mode.Tier7 = int.Parse(textBox_Tier7._textBox.Text);
             };
             textBox_Tier8._textBox.KeyUp += (s, e) =>
             {
                 if (Tier_NumberOnly(textBox_Tier8._textBox))
-                    _settings.Modifiers.Tier8 = int.Parse(textBox_Tier8._textBox.Text);
+                    _settings.Modifiers.Mode.Tier8 = int.Parse(textBox_Tier8._textBox.Text);
             };
 
             textBox_Mod1._textBox.KeyUp += (s, e) =>
             {
-                _settings.Modifiers.Content1 = textBox_Mod1._textBox.Text;
+                _settings.Modifiers.Mode.Content1 = textBox_Mod1._textBox.Text;
             };
             textBox_Mod2._textBox.KeyUp += (s, e) =>
             {
-                _settings.Modifiers.Content2 = textBox_Mod2._textBox.Text;
+                _settings.Modifiers.Mode.Content2 = textBox_Mod2._textBox.Text;
             };
             textBox_Mod3._textBox.KeyUp += (s, e) =>
             {
-                _settings.Modifiers.Content3 = textBox_Mod3._textBox.Text;
+                _settings.Modifiers.Mode.Content3 = textBox_Mod3._textBox.Text;
             };
             textBox_Mod4._textBox.KeyUp += (s, e) =>
             {
-                _settings.Modifiers.Content4 = textBox_Mod4._textBox.Text;
+                _settings.Modifiers.Mode.Content4 = textBox_Mod4._textBox.Text;
             };
             textBox_Mod5._textBox.KeyUp += (s, e) =>
             {
-                _settings.Modifiers.Content5 = textBox_Mod5._textBox.Text;
+                _settings.Modifiers.Mode.Content5 = textBox_Mod5._textBox.Text;
             };
             textBox_Mod6._textBox.KeyUp += (s, e) =>
             {
-                _settings.Modifiers.Content6 = textBox_Mod6._textBox.Text;
+                _settings.Modifiers.Mode.Content6 = textBox_Mod6._textBox.Text;
             };
             textBox_Mod7._textBox.KeyUp += (s, e) =>
             {
-                _settings.Modifiers.Content7 = textBox_Mod7._textBox.Text;
+                _settings.Modifiers.Mode.Content7 = textBox_Mod7._textBox.Text;
             };
             textBox_Mod8._textBox.KeyUp += (s, e) =>
             {
-                _settings.Modifiers.Content8 = textBox_Mod8._textBox.Text;
+                _settings.Modifiers.Mode.Content8 = textBox_Mod8._textBox.Text;
             };
 
             button_Record1.Click += (s, e) =>

@@ -27,6 +27,10 @@ namespace PoE.dlls.Gamble.Modes
         private readonly CancellationTokenSource _cts;
         private readonly CancellationToken _token;
 
+        private int _hash = 0;
+        private int count = 0;
+        private int maxAttempts = 10;
+
         public Alt(Main main, Simulator simulator, CancellationTokenSource cts, TimeSpan delay, Coordinates item, Coordinates orb, List<Rule> rules)
         {
             _main = main;
@@ -116,6 +120,22 @@ namespace PoE.dlls.Gamble.Modes
                 return false;
             }
             _main.Invoke(Clipboard.Clear);
+
+            int hash = itemContent.GetHashCode();
+
+            if (_hash != hash)
+                _hash = hash;
+            else
+            {
+                if (count >= maxAttempts)
+                {
+                    Console.WriteLine("[Gambler] [Failed] Maximum attempts reached. Cancelling.");
+                    _cts.Cancel();
+                    return false;
+                }
+
+                count++;
+            }
 
             Regex getModifiers = new(@"\{.*?\}.*?(?={|--------|$)", RegexOptions.IgnoreCase | RegexOptions.Singleline);
 
