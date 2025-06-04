@@ -291,6 +291,13 @@ namespace PoE
                 {
                     GambleType.Alt => _settings.Modifiers._uialt,
                     GambleType.Alt_Aug => _settings.Modifiers._uialt_aug,
+                    GambleType.Chaos => _settings.Modifiers._uichaos,
+                    GambleType.Chromatic => _settings.Modifiers._uichromatic,
+                    GambleType.Divine => _settings.Modifiers._uidivine,
+                    GambleType.Eldritch => _settings.Modifiers._uieldritch,
+                    GambleType.Essence => _settings.Modifiers._uiesscence,
+                    GambleType.Harvest => _settings.Modifiers._uiharvest,
+                    GambleType.Map => _settings.Modifiers._uimap,
                     _ => _settings.Modifiers._uialt
                 };
 

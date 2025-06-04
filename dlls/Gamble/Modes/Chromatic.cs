@@ -1,6 +1,4 @@
 ﻿using InputSimulator;
-using Newtonsoft.Json.Linq;
-using PoE.dlls.Gamble.Modifiers;
 using PoE.dlls.InteropServices;
 using System;
 using System.Collections.Generic;
@@ -11,7 +9,7 @@ using System.Threading.Tasks;
 
 namespace PoE.dlls.Gamble.Modes
 {
-    public class Alt : IGamba
+    public class Chromatic : IGamba
     {
         private readonly Main _main;
         private readonly Simulator simulator;
@@ -31,7 +29,7 @@ namespace PoE.dlls.Gamble.Modes
         private int count = 0;
         private int maxAttempts = 10;
 
-        public Alt(Main main, Simulator simulator, CancellationTokenSource cts, TimeSpan delay, Coordinates item, Coordinates orb, List<Rule> rules)
+        public Chromatic(Main main, Simulator simulator, CancellationTokenSource cts, TimeSpan delay, Coordinates item, Coordinates orb, List<Rule> rules)
         {
             _main = main;
             this.simulator = simulator;
@@ -54,7 +52,7 @@ namespace PoE.dlls.Gamble.Modes
 
             await Copy();
 
-            if (CheckItem() == true)
+            if (CheckItem())
             {
                 Console.WriteLine("[Gambler] [Success] Item matches the rules");
                 return;
@@ -94,7 +92,6 @@ namespace PoE.dlls.Gamble.Modes
 
             Console.WriteLine("[Gambler] [Success] Item matches the rules");
         }
-
         private async Task Copy()
         {
             simulator.Send("Ctrl Down");
@@ -137,93 +134,27 @@ namespace PoE.dlls.Gamble.Modes
                 count++;
             }
 
-            Regex getModifiers = new(@"\{.*?\}.*?(?={|--------|$)", RegexOptions.IgnoreCase | RegexOptions.Singleline);
+            Regex getSockets = new(@"([rgbw](\s|-)?){4,6}", RegexOptions.IgnoreCase | RegexOptions.Singleline);
 
-            Regex getType = new(@"\{.*?(?'Type'implicit|prefix|suffix).*?\}", RegexOptions.IgnoreCase);
-            Regex getName = new(@"\{.*?""(?'Name'.*?)"".*?\}", RegexOptions.IgnoreCase);
-            Regex getTier = new(@"\{.*?\(Tier:\s(?'Tier'\d+)\).*?\}", RegexOptions.IgnoreCase);
-            Regex getContent = new(@"}(?'Content'.*?)$", RegexOptions.IgnoreCase | RegexOptions.Singleline);
+            if (!getSockets.IsMatch(itemContent))
+                return false;
 
-            Regex strip = new(@"\(\d+-\d+\)", RegexOptions.IgnoreCase);
+            string sockets = getSockets.Match(itemContent).Value;
 
-            var mods = getModifiers.Matches(itemContent);
+            int r = sockets.Count(x => x == 'R');
+            int g = sockets.Count(x => x == 'G');
+            int b = sockets.Count(x => x == 'B');
+            int w = sockets.Count(x => x == 'W');
 
-            List<Modifier> modifiers = [];
+            string rule = rules.FirstOrDefault(x => x.Content.Length > 0).Content.ToUpperInvariant();
 
-            Console.WriteLine($"----------------------------");
-            foreach (var mod in mods.Cast<Match>())
-            {
-                ModifierType type = Enum.Parse<ModifierType>(getType.Match(mod.Value).Groups["Type"].Value.Trim());
+            int requiredR = rule.Count(x => x.Equals('R'));
+            int requiredG = rule.Count(x => x.Equals('G'));
+            int requiredB = rule.Count(x => x.Equals('B'));
+            int requiredW = rule.Count(x => x.Equals('W'));
 
-                string name = string.Empty;
-                if (getName.IsMatch(mod.Value))
-                    name = getName.Match(mod.Value).Groups["Name"].Value.Trim();
-
-                int tier = 0;
-                if (getTier.IsMatch(mod.Value))
-                    tier = int.Parse(getTier.Match(mod.Value).Groups["Tier"].Value.Trim());
-
-                string content = getContent.Match(mod.Value).Groups["Content"].Value.Trim();
-                content = strip.Replace(content, string.Empty).Trim();
-
-                if (!Regex.IsMatch(content, @"fractured", RegexOptions.IgnoreCase))
-                    Console.WriteLine($"Type={type}, Tier={tier}, Name={name}, Content={content}");
-
-                Modifier parsedMod = new(type, tier, name, content);
-                modifiers.Add(parsedMod);
-            }
-
-            var required = rules.Where(r => r.Priority >= 1).ToList();
-            var optional = rules.Where(r => r.Priority < 1).ToList();
-
-            int requiredCount = 0;
-            int optionalCount = 0;
-
-            foreach (var rule in required)
-            {
-                foreach (var mod in modifiers)
-                {
-                    if (rule.Type != ModifierType.Any)
-                        if (mod.Type != rule.Type)
-                            continue;
-
-                    if (mod.Tier > rule.Tier)
-                        continue;
-
-                    Regex content = new(rule.Content, RegexOptions.IgnoreCase);
-                    if (!content.IsMatch(mod.Content))
-                        continue;
-
-                    requiredCount++;
-                }
-            }
-
-            if (optional is not null)
-                foreach (var rule in optional)
-                {
-                    foreach (var mod in modifiers)
-                    {
-                        if (rule.Type != ModifierType.Any && mod.Type != rule.Type)
-                            continue;
-
-                        if (mod.Tier > rule.Tier)
-                            continue;
-
-                        Regex content = new(rule.Content, RegexOptions.IgnoreCase);
-                        if (!content.IsMatch(mod.Content))
-                            continue;
-
-                        optionalCount++;
-                    }
-                }
-
-            if (required.Count == requiredCount)
-            {
-                if (optional?.Count > 0 && optionalCount == 0)
-                    return false;
-
+            if (r == requiredR && g == requiredG && b == requiredB && w == requiredW)
                 return true;
-            }
 
             return false;
         }
