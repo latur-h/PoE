@@ -31,6 +31,7 @@ namespace PoE.dlls.Gamba
                 GambleType.Chaos => new Chaos(_main, simulator, _cts, delay, itemXY, baseXY, rules),
                 GambleType.Chromatic => new Chromatic(_main, simulator, _cts, delay, itemXY, baseXY, rules),
                 GambleType.Essence => new Essence(_main, simulator, _cts, delay, itemXY, baseXY, rules),
+                GambleType.Map => new Map(_main, simulator, _cts, delay, itemXY, baseXY, secondXY, rules),
                 _ => throw new ArgumentOutOfRangeException(nameof(type), type, null)
             };
 

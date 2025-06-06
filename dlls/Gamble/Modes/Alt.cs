@@ -54,7 +54,7 @@ namespace PoE.dlls.Gamble.Modes
 
             await Copy();
 
-            if (CheckItem() == true)
+            if (CheckItem())
             {
                 Console.WriteLine("[Gambler] [Success] Item matches the rules");
                 return;

@@ -8,7 +8,7 @@ using System.Threading.Tasks;
 
 namespace PoE.dlls.Settings.Mods
 {
-    public class UIDivine : IUIMods
+    public class UIMapT17 : IUIMods
     {
         public Coordinates Item { get; set; } = new Coordinates(0, 0);
         public Coordinates Base { get; set; } = new Coordinates(0, 0);

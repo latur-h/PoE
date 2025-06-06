@@ -57,10 +57,10 @@ namespace PoE.dlls.Settings.Mods
         public UIAlt_Aug _uialt_aug { get; set; } = new();
         public UIChaos _uichaos { get; set; } = new();
         public UIChromatic _uichromatic { get; set; } = new();
-        public UIDivine _uidivine { get; set; } = new();
         public UIEldritch _uieldritch { get; set; } = new();
         public UIEssence _uiesscence { get; set; } = new();
         public UIHarvest _uiharvest { get; set; } = new();
         public UIMap _uimap { get; set; } = new();
+        public UIMapT17 _uimapT17 { get; set; } = new();
     }
 }

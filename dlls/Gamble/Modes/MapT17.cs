@@ -6,10 +6,8 @@ using System.Threading.Tasks;
 
 namespace PoE.dlls.Gamble.Modes
 {
-    public class Divine : IGamba
+    public class MapT17 : IGamba
     {
-
-
         public async Task Gamble() { }
     }
 }

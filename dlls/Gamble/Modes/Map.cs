@@ -19,7 +19,8 @@ namespace PoE.dlls.Gamble.Modes
         private TimeSpan delay = TimeSpan.FromMilliseconds(10);
 
         private readonly Coordinates item;
-        private readonly Coordinates orb;
+        private readonly Coordinates alchimka;
+        private readonly Coordinates scouring;
 
         private readonly List<Rule> rules = [];
 
@@ -30,7 +31,7 @@ namespace PoE.dlls.Gamble.Modes
         private int count = 0;
         private int maxAttempts = 10;
 
-        public Map(Main main, Simulator simulator, CancellationTokenSource cts, TimeSpan delay, Coordinates item, Coordinates orb, List<Rule> rules)
+        public Map(Main main, Simulator simulator, CancellationTokenSource cts, TimeSpan delay, Coordinates item, Coordinates alchimka, Coordinates scouring, List<Rule> rules)
         {
             _main = main;
             this.simulator = simulator;
@@ -41,12 +42,68 @@ namespace PoE.dlls.Gamble.Modes
             _token = _cts.Token;
 
             this.item = item;
-            this.orb = orb;
+            this.alchimka = alchimka;
+            this.scouring = scouring;
 
             this.rules = rules;
         }
 
-        public async Task Gamble() { }
+        public async Task Gamble() 
+        {
+            simulator.MouseDeltaMove(item.X, item.Y, speed);
+            await Task.Delay(delay);
+
+            await Copy();
+
+            bool status = CheckItem();
+
+            while(!status && !_token.IsCancellationRequested)
+            {
+                simulator.MouseDeltaMove(scouring.X, scouring.Y, speed);
+                await Task.Delay(delay);
+
+                simulator.Send("RButton Down");
+                await Task.Delay(delay);
+                simulator.Send("RButton Up");
+                await Task.Delay(delay);
+
+                simulator.MouseDeltaMove(item.X, item.Y, speed);
+                await Task.Delay(delay);
+
+                simulator.Send("LButton Down");
+                await Task.Delay(delay);
+                simulator.Send("LButton Up");
+                await Task.Delay(delay);
+
+                simulator.MouseDeltaMove(alchimka.X, alchimka.Y, speed);
+                await Task.Delay(delay);
+
+                simulator.Send("RButton Down");
+                await Task.Delay(delay);
+                simulator.Send("RButton Up");
+                await Task.Delay(delay);
+
+                simulator.MouseDeltaMove(item.X, item.Y, speed);
+                await Task.Delay(delay);
+
+                simulator.Send("LButton Down");
+                await Task.Delay(delay);
+                simulator.Send("LButton Up");
+                await Task.Delay(delay);
+
+                await Copy();
+
+                status = CheckItem();
+            }
+
+            if(_token.IsCancellationRequested)
+            {
+                Console.WriteLine("[Gambler] [Cancelled] Gambling was cancelled");
+                return;
+            }
+            
+            Console.WriteLine($"[Gambler] [Success] Item matches the rules");
+        }
         private async Task Copy()
         {
             simulator.Send("Ctrl Down");
@@ -100,6 +157,9 @@ namespace PoE.dlls.Gamble.Modes
 
             var mods = getModifiers.Matches(itemContent);
 
+            if (mods.Count == 0)
+                return false;
+
             List<Modifier> modifiers = [];
 
             Console.WriteLine($"----------------------------");
@@ -125,57 +185,21 @@ namespace PoE.dlls.Gamble.Modes
                 modifiers.Add(parsedMod);
             }
 
-            var required = rules.Where(r => r.Priority >= 1).ToList();
-            var optional = rules.Where(r => r.Priority < 1).ToList();
-
-            int requiredCount = 0;
-            int optionalCount = 0;
-
-            foreach (var rule in required)
+            int modsCount = 0;
+            foreach (var rule in rules)
             {
                 foreach (var mod in modifiers)
                 {
-                    if (rule.Type != ModifierType.Any)
-                        if (mod.Type != rule.Type)
-                            continue;
-
-                    if (mod.Tier > rule.Tier)
-                        continue;
-
                     Regex content = new(rule.Content, RegexOptions.IgnoreCase);
                     if (!content.IsMatch(mod.Content))
                         continue;
 
-                    requiredCount++;
+                    modsCount++;
                 }
             }
 
-            if (optional is not null)
-                foreach (var rule in optional)
-                {
-                    foreach (var mod in modifiers)
-                    {
-                        if (rule.Type != ModifierType.Any && mod.Type != rule.Type)
-                            continue;
-
-                        if (mod.Tier > rule.Tier)
-                            continue;
-
-                        Regex content = new(rule.Content, RegexOptions.IgnoreCase);
-                        if (!content.IsMatch(mod.Content))
-                            continue;
-
-                        optionalCount++;
-                    }
-                }
-
-            if (required.Count == requiredCount)
-            {
-                if (optional?.Count > 0 && optionalCount == 0)
-                    return false;
-
+            if (modsCount == 0)
                 return true;
-            }
 
             return false;
         }
