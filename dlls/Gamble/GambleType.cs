@@ -13,7 +13,6 @@ namespace PoE.dlls.Gamble
         Chromatic,
         Chaos,
         Essence,
-        Divine,
         Map,
         MapT17,
         Harvest,

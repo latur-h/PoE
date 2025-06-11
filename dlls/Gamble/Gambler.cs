@@ -17,7 +17,7 @@ namespace PoE.dlls.Gamba
         private CancellationTokenSource? _cts;
         private CancellationToken _token;
 
-        public Gambler(Main _main, Simulator simulator, TimeSpan delay, GambleType type, Coordinates itemXY, Coordinates baseXY, Coordinates secondXY, List<Rule> rules)
+        public Gambler(Main _main, Simulator simulator, TimeSpan delay, double speed, GambleType type, Coordinates itemXY, Coordinates baseXY, Coordinates secondXY, List<Rule> rules)
         {
             Console.WriteLine($"[Gambler] Initialize 'Gambler'...");
 
@@ -26,12 +26,15 @@ namespace PoE.dlls.Gamba
 
             gamba = type switch
             {
-                GambleType.Alt => new Alt(_main, simulator, _cts, delay, itemXY, baseXY, rules),
-                GambleType.Alt_Aug => new Alt_Aug(_main, simulator, _cts, delay, itemXY, baseXY, secondXY, rules),
-                GambleType.Chaos => new Chaos(_main, simulator, _cts, delay, itemXY, baseXY, rules),
-                GambleType.Chromatic => new Chromatic(_main, simulator, _cts, delay, itemXY, baseXY, rules),
-                GambleType.Essence => new Essence(_main, simulator, _cts, delay, itemXY, baseXY, rules),
-                GambleType.Map => new Map(_main, simulator, _cts, delay, itemXY, baseXY, secondXY, rules),
+                GambleType.Alt => new Alt(_main, simulator, _cts, delay, speed, itemXY, baseXY, rules),
+                GambleType.Alt_Aug => new Alt_Aug(_main, simulator, _cts, delay, speed, itemXY, baseXY, secondXY, rules),
+                GambleType.Chaos => new Chaos(_main, simulator, _cts, delay, speed, itemXY, baseXY, rules),
+                GambleType.Chromatic => new Chromatic(_main, simulator, _cts, delay, speed, itemXY, baseXY, rules),
+                GambleType.Essence => new Essence(_main, simulator, _cts, delay, speed, itemXY, baseXY, rules),
+                GambleType.Map => new Map(_main, simulator, _cts, delay, speed, itemXY, baseXY, secondXY, rules),
+                GambleType.MapT17 => new MapT17(_main, simulator, _cts, delay, speed, itemXY, baseXY, rules),
+                GambleType.Harvest => new Harvest(_main, simulator, _cts, delay, speed, itemXY, baseXY, rules),
+                GambleType.Eldritch => new Eldritch(_main, simulator, _cts, delay, speed, itemXY, baseXY, rules),
                 _ => throw new ArgumentOutOfRangeException(nameof(type), type, null)
             };
 

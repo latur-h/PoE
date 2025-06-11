@@ -115,6 +115,8 @@ namespace PoE
             textBox_Mod1 = new FlatTextBox();
             comboBox_GambleType = new FlatComboBox();
             tabPage_Settings = new TabPage();
+            label_GamblerDelay = new Label();
+            textBox_GamblerDelay = new FlatTextBox();
             label_GamblerStopKey = new Label();
             label_GamblerStartKey = new Label();
             label_GamblerGetCoorinatesKey = new Label();
@@ -124,8 +126,9 @@ namespace PoE
             textBox_GamblerGetCoordinatesKey = new FlatTextBox();
             tabPage_Logs = new TabPage();
             textBox_Logs = new TextBox();
-            textBox_GamblerDelay = new FlatTextBox();
-            label_GamblerDelay = new Label();
+            label_GambleSpeed = new Label();
+            textBox_GambleSpeed = new FlatTextBox();
+            panel_settings_Line1 = new Panel();
             tabControl_Main.SuspendLayout();
             tabPage_Main.SuspendLayout();
             groupBox_Flask5.SuspendLayout();
@@ -1069,6 +1072,9 @@ namespace PoE
             // 
             // tabPage_Settings
             // 
+            tabPage_Settings.Controls.Add(panel_settings_Line1);
+            tabPage_Settings.Controls.Add(label_GambleSpeed);
+            tabPage_Settings.Controls.Add(textBox_GambleSpeed);
             tabPage_Settings.Controls.Add(label_GamblerDelay);
             tabPage_Settings.Controls.Add(textBox_GamblerDelay);
             tabPage_Settings.Controls.Add(label_GamblerStopKey);
@@ -1085,6 +1091,25 @@ namespace PoE
             tabPage_Settings.TabIndex = 1;
             tabPage_Settings.Text = "Settings";
             tabPage_Settings.UseVisualStyleBackColor = true;
+            // 
+            // label_GamblerDelay
+            // 
+            label_GamblerDelay.AutoSize = true;
+            label_GamblerDelay.Font = new Font("Segoe UI", 12F, FontStyle.Regular, GraphicsUnit.Point, 0);
+            label_GamblerDelay.Location = new Point(457, 15);
+            label_GamblerDelay.Name = "label_GamblerDelay";
+            label_GamblerDelay.Size = new Size(49, 21);
+            label_GamblerDelay.TabIndex = 54;
+            label_GamblerDelay.Text = "Delay";
+            // 
+            // textBox_GamblerDelay
+            // 
+            textBox_GamblerDelay.BackColor = Color.Transparent;
+            textBox_GamblerDelay.Location = new Point(457, 39);
+            textBox_GamblerDelay.Name = "textBox_GamblerDelay";
+            textBox_GamblerDelay.Size = new Size(85, 30);
+            textBox_GamblerDelay.TabIndex = 53;
+            textBox_GamblerDelay.TextAlign = HorizontalAlignment.Center;
             // 
             // label_GamblerStopKey
             // 
@@ -1179,24 +1204,35 @@ namespace PoE
             textBox_Logs.Size = new Size(617, 397);
             textBox_Logs.TabIndex = 0;
             // 
-            // textBox_GamblerDelay
+            // label_GambleSpeed
             // 
-            textBox_GamblerDelay.BackColor = Color.Transparent;
-            textBox_GamblerDelay.Location = new Point(457, 39);
-            textBox_GamblerDelay.Name = "textBox_GamblerDelay";
-            textBox_GamblerDelay.Size = new Size(85, 30);
-            textBox_GamblerDelay.TabIndex = 53;
-            textBox_GamblerDelay.TextAlign = HorizontalAlignment.Center;
+            label_GambleSpeed.AutoSize = true;
+            label_GambleSpeed.Font = new Font("Segoe UI", 12F, FontStyle.Regular, GraphicsUnit.Point, 0);
+            label_GambleSpeed.Location = new Point(117, 71);
+            label_GambleSpeed.Name = "label_GambleSpeed";
+            label_GambleSpeed.Size = new Size(53, 21);
+            label_GambleSpeed.TabIndex = 56;
+            label_GambleSpeed.Text = "Speed";
             // 
-            // label_GamblerDelay
+            // textBox_GambleSpeed
             // 
-            label_GamblerDelay.AutoSize = true;
-            label_GamblerDelay.Font = new Font("Segoe UI", 12F, FontStyle.Regular, GraphicsUnit.Point, 0);
-            label_GamblerDelay.Location = new Point(457, 15);
-            label_GamblerDelay.Name = "label_GamblerDelay";
-            label_GamblerDelay.Size = new Size(49, 21);
-            label_GamblerDelay.TabIndex = 54;
-            label_GamblerDelay.Text = "Delay";
+            textBox_GambleSpeed.Anchor = AnchorStyles.None;
+            textBox_GambleSpeed.BackColor = Color.Transparent;
+            textBox_GambleSpeed.Font = new Font("Segoe UI", 12F, FontStyle.Regular, GraphicsUnit.Point, 0);
+            textBox_GambleSpeed.Location = new Point(117, 95);
+            textBox_GambleSpeed.Margin = new Padding(0);
+            textBox_GambleSpeed.Name = "textBox_GambleSpeed";
+            textBox_GambleSpeed.Size = new Size(85, 30);
+            textBox_GambleSpeed.TabIndex = 55;
+            textBox_GambleSpeed.TextAlign = HorizontalAlignment.Center;
+            // 
+            // panel_settings_Line1
+            // 
+            panel_settings_Line1.BackColor = Color.Transparent;
+            panel_settings_Line1.Location = new Point(7, 128);
+            panel_settings_Line1.Name = "panel_settings_Line1";
+            panel_settings_Line1.Size = new Size(600, 12);
+            panel_settings_Line1.TabIndex = 57;
             // 
             // Main
             // 
@@ -1330,5 +1366,8 @@ namespace PoE
         private Label label_GamblerGetCoorinatesKey;
         private Label label_GamblerDelay;
         private FlatTextBox textBox_GamblerDelay;
+        private Panel panel_settings_Line1;
+        private Label label_GambleSpeed;
+        private FlatTextBox textBox_GambleSpeed;
     }
 }

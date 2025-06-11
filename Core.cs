@@ -234,27 +234,27 @@ namespace PoE
 
             List<Rule> rules = new List<Rule>();
 
-            if (_settings.Modifiers.Mode.Priority1 > 0)
+            if (!string.IsNullOrEmpty(_settings.Modifiers.Mode.Content1))
                 rules.Add(new Rule(_settings.Modifiers.Mode.Priority1, _settings.Modifiers.Mode.modifierType1, _settings.Modifiers.Mode.Tier1, _settings.Modifiers.Mode.Content1));
-            if (_settings.Modifiers.Mode.Priority2 > 0)
+            if (!string.IsNullOrEmpty(_settings.Modifiers.Mode.Content2))
                 rules.Add(new Rule(_settings.Modifiers.Mode.Priority2, _settings.Modifiers.Mode.modifierType2, _settings.Modifiers.Mode.Tier2, _settings.Modifiers.Mode.Content2));
-            if (_settings.Modifiers.Mode.Priority3 > 0)
+            if (!string.IsNullOrEmpty(_settings.Modifiers.Mode.Content3))
                 rules.Add(new Rule(_settings.Modifiers.Mode.Priority3, _settings.Modifiers.Mode.modifierType3, _settings.Modifiers.Mode.Tier3, _settings.Modifiers.Mode.Content3));
-            if (_settings.Modifiers.Mode.Priority4 > 0)
+            if (!string.IsNullOrEmpty(_settings.Modifiers.Mode.Content4))
                 rules.Add(new Rule(_settings.Modifiers.Mode.Priority4, _settings.Modifiers.Mode.modifierType4, _settings.Modifiers.Mode.Tier4, _settings.Modifiers.Mode.Content4));
-            if (_settings.Modifiers.Mode.Priority5 > 0)
+            if (!string.IsNullOrEmpty(_settings.Modifiers.Mode.Content5))
                 rules.Add(new Rule(_settings.Modifiers.Mode.Priority5, _settings.Modifiers.Mode.modifierType5, _settings.Modifiers.Mode.Tier5, _settings.Modifiers.Mode.Content5));
-            if (_settings.Modifiers.Mode.Priority6 > 0)
+            if (!string.IsNullOrEmpty(_settings.Modifiers.Mode.Content6))
                 rules.Add(new Rule(_settings.Modifiers.Mode.Priority6, _settings.Modifiers.Mode.modifierType6, _settings.Modifiers.Mode.Tier6, _settings.Modifiers.Mode.Content6));
-            if (_settings.Modifiers.Mode.Priority7 > 0)
+            if (!string.IsNullOrEmpty(_settings.Modifiers.Mode.Content7))
                 rules.Add(new Rule(_settings.Modifiers.Mode.Priority7, _settings.Modifiers.Mode.modifierType7, _settings.Modifiers.Mode.Tier7, _settings.Modifiers.Mode.Content7));
-            if (_settings.Modifiers.Mode.Priority8 > 0)
+            if (!string.IsNullOrEmpty(_settings.Modifiers.Mode.Content8))
                 rules.Add(new Rule(_settings.Modifiers.Mode.Priority8, _settings.Modifiers.Mode.modifierType8, _settings.Modifiers.Mode.Tier8, _settings.Modifiers.Mode.Content8));
 
             if (rules.Count == 0)
                 return;
 
-            Gambler = new Gambler(this, _input, TimeSpan.FromMilliseconds(_settings.Modifiers.Delay),
+            Gambler = new Gambler(this, _input, TimeSpan.FromMilliseconds(_settings.Modifiers.Delay), _settings.Modifiers.Speed,
                 _settings.Modifiers.GambleType, _settings.Modifiers.Mode.Item, _settings.Modifiers.Mode.Base, _settings.Modifiers.Mode.Second, rules);
 
             await Gambler.StartGambling();

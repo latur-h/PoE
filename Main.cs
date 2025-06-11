@@ -279,6 +279,7 @@ namespace PoE
             label_GamblerStartKey.ForeColor = StaticColors.ForeGround;
             label_GamblerStopKey.ForeColor = StaticColors.ForeGround;
             label_GamblerDelay.ForeColor = StaticColors.ForeGround;
+            label_GambleSpeed.ForeColor = StaticColors.ForeGround;
 
             comboBox_GambleType.Items.AddRange(Enum.GetNames<GambleType>());
             comboBox_GambleType.SelectedIndex = 0;
@@ -414,6 +415,7 @@ namespace PoE
             textBox_BaseXY._textBox.Text = $"{_settings.Modifiers.Mode.Base.X}, {_settings.Modifiers.Mode.Base.Y}";
             textBox_SecondXY._textBox.Text = $"{_settings.Modifiers.Mode.Second.X}, {_settings.Modifiers.Mode.Second.Y}";
             textBox_GamblerDelay._textBox.Text = _settings.Modifiers.Delay.ToString();
+            textBox_GambleSpeed._textBox.Text = _settings.Modifiers.Speed.ToString();
 
             comboBox_Mod1.SelectedItem = _settings.Modifiers.Mode.modifierType1.ToString();
             comboBox_Mod2.SelectedItem = _settings.Modifiers.Mode.modifierType2.ToString();
@@ -584,6 +586,11 @@ namespace PoE
             {
                 if (Delay_NumberOnly(textBox_GamblerDelay._textBox))
                     _settings.Modifiers.Delay = int.Parse(textBox_GamblerDelay._textBox.Text);
+            };
+            textBox_GambleSpeed._textBox.KeyUp += (s, e) =>
+            {
+                if (Speed_NumberOnly(textBox_GambleSpeed._textBox))
+                    _settings.Modifiers.Speed = double.Parse(textBox_GambleSpeed._textBox.Text);
             };
 
             textBox_Priority1._textBox.KeyUp += (s, e) =>
@@ -800,6 +807,19 @@ namespace PoE
         private bool Delay_NumberOnly(TextBox textBox)
         {
             if (int.TryParse(textBox.Text, out int value))
+            {
+                textBox.ForeColor = StaticColors.ForeGround;
+                return true;
+            }
+            else
+            {
+                textBox.ForeColor = Color.Red;
+                return false;
+            }
+        }
+        private bool Speed_NumberOnly(TextBox textBox)
+        {
+            if (double.TryParse(textBox.Text, out double value))
             {
                 textBox.ForeColor = StaticColors.ForeGround;
                 return true;

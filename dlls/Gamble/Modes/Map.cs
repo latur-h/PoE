@@ -31,12 +31,13 @@ namespace PoE.dlls.Gamble.Modes
         private int count = 0;
         private int maxAttempts = 10;
 
-        public Map(Main main, Simulator simulator, CancellationTokenSource cts, TimeSpan delay, Coordinates item, Coordinates alchimka, Coordinates scouring, List<Rule> rules)
+        public Map(Main main, Simulator simulator, CancellationTokenSource cts, TimeSpan delay, double speed, Coordinates item, Coordinates alchimka, Coordinates scouring, List<Rule> rules)
         {
             _main = main;
             this.simulator = simulator;
 
             this.delay = delay;
+            this.speed = speed;
 
             _cts = cts;
             _token = _cts.Token;
@@ -146,6 +147,54 @@ namespace PoE.dlls.Gamble.Modes
                 count++;
             }
 
+            if (!Regex.IsMatch(itemContent, @"item\sclass:\smaps", RegexOptions.IgnoreCase | RegexOptions.Singleline))
+            {
+                Console.WriteLine("[Gambler] [Warning] Item is not a map.");
+                _cts.Cancel();
+                return false;
+            }
+
+            var _mapPercents = rules.Where(x => x.Priority > -1 && x.Priority < 1 && !string.IsNullOrEmpty(x.Content));
+            if (_mapPercents.Count() > 0)
+            {
+                if (_mapPercents.Any(x => Regex.IsMatch(x.Content, @"q\d+r\d+ps\d+", RegexOptions.IgnoreCase | RegexOptions.Singleline)))
+                {
+                    Rule mapPercent = _mapPercents.First(x => x.Priority > -1 && x.Priority < 1 && Regex.IsMatch(x.Content, @"q\d+r\d+ps\d+", RegexOptions.IgnoreCase | RegexOptions.Singleline));
+                    var percent = Regex.Match(mapPercent.Content, @"q(?'quantity'\d+)r(?'rarity'\d+)ps(?'packsize'\d+)", RegexOptions.IgnoreCase | RegexOptions.Singleline);
+
+                    if (percent.Success)
+                    {
+                        int _q = int.Parse(percent.Groups["quantity"].Value);
+                        int _r = int.Parse(percent.Groups["rarity"].Value);
+                        int _ps = int.Parse(percent.Groups["packsize"].Value);
+
+                        Regex quantity = new(@"quantity:\s\+(?'number'\d+)%", RegexOptions.IgnoreCase | RegexOptions.Singleline);
+                        Regex rarity = new(@"rarity:\s\+(?'number'\d+)%", RegexOptions.IgnoreCase | RegexOptions.Singleline);
+                        Regex packSize = new(@"pack\ssize:\s\+(?'number'\d+)%", RegexOptions.IgnoreCase | RegexOptions.Singleline);
+
+                        int _mapQuantity = 0;
+                        int _mapRarity = 0;
+                        int _mapPackSize = 0;
+
+                        if (quantity.IsMatch(itemContent))
+                            _mapQuantity = int.Parse(quantity.Match(itemContent).Groups["number"].Value);
+                        if (rarity.IsMatch(itemContent))
+                            _mapRarity = int.Parse(rarity.Match(itemContent).Groups["number"].Value);
+                        if (packSize.IsMatch(itemContent))
+                            _mapPackSize = int.Parse(packSize.Match(itemContent).Groups["number"].Value);
+
+                        Console.WriteLine($"Q{_mapQuantity}vs{_q};R{_mapRarity}vs{_r};PS{_mapPackSize}vs{_ps}");
+
+                        if (_mapQuantity < _q)
+                            return false;
+                        if (_mapRarity < _r)
+                            return false;
+                        if (_mapPackSize < _ps)
+                            return false;
+                    }
+                }
+            }
+
             Regex getModifiers = new(@"\{.*?\}.*?(?={|--------|$)", RegexOptions.IgnoreCase | RegexOptions.Singleline);
 
             Regex getType = new(@"\{.*?(?'Type'implicit|prefix|suffix).*?\}", RegexOptions.IgnoreCase);
@@ -185,20 +234,25 @@ namespace PoE.dlls.Gamble.Modes
                 modifiers.Add(parsedMod);
             }
 
-            int modsCount = 0;
-            foreach (var rule in rules)
-            {
-                foreach (var mod in modifiers)
-                {
-                    Regex content = new(rule.Content, RegexOptions.IgnoreCase);
-                    if (!content.IsMatch(mod.Content))
-                        continue;
+            var include = rules.Where(x => x.Priority >= 1).ToList();
+            int includeCount = 0;
+            var exclude = rules.Where(x => x.Priority <= -1).ToList();
 
-                    modsCount++;
+            foreach (var mod in modifiers)
+            {
+                foreach (var _mod in include)
+                {
+                    if (Regex.IsMatch(mod.Content, _mod.Content))
+                        includeCount++;
+                }
+                foreach (var _mod in exclude)
+                {
+                    if (Regex.IsMatch(mod.Content, _mod.Content))
+                        return false;
                 }
             }
 
-            if (modsCount == 0)
+            if (include.Count == includeCount)
                 return true;
 
             return false;

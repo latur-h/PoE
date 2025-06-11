@@ -40,12 +40,13 @@ namespace PoE.dlls.Gamble.Modes
         private int count = 0;
         private int maxAttempts = 10;
 
-        public Alt_Aug(Main main, Simulator simulator, CancellationTokenSource cts, TimeSpan delay, Coordinates item, Coordinates alt, Coordinates aug, List<Rule> rules)
+        public Alt_Aug(Main main, Simulator simulator, CancellationTokenSource cts, TimeSpan delay, double speed, Coordinates item, Coordinates alt, Coordinates aug, List<Rule> rules)
         {
             _main = main;
             _simulator = simulator;
 
             this.delay = delay;
+            this.speed = speed;
 
             this.item = item;
             this.alt = alt;
@@ -216,7 +217,7 @@ namespace PoE.dlls.Gamble.Modes
             }
 
             var required = rules.Where(r => r.Priority >= 1).ToList();
-            var optional = rules.Where(r => r.Priority < 1).ToList();
+            var optional = rules.Where(r => r.Priority > 0 && r.Priority < 1).ToList();
 
             int requiredCount = 0;
             int optionalCount = 0;
