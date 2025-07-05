@@ -29,7 +29,7 @@ namespace PoE.dlls.Gamble.Modes
 
         private int _hash = 0;
         private int count = 0;
-        private int maxAttempts = 10;
+        private int maxAttempts = 3;
 
         public Map(Main main, Simulator simulator, CancellationTokenSource cts, TimeSpan delay, double speed, Coordinates item, Coordinates alchimka, Coordinates scouring, List<Rule> rules)
         {
@@ -147,7 +147,7 @@ namespace PoE.dlls.Gamble.Modes
                 count++;
             }
 
-            if (!Regex.IsMatch(itemContent, @"item\sclass:\smaps", RegexOptions.IgnoreCase | RegexOptions.Singleline))
+            if (!Regex.IsMatch(itemContent, @"item\sclass:\s(?>maps|expedition logbooks)", RegexOptions.IgnoreCase | RegexOptions.Singleline))
             {
                 Console.WriteLine("[Gambler] [Warning] Item is not a map.");
                 _cts.Cancel();
@@ -242,12 +242,12 @@ namespace PoE.dlls.Gamble.Modes
             {
                 foreach (var _mod in include)
                 {
-                    if (Regex.IsMatch(mod.Content, _mod.Content))
+                    if (/*Regex.IsMatch(mod.Content, _mod.Content, RegexOptions.IgnoreCase) || */Regex.IsMatch(mod.Name, _mod.Content, RegexOptions.IgnoreCase))
                         includeCount++;
                 }
                 foreach (var _mod in exclude)
                 {
-                    if (Regex.IsMatch(mod.Content, _mod.Content))
+                    if (/*Regex.IsMatch(mod.Content, _mod.Content, RegexOptions.IgnoreCase) || */Regex.IsMatch(mod.Name, _mod.Content, RegexOptions.IgnoreCase))
                         return false;
                 }
             }

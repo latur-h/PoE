@@ -38,7 +38,7 @@ namespace PoE.dlls.Gamble.Modes
 
         private int _hash = 0;
         private int count = 0;
-        private int maxAttempts = 10;
+        private int maxAttempts = 3;
 
         public Alt_Aug(Main main, Simulator simulator, CancellationTokenSource cts, TimeSpan delay, double speed, Coordinates item, Coordinates alt, Coordinates aug, List<Rule> rules)
         {
@@ -236,7 +236,7 @@ namespace PoE.dlls.Gamble.Modes
                         continue;
 
                     Regex content = new(rule.Content, RegexOptions.IgnoreCase);
-                    if (!content.IsMatch(mod.Content))
+                    if (!content.IsMatch(mod.Content) && !content.IsMatch(mod.Name))
                         continue;
 
                     requiredCount++;
@@ -255,7 +255,7 @@ namespace PoE.dlls.Gamble.Modes
                             continue;
 
                         Regex content = new(rule.Content, RegexOptions.IgnoreCase);
-                        if (!content.IsMatch(mod.Content))
+                        if (!content.IsMatch(mod.Content) && !content.IsMatch(mod.Name))
                             continue;
 
                         optionalCount++;

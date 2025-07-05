@@ -27,7 +27,7 @@ namespace PoE.dlls.Gamble.Modes
 
         private int _hash = 0;
         private int count = 0;
-        private int maxAttempts = 10;
+        private int maxAttempts = 3;
 
         public Chromatic(Main main, Simulator simulator, CancellationTokenSource cts, TimeSpan delay, double speed, Coordinates item, Coordinates orb, List<Rule> rules)
         {

@@ -28,7 +28,7 @@ namespace PoE.dlls.Gamble.Modes
 
         private int _hash = 0;
         private int count = 0;
-        private int maxAttempts = 10;
+        private int maxAttempts = 3;
 
         public MapT17(Main main, Simulator simulator, CancellationTokenSource cts, TimeSpan delay, double speed, Coordinates item, Coordinates chaos, List<Rule> rules)
         {
@@ -262,12 +262,12 @@ namespace PoE.dlls.Gamble.Modes
             {
                 foreach (var _mod in include)
                 {
-                    if (Regex.IsMatch(mod.Content, _mod.Content))
+                    if (/*Regex.IsMatch(mod.Content, _mod.Content, RegexOptions.IgnoreCase) || */Regex.IsMatch(mod.Name, _mod.Content, RegexOptions.IgnoreCase))
                         includeCount++;
                 }
                 foreach (var _mod in exclude)
                 {
-                    if (Regex.IsMatch(mod.Content, _mod.Content))
+                    if (/*Regex.IsMatch(mod.Content, _mod.Content, RegexOptions.IgnoreCase) || */Regex.IsMatch(mod.Name, _mod.Content, RegexOptions.IgnoreCase))
                         return false;
                 }
             }

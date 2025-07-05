@@ -115,6 +115,9 @@ namespace PoE
             textBox_Mod1 = new FlatTextBox();
             comboBox_GambleType = new FlatComboBox();
             tabPage_Settings = new TabPage();
+            panel_settings_Line1 = new Panel();
+            label_GambleSpeed = new Label();
+            textBox_GambleSpeed = new FlatTextBox();
             label_GamblerDelay = new Label();
             textBox_GamblerDelay = new FlatTextBox();
             label_GamblerStopKey = new Label();
@@ -126,9 +129,6 @@ namespace PoE
             textBox_GamblerGetCoordinatesKey = new FlatTextBox();
             tabPage_Logs = new TabPage();
             textBox_Logs = new TextBox();
-            label_GambleSpeed = new Label();
-            textBox_GambleSpeed = new FlatTextBox();
-            panel_settings_Line1 = new Panel();
             tabControl_Main.SuspendLayout();
             tabPage_Main.SuspendLayout();
             groupBox_Flask5.SuspendLayout();
@@ -1092,6 +1092,36 @@ namespace PoE
             tabPage_Settings.Text = "Settings";
             tabPage_Settings.UseVisualStyleBackColor = true;
             // 
+            // panel_settings_Line1
+            // 
+            panel_settings_Line1.BackColor = Color.Crimson;
+            panel_settings_Line1.Location = new Point(7, 128);
+            panel_settings_Line1.Name = "panel_settings_Line1";
+            panel_settings_Line1.Size = new Size(600, 2);
+            panel_settings_Line1.TabIndex = 57;
+            // 
+            // label_GambleSpeed
+            // 
+            label_GambleSpeed.AutoSize = true;
+            label_GambleSpeed.Font = new Font("Segoe UI", 12F, FontStyle.Regular, GraphicsUnit.Point, 0);
+            label_GambleSpeed.Location = new Point(117, 71);
+            label_GambleSpeed.Name = "label_GambleSpeed";
+            label_GambleSpeed.Size = new Size(53, 21);
+            label_GambleSpeed.TabIndex = 56;
+            label_GambleSpeed.Text = "Speed";
+            // 
+            // textBox_GambleSpeed
+            // 
+            textBox_GambleSpeed.Anchor = AnchorStyles.None;
+            textBox_GambleSpeed.BackColor = Color.Transparent;
+            textBox_GambleSpeed.Font = new Font("Segoe UI", 12F, FontStyle.Regular, GraphicsUnit.Point, 0);
+            textBox_GambleSpeed.Location = new Point(117, 95);
+            textBox_GambleSpeed.Margin = new Padding(0);
+            textBox_GambleSpeed.Name = "textBox_GambleSpeed";
+            textBox_GambleSpeed.Size = new Size(85, 30);
+            textBox_GambleSpeed.TabIndex = 55;
+            textBox_GambleSpeed.TextAlign = HorizontalAlignment.Center;
+            // 
             // label_GamblerDelay
             // 
             label_GamblerDelay.AutoSize = true;
@@ -1203,36 +1233,6 @@ namespace PoE
             textBox_Logs.ReadOnly = true;
             textBox_Logs.Size = new Size(617, 397);
             textBox_Logs.TabIndex = 0;
-            // 
-            // label_GambleSpeed
-            // 
-            label_GambleSpeed.AutoSize = true;
-            label_GambleSpeed.Font = new Font("Segoe UI", 12F, FontStyle.Regular, GraphicsUnit.Point, 0);
-            label_GambleSpeed.Location = new Point(117, 71);
-            label_GambleSpeed.Name = "label_GambleSpeed";
-            label_GambleSpeed.Size = new Size(53, 21);
-            label_GambleSpeed.TabIndex = 56;
-            label_GambleSpeed.Text = "Speed";
-            // 
-            // textBox_GambleSpeed
-            // 
-            textBox_GambleSpeed.Anchor = AnchorStyles.None;
-            textBox_GambleSpeed.BackColor = Color.Transparent;
-            textBox_GambleSpeed.Font = new Font("Segoe UI", 12F, FontStyle.Regular, GraphicsUnit.Point, 0);
-            textBox_GambleSpeed.Location = new Point(117, 95);
-            textBox_GambleSpeed.Margin = new Padding(0);
-            textBox_GambleSpeed.Name = "textBox_GambleSpeed";
-            textBox_GambleSpeed.Size = new Size(85, 30);
-            textBox_GambleSpeed.TabIndex = 55;
-            textBox_GambleSpeed.TextAlign = HorizontalAlignment.Center;
-            // 
-            // panel_settings_Line1
-            // 
-            panel_settings_Line1.BackColor = Color.Transparent;
-            panel_settings_Line1.Location = new Point(7, 128);
-            panel_settings_Line1.Name = "panel_settings_Line1";
-            panel_settings_Line1.Size = new Size(600, 12);
-            panel_settings_Line1.TabIndex = 57;
             // 
             // Main
             // 

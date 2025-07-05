@@ -1,4 +1,5 @@
 ﻿using GlobalHotKeys.Structs;
+using Newtonsoft.Json.Linq;
 using PoE.dlls.Flasks.Base;
 using PoE.dlls.Gamba;
 using PoE.dlls.Gamble;
@@ -17,15 +18,15 @@ namespace PoE
         private Bind drinkFlasks;
         private Bind stopDrinking;
 
-        private Bind clickerStart;
-        private Bind clickerStop;
+        //private Bind clickerStart;
+        //private Bind clickerStop;
 
         private Gambler? Gambler;
         private Bind gamblerGetCoordinates;
         private Bind gamblerStart;
         private Bind gamblerStop;
 
-        private void Init()
+        private async Task Init()
         {
             _hotkeys.Start();
 
@@ -33,8 +34,8 @@ namespace PoE
             drinkFlasks = new Bind("Drink Flask", DrinkFlasks, KeyCode.F2);
             stopDrinking = new Bind("Stop Drinking", StopDrinking, KeyCode.F4);
 
-            clickerStart = new Bind("Clicker start", ClickerStart, KeyCode.XButton1);
-            clickerStop = new Bind("Clicker stop", ClickerStop, KeyCode.XButton1Up);
+            //clickerStart = new Bind("Clicker start", ClickerStart, KeyCode.XButton1);
+            //clickerStop = new Bind("Clicker stop", ClickerStop, KeyCode.XButton1Up);
 
             gamblerGetCoordinates = new Bind("Gambler get coordinates", GamblerGetCoordinates, Enum.Parse<KeyCode>(_settings.Modifiers.GetCoorinatesKey));
             gamblerStart = new Bind("Gambler start", GamblerStart, Enum.Parse<KeyCode>(_settings.Modifiers.GamblerStart));
@@ -44,12 +45,26 @@ namespace PoE
             _hotkeys.Register(drinkFlasks);
             _hotkeys.Register(stopDrinking);
 
-            _hotkeys.Register(clickerStart);
-            _hotkeys.Register(clickerStop);
+            //_hotkeys.Register(clickerStart);
+            //_hotkeys.Register(clickerStop);
 
             _hotkeys.Register(gamblerGetCoordinates);
             _hotkeys.Register(gamblerStart);
             _hotkeys.Register(gamblerStop);
+
+            await Task.Run(async () => 
+            {
+                while(true)
+                {
+                    if (_input.GetKeyState("XButton1"))
+                    {
+                        _input.Send("LButton Down");
+                        await Task.Delay(20);
+                        _input.Send("LButton Up");
+                        await Task.Delay(20);
+                    }
+                }
+            });
         }
 
         #region Flasks
@@ -135,17 +150,21 @@ namespace PoE
         }
         #endregion
         #region Clicker
-        private CancellationTokenSource cts = null!;
+        private CancellationTokenSource? cts = null;
         private CancellationToken token;
-        private bool isClickerRunning = false;
         private async Task ClickerStart()
         {
-            if (isClickerRunning) return;
+            if (cts is null)
+            {
+                cts = new CancellationTokenSource();
+                token = cts.Token;
+            }
 
-            isClickerRunning = true;
+            if (cts is not null && !token.IsCancellationRequested) return;
 
-            cts = new CancellationTokenSource();
-            token = cts.Token;
+            Console.WriteLine("Clicker run...");
+
+            Console.WriteLine(token.IsCancellationRequested);
 
             while (!token.IsCancellationRequested)
             {
@@ -155,14 +174,16 @@ namespace PoE
                 await Task.Delay(20);
             }
 
+            Console.WriteLine("Clicker stop...");
+
             cts.Dispose();
+            cts = null;
             token = CancellationToken.None;
         }
         private Task ClickerStop()
         {
-            if (!isClickerRunning) return Task.CompletedTask;
+            if (cts is null || token.IsCancellationRequested) return Task.CompletedTask;
 
-            isClickerRunning = false;
             cts.Cancel();
 
             return Task.CompletedTask;

@@ -10,7 +10,6 @@ namespace PoE
     internal static class Program
     {
         private const string processName = "exe PathOfExile.exe";
-        //private const string processName = "Path of Exile";
         private const string mutexName = "Global\\poe_app";
         private static Mutex? mutex;
 
