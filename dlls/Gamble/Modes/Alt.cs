@@ -145,6 +145,8 @@ namespace PoE.dlls.Gamble.Modes
             Regex getTier = new(@"\{.*?\(Tier:\s(?'Tier'\d+)\).*?\}", RegexOptions.IgnoreCase);
             Regex getContent = new(@"}(?'Content'.*?)$", RegexOptions.IgnoreCase | RegexOptions.Singleline);
 
+            Regex getEnchant = new(@".*?\(enchant\)", RegexOptions.IgnoreCase);
+
             Regex strip = new(@"\(\d+-\d+\)", RegexOptions.IgnoreCase);
 
             var mods = getModifiers.Matches(itemContent);
@@ -169,6 +171,22 @@ namespace PoE.dlls.Gamble.Modes
 
                 if (!Regex.IsMatch(content, @"fractured", RegexOptions.IgnoreCase))
                     Console.WriteLine($"Type={type}, Tier={tier}, Name={name}, Content={content}");
+
+                Modifier parsedMod = new(type, tier, name, content);
+                modifiers.Add(parsedMod);
+            }
+
+            var enhants = getEnchant.Matches(itemContent);
+            Console.WriteLine($"Enchants count {enhants.Count}");
+            foreach(var i in enhants.Cast<Match>())
+            {
+                ModifierType type = ModifierType.Implicit;
+
+                string name = "Enchant";
+                int tier = 0;
+                string content = i.Value.Trim();
+
+                Console.WriteLine($"Type={type}, Tier={tier}, Name={name}, Content={content}");
 
                 Modifier parsedMod = new(type, tier, name, content);
                 modifiers.Add(parsedMod);

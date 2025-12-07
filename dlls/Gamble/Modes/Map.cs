@@ -31,6 +31,8 @@ namespace PoE.dlls.Gamble.Modes
         private int count = 0;
         private int maxAttempts = 3;
 
+        private bool _isShiftHeld = false;
+
         public Map(Main main, Simulator simulator, CancellationTokenSource cts, TimeSpan delay, double speed, Coordinates item, Coordinates alchimka, Coordinates scouring, List<Rule> rules)
         {
             _main = main;
@@ -58,33 +60,30 @@ namespace PoE.dlls.Gamble.Modes
 
             bool status = CheckItem();
 
-            while(!status && !_token.IsCancellationRequested)
+            simulator.MouseDeltaMove(alchimka.X, alchimka.Y, speed);
+            await Task.Delay(delay);
+
+            simulator.Send("RButton Down");
+            await Task.Delay(delay);
+            simulator.Send("RButton Up");
+            await Task.Delay(delay);
+
+            simulator.MouseDeltaMove(item.X, item.Y, speed);
+            await Task.Delay(delay);
+
+            simulator.Send("Shift Down");
+            await Task.Delay(delay);
+            _isShiftHeld = true;
+
+            while (!status && !_token.IsCancellationRequested)
             {
-                simulator.MouseDeltaMove(scouring.X, scouring.Y, speed);
+                simulator.Send("Alt Down");
                 await Task.Delay(delay);
-
-                simulator.Send("RButton Down");
-                await Task.Delay(delay);
-                simulator.Send("RButton Up");
-                await Task.Delay(delay);
-
-                simulator.MouseDeltaMove(item.X, item.Y, speed);
-                await Task.Delay(delay);
-
                 simulator.Send("LButton Down");
                 await Task.Delay(delay);
                 simulator.Send("LButton Up");
                 await Task.Delay(delay);
-
-                simulator.MouseDeltaMove(alchimka.X, alchimka.Y, speed);
-                await Task.Delay(delay);
-
-                simulator.Send("RButton Down");
-                await Task.Delay(delay);
-                simulator.Send("RButton Up");
-                await Task.Delay(delay);
-
-                simulator.MouseDeltaMove(item.X, item.Y, speed);
+                simulator.Send("Alt Up");
                 await Task.Delay(delay);
 
                 simulator.Send("LButton Down");
@@ -100,9 +99,16 @@ namespace PoE.dlls.Gamble.Modes
             if(_token.IsCancellationRequested)
             {
                 Console.WriteLine("[Gambler] [Cancelled] Gambling was cancelled");
+
+                if (_isShiftHeld)
+                    simulator.Send("Shift Up");
+
                 return;
             }
-            
+
+            if (_isShiftHeld)
+                simulator.Send("Shift Up");
+
             Console.WriteLine($"[Gambler] [Success] Item matches the rules");
         }
         private async Task Copy()

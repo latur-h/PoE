@@ -14,7 +14,7 @@ namespace PoE
         private static Mutex? mutex;
 
         [STAThread]
-        static void Main()
+        static void Main() 
         {
             mutex = new(true, mutexName, out bool isNewInstance);
             if (!isNewInstance)

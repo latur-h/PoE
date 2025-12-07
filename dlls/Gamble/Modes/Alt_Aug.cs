@@ -60,8 +60,11 @@ namespace PoE.dlls.Gamble.Modes
 
         public async Task Gamble()
         {
+            /*
             _simulator.MouseDeltaMove(item.X, item.Y, speed);
             await Task.Delay(delay);
+            */
+            await FirstMove();
 
             await Copy();
 
@@ -92,8 +95,24 @@ namespace PoE.dlls.Gamble.Modes
             else            
                 Console.WriteLine("[Gambler] [Failed] Failed to check item!");
         }
+        private async Task FirstMove()
+        {
+            _simulator.MouseDeltaMove(alt.X, alt.Y, speed);
+            await Task.Delay(delay);
+            _simulator.Send("RButton Down");
+            await Task.Delay(delay);
+            _simulator.Send("RButton Up");
+            await Task.Delay(delay);
+            _simulator.MouseDeltaMove(item.X, item.Y, speed);
+            await Task.Delay(delay);
+            _simulator.Send("Shift Down");
+            await Task.Delay(delay);
+
+            _isShiftHeld = true;
+        }
         private async Task SlamAlt()
         {
+            /*
             if (!_isShiftHeld)
             {
                 _simulator.MouseDeltaMove(alt.X, alt.Y, speed);
@@ -108,7 +127,7 @@ namespace PoE.dlls.Gamble.Modes
                 await Task.Delay(delay);
 
                 _isShiftHeld = true;
-            }
+            }*/
 
             _simulator.Send("LButton Down");
             await Task.Delay(delay);
@@ -117,6 +136,7 @@ namespace PoE.dlls.Gamble.Modes
         }
         private async Task SlamAug()
         {
+            /*
             if (_isShiftHeld)
             {
                 _simulator.Send("Shift Up");
@@ -124,6 +144,7 @@ namespace PoE.dlls.Gamble.Modes
 
                 _isShiftHeld = false;
             }
+            
 
             _simulator.MouseDeltaMove(aug.X, aug.Y, speed);
             await Task.Delay(delay);
@@ -137,6 +158,16 @@ namespace PoE.dlls.Gamble.Modes
             _simulator.Send("LButton Down");
             await Task.Delay(delay);
             _simulator.Send("LButton Up");
+            await Task.Delay(delay);
+            */
+
+            _simulator.Send("Alt Down");
+            await Task.Delay(delay);
+            _simulator.Send("LButton Down");
+            await Task.Delay(delay);
+            _simulator.Send("LButton Up");
+            await Task.Delay(delay);
+            _simulator.Send("Alt Up");
             await Task.Delay(delay);
         }
         private async Task Copy()
