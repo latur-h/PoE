@@ -112,23 +112,6 @@ namespace PoE.dlls.Gamble.Modes
         }
         private async Task SlamAlt()
         {
-            /*
-            if (!_isShiftHeld)
-            {
-                _simulator.MouseDeltaMove(alt.X, alt.Y, speed);
-                await Task.Delay(delay);
-                _simulator.Send("RButton Down");
-                await Task.Delay(delay);
-                _simulator.Send("RButton Up");
-                await Task.Delay(delay);
-                _simulator.MouseDeltaMove(item.X, item.Y, speed);
-                await Task.Delay(delay);
-                _simulator.Send("Shift Down");
-                await Task.Delay(delay);
-
-                _isShiftHeld = true;
-            }*/
-
             _simulator.Send("LButton Down");
             await Task.Delay(delay);
             _simulator.Send("LButton Up");
@@ -136,31 +119,6 @@ namespace PoE.dlls.Gamble.Modes
         }
         private async Task SlamAug()
         {
-            /*
-            if (_isShiftHeld)
-            {
-                _simulator.Send("Shift Up");
-                await Task.Delay(delay);
-
-                _isShiftHeld = false;
-            }
-            
-
-            _simulator.MouseDeltaMove(aug.X, aug.Y, speed);
-            await Task.Delay(delay);
-            _simulator.Send("RButton Down");
-            await Task.Delay(delay);
-            _simulator.Send("RButton Up");
-            await Task.Delay(delay);
-            _simulator.MouseDeltaMove(item.X, item.Y, speed);
-            await Task.Delay(delay);
-
-            _simulator.Send("LButton Down");
-            await Task.Delay(delay);
-            _simulator.Send("LButton Up");
-            await Task.Delay(delay);
-            */
-
             _simulator.Send("Alt Down");
             await Task.Delay(delay);
             _simulator.Send("LButton Down");
@@ -293,7 +251,7 @@ namespace PoE.dlls.Gamble.Modes
                     }
                 }
 
-            if (required.Count == requiredCount)
+            if (required.Count <= requiredCount)
             {
                 if (optional?.Count > 0 && optionalCount == 0)
                 {
