@@ -1,7 +1,3 @@
-﻿using GlobalHotKeys;
-using GlobalHotKeys.Structs;
-using InputSimulator;
-using PoE.dlls;
 using PoE.dlls.Flasks;
 using PoE.dlls.Flasks.Base;
 using PoE.dlls.Gamble;
@@ -10,20 +6,22 @@ using PoE.dlls.InteropServices;
 using PoE.dlls.Logger;
 using PoE.dlls.Settings;
 using PoE.dlls.Style;
-using System.Windows.Forms;
+using Poss.Win.Automation.Common.Keys.Enums;
+using Poss.Win.Automation.GlobalHotKeys;
+using Poss.Win.Automation.Input;
 
 namespace PoE
 {
     public partial class Main : Form
     {
-        private readonly Simulator _input;
-        private readonly HotKeys _hotkeys;
+        private readonly InputSimulator _input;
+        private readonly GlobalHotKeyManager _hotkeys;
         private readonly FlaskManager _flaskManager;
         private readonly UserSettings _userSettings;
         private Settings _settings = null!;
         private TextBoxLogger _logger = null!;
 
-        public Main(Simulator input, HotKeys hotkeys, FlaskManager flaskManager, UserSettings userSettings)
+        public Main(InputSimulator input, GlobalHotKeyManager hotkeys, FlaskManager flaskManager, UserSettings userSettings)
         {
             _input = input;
             _hotkeys = hotkeys;
@@ -70,8 +68,8 @@ namespace PoE
             label_Flask4_Slider.ForeColor = StaticColors.ForeGround;
             label_Flask5_Slider.ForeColor = StaticColors.ForeGround;
 
-            slider_Flask1.ValueChanged += (s, e) => 
-            { 
+            slider_Flask1.ValueChanged += (s, e) =>
+            {
                 label_Flask1_Slider.Text = $"{slider_Flask1.Value}";
 
                 _settings.Flasks["1"].Percent = slider_Flask1.Value;
@@ -111,7 +109,7 @@ namespace PoE
             comboBox_Flask1.SelectedIndex = 0;
             comboBox_Flask1.SelectedIndexChanged += (s, e) =>
             {
-                if (comboBox_Flask1.SelectedItem?.ToString() == FlaskType.Utility.ToString() || comboBox_Flask1.SelectedItem?.ToString() == FlaskType.Tincture.ToString())                
+                if (comboBox_Flask1.SelectedItem?.ToString() == FlaskType.Utility.ToString() || comboBox_Flask1.SelectedItem?.ToString() == FlaskType.Tincture.ToString())
                     groupBox_Flask1.Hide();
                 else
                     groupBox_Flask1.Show();
@@ -125,9 +123,9 @@ namespace PoE
             comboBox_Flask2.SelectedIndex = 0;
             comboBox_Flask2.SelectedIndexChanged += (s, e) =>
             {
-                if (comboBox_Flask2.SelectedItem?.ToString() == FlaskType.Utility.ToString() || comboBox_Flask2.SelectedItem?.ToString() == FlaskType.Tincture.ToString())                
-                   groupBox_Flask2.Hide();                
-                else                
+                if (comboBox_Flask2.SelectedItem?.ToString() == FlaskType.Utility.ToString() || comboBox_Flask2.SelectedItem?.ToString() == FlaskType.Tincture.ToString())
+                    groupBox_Flask2.Hide();
+                else
                     groupBox_Flask2.Show();
 
                 LabelPercent();
@@ -139,9 +137,9 @@ namespace PoE
             comboBox_Flask3.SelectedIndex = 0;
             comboBox_Flask3.SelectedIndexChanged += (s, e) =>
             {
-                if (comboBox_Flask3.SelectedItem?.ToString() == FlaskType.Utility.ToString() || comboBox_Flask3.SelectedItem?.ToString() == FlaskType.Tincture.ToString())                
-                    groupBox_Flask3.Hide();                
-                else                
+                if (comboBox_Flask3.SelectedItem?.ToString() == FlaskType.Utility.ToString() || comboBox_Flask3.SelectedItem?.ToString() == FlaskType.Tincture.ToString())
+                    groupBox_Flask3.Hide();
+                else
                     groupBox_Flask3.Show();
 
                 LabelPercent();
@@ -153,9 +151,9 @@ namespace PoE
             comboBox_Flask4.SelectedIndex = 0;
             comboBox_Flask4.SelectedIndexChanged += (s, e) =>
             {
-                if (comboBox_Flask4.SelectedItem?.ToString() == FlaskType.Utility.ToString() || comboBox_Flask4.SelectedItem?.ToString() == FlaskType.Tincture.ToString())                
-                    groupBox_Flask4.Hide();                
-                else                
+                if (comboBox_Flask4.SelectedItem?.ToString() == FlaskType.Utility.ToString() || comboBox_Flask4.SelectedItem?.ToString() == FlaskType.Tincture.ToString())
+                    groupBox_Flask4.Hide();
+                else
                     groupBox_Flask4.Show();
 
                 LabelPercent();
@@ -184,7 +182,7 @@ namespace PoE
             };
             textBox_Flask1._textBox.KeyUp += (s, e) =>
             {
-                string key = _input.KeyMap.FirstOrDefault(x => x.Value == (int)e.KeyCode).Key;
+                string key = GetKeyNameFromKeys(e.KeyCode);
                 textBox_Flask1._textBox.Text = key;
 
                 _settings.Flasks["1"].Key = key;
@@ -197,7 +195,7 @@ namespace PoE
             };
             textBox_Flask2._textBox.KeyUp += (s, e) =>
             {
-                string key = _input.KeyMap.FirstOrDefault(x => x.Value == (int)e.KeyCode).Key;
+                string key = GetKeyNameFromKeys(e.KeyCode);
                 textBox_Flask2._textBox.Text = key;
 
                 _settings.Flasks["2"].Key = key;
@@ -210,7 +208,7 @@ namespace PoE
             };
             textBox_Flask3._textBox.KeyUp += (s, e) =>
             {
-                string key = _input.KeyMap.FirstOrDefault(x => x.Value == (int)e.KeyCode).Key;
+                string key = GetKeyNameFromKeys(e.KeyCode);
                 textBox_Flask3._textBox.Text = key;
 
                 _settings.Flasks["3"].Key = key;
@@ -223,7 +221,7 @@ namespace PoE
             };
             textBox_Flask4._textBox.KeyUp += (s, e) =>
             {
-                string key = _input.KeyMap.FirstOrDefault(x => x.Value == (int)e.KeyCode).Key;
+                string key = GetKeyNameFromKeys(e.KeyCode);
                 textBox_Flask4._textBox.Text = key;
 
                 _settings.Flasks["4"].Key = key;
@@ -236,7 +234,7 @@ namespace PoE
             };
             textBox_Flask5._textBox.KeyUp += (s, e) =>
             {
-                string key = _input.KeyMap.FirstOrDefault(x => x.Value == (int)e.KeyCode).Key;
+                string key = GetKeyNameFromKeys(e.KeyCode);
                 textBox_Flask5._textBox.Text = key;
 
                 _settings.Flasks["5"].Key = key;
@@ -249,7 +247,7 @@ namespace PoE
             checkBox_Flask5.Checked = _settings.Flasks["5"].Active;
 
             comboBox_Flask1.SelectedItem = _settings.Flasks["1"].FlaskType;
-            comboBox_Flask2.SelectedItem = _settings.Flasks["2"].FlaskType;                
+            comboBox_Flask2.SelectedItem = _settings.Flasks["2"].FlaskType;
             comboBox_Flask3.SelectedItem = _settings.Flasks["3"].FlaskType;
             comboBox_Flask4.SelectedItem = _settings.Flasks["4"].FlaskType;
             comboBox_Flask5.SelectedItem = _settings.Flasks["5"].FlaskType;
@@ -526,17 +524,14 @@ namespace PoE
             };
             textBox_GamblerGetCoordinatesKey._textBox.KeyUp += (s, e) =>
             {
-                var names = Enum.GetNames<KeyCode>();
-                string key = names.FirstOrDefault(x => x.Equals(e.KeyCode.ToString(), StringComparison.OrdinalIgnoreCase)) ?? e.KeyCode.ToString();
-
+                string key = GetKeyNameFromKeys(e.KeyCode);
                 if (string.IsNullOrEmpty(key) || key == "None")
                 {
                     textBox_GamblerGetCoordinatesKey._textBox.ForeColor = Color.Red;
                     return;
                 }
 
-                gamblerGetCoordinates = new Bind(gamblerStart.Id, gamblerStart.Action, Enum.Parse<KeyCode>(key));
-                _hotkeys.Change(gamblerGetCoordinates);
+                _hotkeys.Change("Gambler get coordinates", key);
 
                 textBox_GamblerGetCoordinatesKey._textBox.Text = key;
                 _settings.Modifiers.GetCoorinatesKey = key;
@@ -547,16 +542,14 @@ namespace PoE
             };
             textBox_GamblerStartKey._textBox.KeyUp += (s, e) =>
             {
-                var names = Enum.GetNames<KeyCode>();
-                string key = names.FirstOrDefault(x => x.Equals(e.KeyCode.ToString(), StringComparison.OrdinalIgnoreCase)) ?? e.KeyCode.ToString();
+                string key = GetKeyNameFromKeys(e.KeyCode);
                 if (string.IsNullOrEmpty(key) || key == "None")
                 {
                     textBox_GamblerStartKey._textBox.ForeColor = Color.Red;
                     return;
                 }
 
-                gamblerStart = new Bind(gamblerStart.Id, gamblerStart.Action, Enum.Parse<KeyCode>(key));
-                _hotkeys.Change(gamblerStart);
+                _hotkeys.Change("Gambler start", key);
 
                 textBox_GamblerStartKey._textBox.Text = key;
                 _settings.Modifiers.GamblerStart = key;
@@ -567,17 +560,15 @@ namespace PoE
             };
             textBox_GamblerStopKey._textBox.KeyUp += (s, e) =>
             {
-                var names = Enum.GetNames<KeyCode>();
-                string key = names.FirstOrDefault(x => x.Equals(e.KeyCode.ToString(), StringComparison.OrdinalIgnoreCase)) ?? e.KeyCode.ToString();
-                
+                string key = GetKeyNameFromKeys(e.KeyCode);
+
                 if (string.IsNullOrEmpty(key) || key == "None")
                 {
                     textBox_GamblerStopKey._textBox.ForeColor = Color.Red;
                     return;
                 }
 
-                gamblerStop = new Bind(gamblerStop.Id, gamblerStop.Action, Enum.Parse<KeyCode>(key));
-                _hotkeys.Change(gamblerStop);
+                _hotkeys.Change("Gambler stop", key);
 
                 textBox_GamblerStopKey._textBox.Text = key;
                 _settings.Modifiers.GamblerStop = key;
@@ -636,7 +627,7 @@ namespace PoE
 
             textBox_Tier1._textBox.KeyUp += (s, e) =>
             {
-               if (Tier_NumberOnly(textBox_Tier1._textBox))
+                if (Tier_NumberOnly(textBox_Tier1._textBox))
                     _settings.Modifiers.Mode.Tier1 = int.Parse(textBox_Tier1._textBox.Text);
             };
             textBox_Tier2._textBox.KeyUp += (s, e) =>
@@ -775,7 +766,15 @@ namespace PoE
                 }
             };
 
-            Init();
+            _ = Init();
+        }
+
+        private static string GetKeyNameFromKeys(Keys key)
+        {
+            if (key == Keys.None) return "None";
+            return Enum.IsDefined(typeof(VirtualKey), (int)key)
+                ? ((VirtualKey)(int)key).ToString()
+                : key.ToString();
         }
 
         private bool Priority_NumberOnly(TextBox textBox)

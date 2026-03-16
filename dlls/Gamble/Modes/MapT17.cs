@@ -1,19 +1,14 @@
-﻿using InputSimulator;
+﻿using Poss.Win.Automation.Input;
 using PoE.dlls.Gamble.Modifiers;
 using PoE.dlls.InteropServices;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 using System.Text.RegularExpressions;
-using System.Threading.Tasks;
 
 namespace PoE.dlls.Gamble.Modes
 {
     public class MapT17 : IGamba
     {
         private readonly Main _main;
-        private readonly Simulator simulator;
+        private readonly InputSimulator simulator;
 
         private double speed = 10.0;
         private TimeSpan delay = TimeSpan.FromMilliseconds(10);
@@ -30,7 +25,7 @@ namespace PoE.dlls.Gamble.Modes
         private int count = 0;
         private int maxAttempts = 3;
 
-        public MapT17(Main main, Simulator simulator, CancellationTokenSource cts, TimeSpan delay, double speed, Coordinates item, Coordinates chaos, List<Rule> rules)
+        public MapT17(Main main, InputSimulator simulator, CancellationTokenSource cts, TimeSpan delay, double speed, Coordinates item, Coordinates chaos, List<Rule> rules)
         {
             _main = main;
             this.simulator = simulator;
@@ -56,7 +51,7 @@ namespace PoE.dlls.Gamble.Modes
 
             bool status = CheckItem();
 
-            if (!status) 
+            if (!status)
             {
                 simulator.MouseDeltaMove(chaos.X, chaos.Y, speed);
                 await Task.Delay(delay);
@@ -137,7 +132,7 @@ namespace PoE.dlls.Gamble.Modes
 
                 count++;
             }
-            
+
             var _mapPercents = rules.Where(x => x.Priority > -1 && x.Priority < 1 && !string.IsNullOrEmpty(x.Content));
             if (_mapPercents.Count() > 0)
             {
@@ -188,9 +183,9 @@ namespace PoE.dlls.Gamble.Modes
 
                     int matchCount = 0;
 
-                    foreach(Match matchbyRule in moreRuleMatches)
+                    foreach (Match matchbyRule in moreRuleMatches)
                     {
-                        foreach(Match matchbyMap in moreMapMatches)
+                        foreach (Match matchbyMap in moreMapMatches)
                         {
                             if (string.Equals(matchbyRule.Groups["type"].Value, matchbyMap.Groups["type"].Value, StringComparison.OrdinalIgnoreCase))
                             {

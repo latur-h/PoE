@@ -1,11 +1,5 @@
-﻿using InputSimulator;
-using PoE.dlls.Flasks.Base;
-using PoE.dlls.InteropServices;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using PoE.dlls.Flasks.Base;
+using Poss.Win.Automation.Input;
 
 namespace PoE.dlls.Flasks
 {
@@ -13,14 +7,14 @@ namespace PoE.dlls.Flasks
     {
         private readonly List<IFlask> flasks = [];
 
-        private readonly Simulator simulator;
+        private readonly InputSimulator simulator;
 
         private readonly TimeSpan delay = TimeSpan.FromMilliseconds(100);
 
         private CancellationTokenSource? cts;
         private CancellationToken token;
 
-        public FlaskManager(Simulator _simulator) 
+        public FlaskManager(InputSimulator _simulator)
         {
             simulator = _simulator;
 

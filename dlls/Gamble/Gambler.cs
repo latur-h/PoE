@@ -1,12 +1,7 @@
-﻿using InputSimulator;
+﻿using Poss.Win.Automation.Input;
 using PoE.dlls.Gamble;
 using PoE.dlls.Gamble.Modes;
 using PoE.dlls.InteropServices;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace PoE.dlls.Gamba
 {
@@ -17,7 +12,7 @@ namespace PoE.dlls.Gamba
         private CancellationTokenSource? _cts;
         private CancellationToken _token;
 
-        public Gambler(Main _main, Simulator simulator, TimeSpan delay, double speed, GambleType type, Coordinates itemXY, Coordinates baseXY, Coordinates secondXY, List<Rule> rules)
+        public Gambler(Main _main, InputSimulator simulator, TimeSpan delay, double speed, GambleType type, Coordinates itemXY, Coordinates baseXY, Coordinates secondXY, List<Rule> rules)
         {
             Console.WriteLine($"[Gambler] Initialize 'Gambler'...");
 

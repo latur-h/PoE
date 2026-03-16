@@ -1,12 +1,7 @@
-﻿using InputSimulator;
+﻿using Poss.Win.Automation.Input;
 using PoE.dlls.Gamble.Modifiers;
 using PoE.dlls.InteropServices;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 using System.Text.RegularExpressions;
-using System.Threading.Tasks;
 
 namespace PoE.dlls.Gamble.Modes
 {
@@ -21,7 +16,7 @@ namespace PoE.dlls.Gamble.Modes
         }
 
         private readonly Main _main;
-        private readonly Simulator _simulator;
+        private readonly InputSimulator _simulator;
 
         private double speed = 10.0;
         private TimeSpan delay = TimeSpan.FromMilliseconds(50);
@@ -40,7 +35,7 @@ namespace PoE.dlls.Gamble.Modes
         private int count = 0;
         private int maxAttempts = 3;
 
-        public Alt_Aug(Main main, Simulator simulator, CancellationTokenSource cts, TimeSpan delay, double speed, Coordinates item, Coordinates alt, Coordinates aug, List<Rule> rules)
+        public Alt_Aug(Main main, InputSimulator simulator, CancellationTokenSource cts, TimeSpan delay, double speed, Coordinates item, Coordinates alt, Coordinates aug, List<Rule> rules)
         {
             _main = main;
             _simulator = simulator;
@@ -92,7 +87,7 @@ namespace PoE.dlls.Gamble.Modes
 
             if (response == Response.Success)
                 Console.WriteLine("[Gambler] [Success] Item matches the rules");
-            else            
+            else
                 Console.WriteLine("[Gambler] [Failed] Failed to check item!");
         }
         private async Task FirstMove()

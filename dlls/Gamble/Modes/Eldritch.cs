@@ -1,19 +1,13 @@
-﻿using InputSimulator;
-using PoE.dlls.Gamble.Modifiers;
+﻿using PoE.dlls.Gamble.Modifiers;
 using PoE.dlls.InteropServices;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
+using Poss.Win.Automation.Input;
 using System.Text.RegularExpressions;
-using System.Threading.Tasks;
-
 namespace PoE.dlls.Gamble.Modes
 {
     public class Eldritch : IGamba
     {
         private readonly Main _main;
-        private readonly Simulator simulator;
+        private readonly InputSimulator simulator;
 
         private double speed = 10.0;
         private TimeSpan delay = TimeSpan.FromMilliseconds(10);
@@ -30,7 +24,7 @@ namespace PoE.dlls.Gamble.Modes
         private int count = 0;
         private int maxAttempts = 3;
 
-        public Eldritch(Main main, Simulator simulator, CancellationTokenSource cts, TimeSpan delay, double speed, Coordinates item, Coordinates orb, List<Rule> rules)
+        public Eldritch(Main main, InputSimulator simulator, CancellationTokenSource cts, TimeSpan delay, double speed, Coordinates item, Coordinates orb, List<Rule> rules)
         {
             _main = main;
             this.simulator = simulator;

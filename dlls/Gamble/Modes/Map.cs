@@ -1,19 +1,14 @@
-﻿using InputSimulator;
+﻿using Poss.Win.Automation.Input;
 using PoE.dlls.Gamble.Modifiers;
 using PoE.dlls.InteropServices;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 using System.Text.RegularExpressions;
-using System.Threading.Tasks;
 
 namespace PoE.dlls.Gamble.Modes
 {
     public class Map : IGamba
     {
         private readonly Main _main;
-        private readonly Simulator simulator;
+        private readonly InputSimulator simulator;
 
         private double speed = 10.0;
         private TimeSpan delay = TimeSpan.FromMilliseconds(10);
@@ -33,7 +28,7 @@ namespace PoE.dlls.Gamble.Modes
 
         private bool _isShiftHeld = false;
 
-        public Map(Main main, Simulator simulator, CancellationTokenSource cts, TimeSpan delay, double speed, Coordinates item, Coordinates alchimka, Coordinates scouring, List<Rule> rules)
+        public Map(Main main, InputSimulator simulator, CancellationTokenSource cts, TimeSpan delay, double speed, Coordinates item, Coordinates alchimka, Coordinates scouring, List<Rule> rules)
         {
             _main = main;
             this.simulator = simulator;
@@ -51,7 +46,7 @@ namespace PoE.dlls.Gamble.Modes
             this.rules = rules;
         }
 
-        public async Task Gamble() 
+        public async Task Gamble()
         {
             simulator.MouseDeltaMove(item.X, item.Y, speed);
             await Task.Delay(delay);
@@ -96,7 +91,7 @@ namespace PoE.dlls.Gamble.Modes
                 status = CheckItem();
             }
 
-            if(_token.IsCancellationRequested)
+            if (_token.IsCancellationRequested)
             {
                 Console.WriteLine("[Gambler] [Cancelled] Gambling was cancelled");
 

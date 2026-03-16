@@ -1,20 +1,14 @@
-﻿using InputSimulator;
-using Newtonsoft.Json.Linq;
+﻿using Poss.Win.Automation.Input;
 using PoE.dlls.Gamble.Modifiers;
 using PoE.dlls.InteropServices;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 using System.Text.RegularExpressions;
-using System.Threading.Tasks;
 
 namespace PoE.dlls.Gamble.Modes
 {
     public class Alt : IGamba
     {
         private readonly Main _main;
-        private readonly Simulator simulator;
+        private readonly InputSimulator simulator;
 
         private double speed = 10.0;
         private TimeSpan delay = TimeSpan.FromMilliseconds(10);
@@ -31,7 +25,7 @@ namespace PoE.dlls.Gamble.Modes
         private int count = 0;
         private int maxAttempts = 3;
 
-        public Alt(Main main, Simulator simulator, CancellationTokenSource cts, TimeSpan delay, double speed, Coordinates item, Coordinates orb, List<Rule> rules)
+        public Alt(Main main, InputSimulator simulator, CancellationTokenSource cts, TimeSpan delay, double speed, Coordinates item, Coordinates orb, List<Rule> rules)
         {
             _main = main;
             this.simulator = simulator;
@@ -178,7 +172,7 @@ namespace PoE.dlls.Gamble.Modes
 
             var enhants = getEnchant.Matches(itemContent);
             Console.WriteLine($"Enchants count {enhants.Count}");
-            foreach(var i in enhants.Cast<Match>())
+            foreach (var i in enhants.Cast<Match>())
             {
                 ModifierType type = ModifierType.Implicit;
 

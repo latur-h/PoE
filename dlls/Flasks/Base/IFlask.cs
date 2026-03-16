@@ -1,4 +1,4 @@
-﻿using InputSimulator;
+﻿using Poss.Win.Automation.Input;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -10,7 +10,7 @@ namespace PoE.dlls.Flasks.Base
     internal interface IFlask
     {
         public Flask Flask { get; set; }
-        public Simulator Input { get; set; }
+        public InputSimulator Input { get; set; }
 
         public Task Drink();
     }

@@ -1,23 +1,17 @@
-﻿using InputSimulator;
-using PoE.dlls.InteropServices;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using System.Drawing;
+﻿using PoE.dlls.InteropServices;
+using Poss.Win.Automation.Input;
 
 namespace PoE.dlls.Flasks.Base
 {
     internal class MP : IFlask
     {
         public Flask Flask { get; set; }
-        public Simulator Input { get; set; }
+        public InputSimulator Input { get; set; }
 
         private readonly TimeSpan delay = TimeSpan.FromMilliseconds(5);
         private readonly TimeSpan cooldown = TimeSpan.FromSeconds(2);
 
-        public MP(Simulator simulator, string key, int percent)
+        public MP(InputSimulator simulator, string key, int percent)
         {
             Input = simulator;
 

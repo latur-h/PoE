@@ -1,60 +1,29 @@
-﻿using GlobalHotKeys.Structs;
-using Newtonsoft.Json.Linq;
 using PoE.dlls.Flasks.Base;
 using PoE.dlls.Gamba;
 using PoE.dlls.Gamble;
 using PoE.dlls.InteropServices;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace PoE
 {
     public partial class Main
     {
-        private Bind regFlasks;
-        private Bind drinkFlasks;
-        private Bind stopDrinking;
-
-        //private Bind clickerStart;
-        //private Bind clickerStop;
-
         private Gambler? Gambler;
-        private Bind gamblerGetCoordinates;
-        private Bind gamblerStart;
-        private Bind gamblerStop;
 
         private async Task Init()
         {
             _hotkeys.Start();
 
-            regFlasks = new Bind("Register Flask", RegisterFlasks, KeyCode.F5);
-            drinkFlasks = new Bind("Drink Flask", DrinkFlasks, KeyCode.F2);
-            stopDrinking = new Bind("Stop Drinking", StopDrinking, KeyCode.F4);
+            _hotkeys.Register("Register Flask", RegisterFlasks, "F5");
+            _hotkeys.Register("Drink Flask", DrinkFlasks, "F2");
+            _hotkeys.Register("Stop Drinking", StopDrinking, "F4");
 
-            //clickerStart = new Bind("Clicker start", ClickerStart, KeyCode.XButton1);
-            //clickerStop = new Bind("Clicker stop", ClickerStop, KeyCode.XButton1Up);
+            _hotkeys.Register("Gambler get coordinates", GamblerGetCoordinates, _settings.Modifiers.GetCoorinatesKey);
+            _hotkeys.Register("Gambler start", GamblerStart, _settings.Modifiers.GamblerStart);
+            _hotkeys.Register("Gambler stop", GamblerStop, _settings.Modifiers.GamblerStop);
 
-            gamblerGetCoordinates = new Bind("Gambler get coordinates", GamblerGetCoordinates, Enum.Parse<KeyCode>(_settings.Modifiers.GetCoorinatesKey));
-            gamblerStart = new Bind("Gambler start", GamblerStart, Enum.Parse<KeyCode>(_settings.Modifiers.GamblerStart));
-            gamblerStop = new Bind("Gambler stop", GamblerStop, Enum.Parse<KeyCode>(_settings.Modifiers.GamblerStop));
-
-            _hotkeys.Register(regFlasks);
-            _hotkeys.Register(drinkFlasks);
-            _hotkeys.Register(stopDrinking);
-
-            //_hotkeys.Register(clickerStart);
-            //_hotkeys.Register(clickerStop);
-
-            _hotkeys.Register(gamblerGetCoordinates);
-            _hotkeys.Register(gamblerStart);
-            _hotkeys.Register(gamblerStop);
-
-            await Task.Run(async () => 
+            await Task.Run(async () =>
             {
-                while(true)
+                while (true)
                 {
                     if (_input.GetKeyState("XButton1"))
                     {
@@ -176,7 +145,7 @@ namespace PoE
 
             Console.WriteLine("Clicker stop...");
 
-            cts.Dispose();
+            cts?.Dispose();
             cts = null;
             token = CancellationToken.None;
         }

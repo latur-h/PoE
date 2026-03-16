@@ -1,19 +1,14 @@
-﻿using InputSimulator;
+﻿using System.Text.RegularExpressions;
 using PoE.dlls.Gamble.Modifiers;
 using PoE.dlls.InteropServices;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Text.RegularExpressions;
-using System.Threading.Tasks;
+using Poss.Win.Automation.Input;
 
 namespace PoE.dlls.Gamble.Modes
 {
     public class Harvest : IGamba
     {
         private readonly Main _main;
-        private readonly Simulator simulator;
+        private readonly InputSimulator simulator;
 
         private double speed = 10.0;
         private TimeSpan delay = TimeSpan.FromMilliseconds(10);
@@ -30,7 +25,7 @@ namespace PoE.dlls.Gamble.Modes
         private int count = 0;
         private int maxAttempts = 3;
 
-        public Harvest(Main main, Simulator simulator, CancellationTokenSource cts, TimeSpan delay, double speed, Coordinates item, Coordinates button, List<Rule> rules)
+        public Harvest(Main main, InputSimulator simulator, CancellationTokenSource cts, TimeSpan delay, double speed, Coordinates item, Coordinates button, List<Rule> rules)
         {
             _main = main;
             this.simulator = simulator;
