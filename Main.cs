@@ -3,10 +3,10 @@ using PoE.dlls.Flasks.Base;
 using PoE.dlls.Gamble;
 using PoE.dlls.Gamble.Modifiers;
 using PoE.dlls.InteropServices;
+using PoE.dlls.KeyBindings;
 using PoE.dlls.Logger;
 using PoE.dlls.Settings;
 using PoE.dlls.Style;
-using Poss.Win.Automation.Common.Keys.Enums;
 using Poss.Win.Automation.GlobalHotKeys;
 using Poss.Win.Automation.Input;
 
@@ -175,70 +175,20 @@ namespace PoE
                 _settings.Flasks["5"].FlaskType = comboBox_Flask5.SelectedItem?.ToString() ?? string.Empty;
             };
 
-            textBox_Flask1._textBox.Text = _settings.Flasks["1"].Key;
-            textBox_Flask1._textBox.KeyDown += (s, e) =>
-            {
-                e.SuppressKeyPress = true;
-            };
-            textBox_Flask1._textBox.KeyUp += (s, e) =>
-            {
-                string key = GetKeyNameFromKeys(e.KeyCode);
-                textBox_Flask1._textBox.Text = key;
+            textBox_Flask1._textBox.KeyDown += (s, e) => e.SuppressKeyPress = true;
+            textBox_Flask1._textBox.KeyUp += (s, e) => BindFlaskKey(_settings.Flasks["1"], textBox_Flask1, e.KeyCode);
 
-                _settings.Flasks["1"].Key = key;
-            };
+            textBox_Flask2._textBox.KeyDown += (s, e) => e.SuppressKeyPress = true;
+            textBox_Flask2._textBox.KeyUp += (s, e) => BindFlaskKey(_settings.Flasks["2"], textBox_Flask2, e.KeyCode);
 
-            textBox_Flask2._textBox.Text = _settings.Flasks["2"].Key;
-            textBox_Flask2._textBox.KeyDown += (s, e) =>
-            {
-                e.SuppressKeyPress = true;
-            };
-            textBox_Flask2._textBox.KeyUp += (s, e) =>
-            {
-                string key = GetKeyNameFromKeys(e.KeyCode);
-                textBox_Flask2._textBox.Text = key;
+            textBox_Flask3._textBox.KeyDown += (s, e) => e.SuppressKeyPress = true;
+            textBox_Flask3._textBox.KeyUp += (s, e) => BindFlaskKey(_settings.Flasks["3"], textBox_Flask3, e.KeyCode);
 
-                _settings.Flasks["2"].Key = key;
-            };
+            textBox_Flask4._textBox.KeyDown += (s, e) => e.SuppressKeyPress = true;
+            textBox_Flask4._textBox.KeyUp += (s, e) => BindFlaskKey(_settings.Flasks["4"], textBox_Flask4, e.KeyCode);
 
-            textBox_Flask3._textBox.Text = _settings.Flasks["3"].Key;
-            textBox_Flask3._textBox.KeyDown += (s, e) =>
-            {
-                e.SuppressKeyPress = true;
-            };
-            textBox_Flask3._textBox.KeyUp += (s, e) =>
-            {
-                string key = GetKeyNameFromKeys(e.KeyCode);
-                textBox_Flask3._textBox.Text = key;
-
-                _settings.Flasks["3"].Key = key;
-            };
-
-            textBox_Flask4._textBox.Text = _settings.Flasks["4"].Key;
-            textBox_Flask4._textBox.KeyDown += (s, e) =>
-            {
-                e.SuppressKeyPress = true;
-            };
-            textBox_Flask4._textBox.KeyUp += (s, e) =>
-            {
-                string key = GetKeyNameFromKeys(e.KeyCode);
-                textBox_Flask4._textBox.Text = key;
-
-                _settings.Flasks["4"].Key = key;
-            };
-
-            textBox_Flask5._textBox.Text = _settings.Flasks["5"].Key;
-            textBox_Flask5._textBox.KeyDown += (s, e) =>
-            {
-                e.SuppressKeyPress = true;
-            };
-            textBox_Flask5._textBox.KeyUp += (s, e) =>
-            {
-                string key = GetKeyNameFromKeys(e.KeyCode);
-                textBox_Flask5._textBox.Text = key;
-
-                _settings.Flasks["5"].Key = key;
-            };
+            textBox_Flask5._textBox.KeyDown += (s, e) => e.SuppressKeyPress = true;
+            textBox_Flask5._textBox.KeyUp += (s, e) => BindFlaskKey(_settings.Flasks["5"], textBox_Flask5, e.KeyCode);
 
             checkBox_Flask1.Checked = _settings.Flasks["1"].Active;
             checkBox_Flask2.Checked = _settings.Flasks["2"].Active;
@@ -406,9 +356,6 @@ namespace PoE
             };
 
             comboBox_GambleType.SelectedItem = _settings.Modifiers.GambleType.ToString();
-            textBox_GamblerGetCoordinatesKey._textBox.Text = _settings.Modifiers.GetCoorinatesKey;
-            textBox_GamblerStartKey._textBox.Text = _settings.Modifiers.GamblerStart;
-            textBox_GamblerStopKey._textBox.Text = _settings.Modifiers.GamblerStop;
             textBox_ItemXY._textBox.Text = $"{_settings.Modifiers.Mode.Item.X}, {_settings.Modifiers.Mode.Item.Y}";
             textBox_BaseXY._textBox.Text = $"{_settings.Modifiers.Mode.Base.X}, {_settings.Modifiers.Mode.Base.Y}";
             textBox_SecondXY._textBox.Text = $"{_settings.Modifiers.Mode.Second.X}, {_settings.Modifiers.Mode.Second.Y}";
@@ -523,56 +470,19 @@ namespace PoE
                 e.SuppressKeyPress = true;
             };
             textBox_GamblerGetCoordinatesKey._textBox.KeyUp += (s, e) =>
-            {
-                string key = GetKeyNameFromKeys(e.KeyCode);
-                if (string.IsNullOrEmpty(key) || key == "None")
-                {
-                    textBox_GamblerGetCoordinatesKey._textBox.ForeColor = Color.Red;
-                    return;
-                }
-
-                _hotkeys.Change("Gambler get coordinates", key);
-
-                textBox_GamblerGetCoordinatesKey._textBox.Text = key;
-                _settings.Modifiers.GetCoorinatesKey = key;
-            };
+                BindHotkeySetting("Gambler get coordinates", ref _settings.Modifiers.GetCoorinatesKey, textBox_GamblerGetCoordinatesKey, e.KeyCode);
             textBox_GamblerStartKey._textBox.KeyDown += (s, e) =>
             {
                 e.SuppressKeyPress = true;
             };
             textBox_GamblerStartKey._textBox.KeyUp += (s, e) =>
-            {
-                string key = GetKeyNameFromKeys(e.KeyCode);
-                if (string.IsNullOrEmpty(key) || key == "None")
-                {
-                    textBox_GamblerStartKey._textBox.ForeColor = Color.Red;
-                    return;
-                }
-
-                _hotkeys.Change("Gambler start", key);
-
-                textBox_GamblerStartKey._textBox.Text = key;
-                _settings.Modifiers.GamblerStart = key;
-            };
+                BindHotkeySetting("Gambler start", ref _settings.Modifiers.GamblerStart, textBox_GamblerStartKey, e.KeyCode);
             textBox_GamblerStopKey._textBox.KeyDown += (s, e) =>
             {
                 e.SuppressKeyPress = true;
             };
             textBox_GamblerStopKey._textBox.KeyUp += (s, e) =>
-            {
-                string key = GetKeyNameFromKeys(e.KeyCode);
-
-                if (string.IsNullOrEmpty(key) || key == "None")
-                {
-                    textBox_GamblerStopKey._textBox.ForeColor = Color.Red;
-                    return;
-                }
-
-                _hotkeys.Change("Gambler stop", key);
-
-                textBox_GamblerStopKey._textBox.Text = key;
-                _settings.Modifiers.GamblerStop = key;
-            };
+                BindHotkeySetting("Gambler stop", ref _settings.Modifiers.GamblerStop, textBox_GamblerStopKey, e.KeyCode);
             textBox_GamblerDelay._textBox.KeyUp += (s, e) =>
             {
                 if (Delay_NumberOnly(textBox_GamblerDelay._textBox))
@@ -766,15 +676,77 @@ namespace PoE
                 }
             };
 
+            ValidateAllStoredKeys();
+
             _ = Init();
         }
 
-        private static string GetKeyNameFromKeys(Keys key)
+        private void ValidateAllStoredKeys()
         {
-            if (key == Keys.None) return "None";
-            return Enum.IsDefined(typeof(VirtualKey), (int)key)
-                ? ((VirtualKey)(int)key).ToString()
-                : key.ToString();
+            InitFlaskKey(_settings.Flasks["1"], textBox_Flask1);
+            InitFlaskKey(_settings.Flasks["2"], textBox_Flask2);
+            InitFlaskKey(_settings.Flasks["3"], textBox_Flask3);
+            InitFlaskKey(_settings.Flasks["4"], textBox_Flask4);
+            InitFlaskKey(_settings.Flasks["5"], textBox_Flask5);
+
+            InitHotkeySetting(ref _settings.Modifiers.GetCoorinatesKey, textBox_GamblerGetCoordinatesKey);
+            InitHotkeySetting(ref _settings.Modifiers.GamblerStart, textBox_GamblerStartKey);
+            InitHotkeySetting(ref _settings.Modifiers.GamblerStop, textBox_GamblerStopKey);
+        }
+
+        private static void InitFlaskKey(UIFlask flask, FlatTextBox textBox)
+        {
+            if (KeyBindingHelper.TryResolveStored(flask.Key, out string sendKey, out string displayKey))
+            {
+                flask.Key = sendKey;
+                textBox._textBox.Text = displayKey;
+                textBox._textBox.ForeColor = StaticColors.ForeGround;
+            }
+            else
+            {
+                textBox._textBox.ForeColor = Color.Red;
+            }
+        }
+
+        private static void BindFlaskKey(UIFlask flask, FlatTextBox textBox, Keys keyCode)
+        {
+            if (!KeyBindingHelper.TryBindFromWinForms(keyCode, out string sendKey, out string displayKey))
+            {
+                textBox._textBox.ForeColor = Color.Red;
+                return;
+            }
+
+            flask.Key = sendKey;
+            textBox._textBox.Text = displayKey;
+            textBox._textBox.ForeColor = StaticColors.ForeGround;
+        }
+
+        private void InitHotkeySetting(ref string setting, FlatTextBox textBox)
+        {
+            if (KeyBindingHelper.TryResolveStored(setting, out string sendKey, out string displayKey))
+            {
+                setting = sendKey;
+                textBox._textBox.Text = displayKey;
+                textBox._textBox.ForeColor = StaticColors.ForeGround;
+            }
+            else
+            {
+                textBox._textBox.ForeColor = Color.Red;
+            }
+        }
+
+        private void BindHotkeySetting(string hotkeyId, ref string setting, FlatTextBox textBox, Keys keyCode)
+        {
+            if (!KeyBindingHelper.TryBindFromWinForms(keyCode, out string sendKey, out string displayKey))
+            {
+                textBox._textBox.ForeColor = Color.Red;
+                return;
+            }
+
+            _hotkeys.Change(hotkeyId, sendKey);
+            setting = sendKey;
+            textBox._textBox.Text = displayKey;
+            textBox._textBox.ForeColor = StaticColors.ForeGround;
         }
 
         private bool Priority_NumberOnly(TextBox textBox)

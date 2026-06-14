@@ -1,0 +1,52 @@
+---
+description: Require explicit user approval before any implementation or file changes
+alwaysApply: true
+---
+
+# Ask before implementing
+
+Do **not** implement, edit, create, or delete anything without explicit user approval first.
+
+## Requires approval
+
+- Code changes (any file)
+- New or edited config, rules, scripts, tests, docs
+- Git commits, pushes, PRs
+- Running destructive or mutating commands
+- Refactors or “fixes” beyond what was explicitly approved
+
+## Allowed without asking
+
+- Read-only investigation (read files, search, explain, diagnose)
+- Answering questions
+- Proposing a plan or diff — **show it, do not apply it**
+
+## How to proceed
+
+1. Investigate and explain the issue or approach.
+2. Ask clearly: “Should I implement this?” (or equivalent).
+3. Wait for explicit agreement (`yes`, `apply`, `go ahead`, `implement`, etc.).
+4. Implement **only** what was agreed. If scope grows, ask again.
+
+## Explicit approval scope
+
+Phrases like “fix it”, “apply”, or “update” approve **that specific task only**. New files, extra refactors, or follow-up changes still require asking unless the user included them.
+
+## Stop — do not implement yet
+
+Pause and discuss (read-only only) when the user:
+
+- Says they know a better way, or are still exploring the issue
+- Owns or maintains a dependency (e.g. `Poss.Win.Automation`) and mentions an existing or newly exposed library feature
+- Points you at the library source to use a precheck/API instead of a local workaround
+- Describes what they plan to do in the lib or another repo — wait for them to finish before touching this project
+
+In those cases: explain what you found, ask how they want to proceed, and **do not** add app-level hacks when the fix belongs in the library or is already available there.
+
+## Do not
+
+- Rush to implement as soon as a bug is found — diagnosis is not approval
+- Assume silence or a related earlier “yes” covers new work
+- Batch unrequested changes with approved ones
+- Invent PoE workarounds when the user maintains the dependency and a library feature should be used instead
+- Create markdown docs or explanation files unless explicitly requested

@@ -1,0 +1,36 @@
+---
+description: Use local Poss.Win.Automation repo to answer API/usage questions (NuGet stays the dependency)
+alwaysApply: true
+---
+
+# Poss.Win.Automation
+
+**Dependencies:** keep NuGet package references in `PoE.csproj` (`Poss.Win.Automation.Core`, `.Input`, `.GlobalHotKeys`). Do not replace them with local project references.
+
+**Usage questions:** when you need to know how the library works — APIs, key strings, enums, hotkey behavior — read the local source repo instead of inspecting NuGet packages or guessing:
+
+`C:\Users\Latur\source\repos\Poss.Win.Automation`
+
+| NuGet package | Read here for usage |
+|---|---|
+| `Poss.Win.Automation.Core` | `src/Poss.Win.Automation.Core/` |
+| `Poss.Win.Automation.Input` | `src/Poss.Win.Automation.Input/` |
+| `Poss.Win.Automation.GlobalHotKeys` | `src/Poss.Win.Automation.GlobalHotKeys/` |
+
+Useful entry points:
+
+- `VirtualKey`: `src/Poss.Win.Automation.Core/Common/Enums/VirtualKey.cs` (`ushort` underlying type)
+- Key strings for `Send()` / hotkeys: `src/Poss.Win.Automation.Core/Common/Structs/KeyStroke.cs`
+- Input: `src/Poss.Win.Automation.Input/Input/InputSimulator.cs`
+- Hotkeys: `src/Poss.Win.Automation.GlobalHotKeys/GlobalHotKey/GlobalHotKeyManager.cs`
+
+## Key name conventions (from KeyStroke)
+
+Stored key strings must match what `KeyStroke.TryParse` accepts:
+
+- Digits: `"1"`, `"2"`, … — not `"D1"`, `"D2"`
+- Letters: `"A"`, `"B"`, …
+- Modifiers / mouse: `"Ctrl"`, `"Shift"`, `"LButton"`, etc.
+- Actions: `"1 Down"`, `"F5 Up"`, `"LButton Press"`
+
+For `Enum.IsDefined(typeof(VirtualKey), value)`, pass `ushort` — not `int`.

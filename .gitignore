@@ -6,6 +6,14 @@
 # dotenv files
 .env
 
+# Test project build output (nested under tests/)
+tests/**/[Bb]in/
+tests/**/[Oo]bj/
+PoE.Tests/[Bb]in/
+PoE.Tests/[Oo]bj/
+TestResults/
+*.trx
+
 # User-specific files
 *.rsuser
 *.suo
