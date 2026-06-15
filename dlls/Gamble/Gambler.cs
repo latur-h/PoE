@@ -1,4 +1,4 @@
-﻿using Poss.Win.Automation.Input;
+﻿using PoE.dlls.Automation;
 using PoE.dlls.Gamble;
 using PoE.dlls.Gamble.Modes;
 using PoE.dlls.InteropServices;
@@ -13,7 +13,7 @@ namespace PoE.dlls.Gamba
         private CancellationTokenSource? _cts;
         private CancellationToken _token;
 
-        public Gambler(Main _main, InputSimulator simulator, TimeSpan delay, double speed, GambleType type, Coordinates itemXY, Coordinates baseXY, Coordinates secondXY, Coordinates thirdXY, List<Rule> rules)
+        public Gambler(Main _main, InputSimulatorHost inputHost, TimeSpan delay, double speed, GambleType type, Coordinates itemXY, Coordinates baseXY, Coordinates secondXY, Coordinates thirdXY, List<Rule> rules)
         {
             GamblerLog.Info("Initialize 'Gambler'...");
 
@@ -22,16 +22,16 @@ namespace PoE.dlls.Gamba
 
             gamba = type switch
             {
-                GambleType.Alt => new Alt(_main, simulator, _cts, delay, speed, itemXY, baseXY, rules),
-                GambleType.Alt_Aug => new Alt_Aug(_main, simulator, _cts, delay, speed, itemXY, baseXY, secondXY, rules),
-                GambleType.Chaos => new Chaos(_main, simulator, _cts, delay, speed, itemXY, baseXY, rules),
-                GambleType.Chromatic => new Chromatic(_main, simulator, _cts, delay, speed, itemXY, baseXY, rules),
-                GambleType.Essence => new Essence(_main, simulator, _cts, delay, speed, itemXY, baseXY, rules),
-                GambleType.Map => new Map(_main, simulator, _cts, delay, speed, itemXY, baseXY, secondXY, rules),
-                GambleType.MapT17 => new MapT17(_main, simulator, _cts, delay, speed, itemXY, baseXY, rules),
-                GambleType.MapExalt => new MapExalt(_main, simulator, _cts, delay, speed, itemXY, baseXY, secondXY, thirdXY, rules),
-                GambleType.Harvest => new Harvest(_main, simulator, _cts, delay, speed, itemXY, baseXY, rules),
-                GambleType.Eldritch => new Eldritch(_main, simulator, _cts, delay, speed, itemXY, baseXY, rules),
+                GambleType.Alt => new Alt(_main, inputHost, _cts, delay, speed, itemXY, baseXY, rules),
+                GambleType.Alt_Aug => new Alt_Aug(_main, inputHost, _cts, delay, speed, itemXY, baseXY, secondXY, rules),
+                GambleType.Chaos => new Chaos(_main, inputHost, _cts, delay, speed, itemXY, baseXY, rules),
+                GambleType.Chromatic => new Chromatic(_main, inputHost, _cts, delay, speed, itemXY, baseXY, rules),
+                GambleType.Essence => new Essence(_main, inputHost, _cts, delay, speed, itemXY, baseXY, rules),
+                GambleType.Map => new Map(_main, inputHost, _cts, delay, speed, itemXY, baseXY, secondXY, rules),
+                GambleType.MapT17 => new MapT17(_main, inputHost, _cts, delay, speed, itemXY, baseXY, rules),
+                GambleType.MapExalt => new MapExalt(_main, inputHost, _cts, delay, speed, itemXY, baseXY, secondXY, thirdXY, rules),
+                GambleType.Harvest => new Harvest(_main, inputHost, _cts, delay, speed, itemXY, baseXY, rules),
+                GambleType.Eldritch => new Eldritch(_main, inputHost, _cts, delay, speed, itemXY, baseXY, rules),
                 _ => throw new ArgumentOutOfRangeException(nameof(type), type, null)
             };
 

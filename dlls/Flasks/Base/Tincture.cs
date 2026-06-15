@@ -1,4 +1,5 @@
-﻿using PoE.dlls.InteropServices;
+﻿using PoE.dlls.Automation;
+using PoE.dlls.InteropServices;
 using Poss.Win.Automation.Input;
 
 namespace PoE.dlls.Flasks.Base
@@ -6,13 +7,14 @@ namespace PoE.dlls.Flasks.Base
     internal class Tincture : IFlask
     {
         public Flask Flask { get; set; }
-        public InputSimulator Input { get; set; }
+        public InputSimulator Input => _inputHost.Simulator;
 
+        private readonly InputSimulatorHost _inputHost;
         private readonly FlaskTiming _timing;
 
-        public Tincture(InputSimulator simulator, string key, int number, FlaskTiming timing)
+        public Tincture(InputSimulatorHost inputHost, string key, int number, FlaskTiming timing)
         {
-            Input = simulator;
+            _inputHost = inputHost;
             _timing = timing;
 
             ResolutionType resolution = InteropHelper.GetScreenResolution();

@@ -14,6 +14,7 @@ namespace PoE.dlls.Settings
         public UIFlaskControls FlaskControls { get; set; } = new();
         public UIModifiers Modifiers { get; set; }
         public GameDataSettings GameData { get; set; } = new();
+        public string InputProcessName { get; set; } = string.Empty;
         public int WindowWidth { get; set; }
         public int WindowHeight { get; set; }
 

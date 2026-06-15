@@ -1,3 +1,4 @@
+using PoE.dlls.Automation;
 using PoE.dlls.Flasks;
 using PoE.dlls.Flasks.Base;
 using PoE.dlls.Gamble;
@@ -12,13 +13,12 @@ using PoE.dlls.Settings;
 using PoE.dlls.Settings.Mods;
 using PoE.dlls.Style;
 using Poss.Win.Automation.GlobalHotKeys;
-using Poss.Win.Automation.Input;
 
 namespace PoE
 {
     public partial class Main : Form
     {
-        private readonly InputSimulator _input;
+        private readonly InputSimulatorHost _inputHost;
         private readonly GlobalHotKeyManager _hotkeys;
         private readonly FlaskManager _flaskManager;
         private readonly UserSettings _userSettings;
@@ -32,7 +32,7 @@ namespace PoE
         private Settings _settings = null!;
 
         public Main(
-            InputSimulator input,
+            InputSimulatorHost inputHost,
             GlobalHotKeyManager hotkeys,
             FlaskManager flaskManager,
             UserSettings userSettings,
@@ -40,7 +40,7 @@ namespace PoE
             ModSuggestionService modSuggestions,
             ModCacheDatabase modCacheDatabase)
         {
-            _input = input;
+            _inputHost = inputHost;
             _hotkeys = hotkeys;
             _flaskManager = flaskManager;
             _userSettings = userSettings;
@@ -238,6 +238,7 @@ namespace PoE
             InitializeGamblePresetBar();
             InitializeGambleRulesPanel();
             InitializeGameDataSettingsUi();
+            InitializeInputSettingsUi();
             InitializeOrbsTab();
             SetupGambleModeHelp();
 

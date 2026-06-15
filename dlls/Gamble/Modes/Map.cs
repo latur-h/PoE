@@ -1,4 +1,5 @@
-﻿using Poss.Win.Automation.Input;
+using Poss.Win.Automation.Input;
+using PoE.dlls.Automation;
 using PoE.dlls.Logger;
 using PoE.dlls.Gamble.Modifiers;
 using PoE.dlls.InteropServices;
@@ -9,7 +10,7 @@ namespace PoE.dlls.Gamble.Modes
     public class Map : IGamba
     {
         private readonly Main _main;
-        private readonly InputSimulator simulator;
+        private readonly InputSimulatorHost inputHost;
 
         private double speed = 10.0;
         private TimeSpan delay = TimeSpan.FromMilliseconds(10);
@@ -29,10 +30,10 @@ namespace PoE.dlls.Gamble.Modes
 
         private bool _isShiftHeld = false;
 
-        public Map(Main main, InputSimulator simulator, CancellationTokenSource cts, TimeSpan delay, double speed, Coordinates item, Coordinates alchimka, Coordinates scouring, List<Rule> rules)
+        public Map(Main main, InputSimulatorHost inputHost, CancellationTokenSource cts, TimeSpan delay, double speed, Coordinates item, Coordinates alchimka, Coordinates scouring, List<Rule> rules)
         {
             _main = main;
-            this.simulator = simulator;
+            this.inputHost = inputHost;
 
             this.delay = delay;
             this.speed = speed;
@@ -49,42 +50,42 @@ namespace PoE.dlls.Gamble.Modes
 
         public async Task Gamble()
         {
-            simulator.MouseDeltaMove(item.X, item.Y, speed);
+            inputHost.Simulator.MouseDeltaMove(item.X, item.Y, speed);
             await Task.Delay(delay);
 
             await Copy();
 
             bool status = CheckItem();
 
-            simulator.MouseDeltaMove(alchimka.X, alchimka.Y, speed);
+            inputHost.Simulator.MouseDeltaMove(alchimka.X, alchimka.Y, speed);
             await Task.Delay(delay);
 
-            simulator.Send("RButton Down");
+            inputHost.Simulator.Send("RButton Down");
             await Task.Delay(delay);
-            simulator.Send("RButton Up");
-            await Task.Delay(delay);
-
-            simulator.MouseDeltaMove(item.X, item.Y, speed);
+            inputHost.Simulator.Send("RButton Up");
             await Task.Delay(delay);
 
-            simulator.Send("Shift Down");
+            inputHost.Simulator.MouseDeltaMove(item.X, item.Y, speed);
+            await Task.Delay(delay);
+
+            inputHost.Simulator.Send("Shift Down");
             await Task.Delay(delay);
             _isShiftHeld = true;
 
             while (!status && !_token.IsCancellationRequested)
             {
-                simulator.Send("Alt Down");
+                inputHost.Simulator.Send("Alt Down");
                 await Task.Delay(delay);
-                simulator.Send("LButton Down");
+                inputHost.Simulator.Send("LButton Down");
                 await Task.Delay(delay);
-                simulator.Send("LButton Up");
+                inputHost.Simulator.Send("LButton Up");
                 await Task.Delay(delay);
-                simulator.Send("Alt Up");
+                inputHost.Simulator.Send("Alt Up");
                 await Task.Delay(delay);
 
-                simulator.Send("LButton Down");
+                inputHost.Simulator.Send("LButton Down");
                 await Task.Delay(delay);
-                simulator.Send("LButton Up");
+                inputHost.Simulator.Send("LButton Up");
                 await Task.Delay(delay);
 
                 await Copy();
@@ -97,29 +98,29 @@ namespace PoE.dlls.Gamble.Modes
                 GamblerLog.Cancelled();
 
                 if (_isShiftHeld)
-                    simulator.Send("Shift Up");
+                    inputHost.Simulator.Send("Shift Up");
 
                 return;
             }
 
             if (_isShiftHeld)
-                simulator.Send("Shift Up");
+                inputHost.Simulator.Send("Shift Up");
 
             GamblerLog.Success();
         }
         private async Task Copy()
         {
-            simulator.Send("Ctrl Down");
+            inputHost.Simulator.Send("Ctrl Down");
             await Task.Delay(delay);
-            simulator.Send("Alt Down");
+            inputHost.Simulator.Send("Alt Down");
             await Task.Delay(delay);
-            simulator.Send("C Down");
+            inputHost.Simulator.Send("C Down");
             await Task.Delay(delay);
-            simulator.Send("C Up");
+            inputHost.Simulator.Send("C Up");
             await Task.Delay(delay);
-            simulator.Send("Alt Up");
+            inputHost.Simulator.Send("Alt Up");
             await Task.Delay(delay);
-            simulator.Send("Ctrl Up");
+            inputHost.Simulator.Send("Ctrl Up");
             await Task.Delay(delay);
         }
         private bool CheckItem()

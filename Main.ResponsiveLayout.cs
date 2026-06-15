@@ -171,14 +171,23 @@ namespace PoE
             if (width <= 0 || height <= 0)
                 return;
 
+            if (groupBox_Input is null || groupBox_GameData is null)
+                return;
+
             int innerWidth = width - margin * 2;
+            const int inputHeight = 62;
             const int gameDataHeight = 132;
 
             groupBox_GambleSettings.Location = new Point(margin, margin);
             groupBox_GambleSettings.Size = new Size(innerWidth, 158);
 
+            groupBox_Input.Size = new Size(innerWidth, inputHeight);
+            groupBox_Input.Location = new Point(margin, height - margin - inputHeight);
+            LayoutInputSettingsGroup();
+            groupBox_Input.BringToFront();
+
             groupBox_GameData.Size = new Size(innerWidth, gameDataHeight);
-            groupBox_GameData.Location = new Point(margin, height - margin - gameDataHeight);
+            groupBox_GameData.Location = new Point(margin, groupBox_Input.Top - margin - gameDataHeight);
             LayoutGameDataSettingsGroup();
             groupBox_GameData.BringToFront();
 

@@ -2,6 +2,7 @@ using PoE.dlls.Gamble.Modifiers;
 using PoE.dlls.InteropServices;
 using PoE.dlls.Logger;
 using Poss.Win.Automation.Input;
+using PoE.dlls.Automation;
 
 namespace PoE.dlls.Gamble.Modes
 {
@@ -10,7 +11,7 @@ namespace PoE.dlls.Gamble.Modes
         private const int TargetModCount = 6;
 
         private readonly Main _main;
-        private readonly InputSimulator simulator;
+        private readonly InputSimulatorHost inputHost;
 
         private readonly double speed;
         private readonly TimeSpan delay;
@@ -32,7 +33,7 @@ namespace PoE.dlls.Gamble.Modes
 
         public MapExalt(
             Main main,
-            InputSimulator simulator,
+            InputSimulatorHost inputHost,
             CancellationTokenSource cts,
             TimeSpan delay,
             double speed,
@@ -43,7 +44,7 @@ namespace PoE.dlls.Gamble.Modes
             List<Rule> rules)
         {
             _main = main;
-            this.simulator = simulator;
+            this.inputHost = inputHost;
             this.delay = delay;
             this.speed = speed;
             _cts = cts;
@@ -62,7 +63,7 @@ namespace PoE.dlls.Gamble.Modes
             {
                 while (!_token.IsCancellationRequested)
                 {
-                    simulator.MouseDeltaMove(item.X, item.Y, speed);
+                    inputHost.Simulator.MouseDeltaMove(item.X, item.Y, speed);
                     await Task.Delay(delay);
 
                     string? itemContent = await Copy();
@@ -144,17 +145,17 @@ namespace PoE.dlls.Gamble.Modes
 
         private async Task<string?> Copy()
         {
-            simulator.Send("Ctrl Down");
+            inputHost.Simulator.Send("Ctrl Down");
             await Task.Delay(delay);
-            simulator.Send("Alt Down");
+            inputHost.Simulator.Send("Alt Down");
             await Task.Delay(delay);
-            simulator.Send("C Down");
+            inputHost.Simulator.Send("C Down");
             await Task.Delay(delay);
-            simulator.Send("C Up");
+            inputHost.Simulator.Send("C Up");
             await Task.Delay(delay);
-            simulator.Send("Alt Up");
+            inputHost.Simulator.Send("Alt Up");
             await Task.Delay(delay);
-            simulator.Send("Ctrl Up");
+            inputHost.Simulator.Send("Ctrl Up");
             await Task.Delay(delay);
 
             string itemContent = _main.Invoke(() => Clipboard.GetText(TextDataFormat.Text));
@@ -174,14 +175,14 @@ namespace PoE.dlls.Gamble.Modes
             if (_alchemyPrimed)
                 return;
 
-            simulator.MouseDeltaMove(alchemy.X, alchemy.Y, speed);
+            inputHost.Simulator.MouseDeltaMove(alchemy.X, alchemy.Y, speed);
             await Task.Delay(delay);
-            simulator.Send("RButton Down");
+            inputHost.Simulator.Send("RButton Down");
             await Task.Delay(delay);
-            simulator.Send("RButton Up");
+            inputHost.Simulator.Send("RButton Up");
             await Task.Delay(delay);
 
-            simulator.MouseDeltaMove(item.X, item.Y, speed);
+            inputHost.Simulator.MouseDeltaMove(item.X, item.Y, speed);
             await Task.Delay(delay);
 
             await EnsureShiftHeld();
@@ -193,7 +194,7 @@ namespace PoE.dlls.Gamble.Modes
             if (_isShiftHeld)
                 return;
 
-            simulator.Send("Shift Down");
+            inputHost.Simulator.Send("Shift Down");
             await Task.Delay(delay);
             _isShiftHeld = true;
         }
@@ -203,7 +204,7 @@ namespace PoE.dlls.Gamble.Modes
             if (!_isShiftHeld)
                 return;
 
-            simulator.Send("Shift Up");
+            inputHost.Simulator.Send("Shift Up");
             _isShiftHeld = false;
         }
 
@@ -211,21 +212,21 @@ namespace PoE.dlls.Gamble.Modes
         {
             await EnsureAlchemyPrimed();
 
-            simulator.MouseDeltaMove(item.X, item.Y, speed);
+            inputHost.Simulator.MouseDeltaMove(item.X, item.Y, speed);
             await Task.Delay(delay);
 
-            simulator.Send("Alt Down");
+            inputHost.Simulator.Send("Alt Down");
             await Task.Delay(delay);
-            simulator.Send("LButton Down");
+            inputHost.Simulator.Send("LButton Down");
             await Task.Delay(delay);
-            simulator.Send("LButton Up");
+            inputHost.Simulator.Send("LButton Up");
             await Task.Delay(delay);
-            simulator.Send("Alt Up");
+            inputHost.Simulator.Send("Alt Up");
             await Task.Delay(delay);
 
-            simulator.Send("LButton Down");
+            inputHost.Simulator.Send("LButton Down");
             await Task.Delay(delay);
-            simulator.Send("LButton Up");
+            inputHost.Simulator.Send("LButton Up");
             await Task.Delay(delay);
         }
 
@@ -233,18 +234,18 @@ namespace PoE.dlls.Gamble.Modes
         {
             await EnsureShiftHeld();
 
-            simulator.MouseDeltaMove(_exalt.X, _exalt.Y, speed);
+            inputHost.Simulator.MouseDeltaMove(_exalt.X, _exalt.Y, speed);
             await Task.Delay(delay);
-            simulator.Send("RButton Down");
+            inputHost.Simulator.Send("RButton Down");
             await Task.Delay(delay);
-            simulator.Send("RButton Up");
+            inputHost.Simulator.Send("RButton Up");
             await Task.Delay(delay);
 
-            simulator.MouseDeltaMove(item.X, item.Y, speed);
+            inputHost.Simulator.MouseDeltaMove(item.X, item.Y, speed);
             await Task.Delay(delay);
-            simulator.Send("LButton Down");
+            inputHost.Simulator.Send("LButton Down");
             await Task.Delay(delay);
-            simulator.Send("LButton Up");
+            inputHost.Simulator.Send("LButton Up");
             await Task.Delay(delay);
         }
     }

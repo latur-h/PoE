@@ -1,4 +1,5 @@
-﻿using PoE.dlls.Flasks.Base;
+﻿using PoE.dlls.Automation;
+using PoE.dlls.Flasks.Base;
 using PoE.dlls.Logger;
 using PoE.dlls.Settings;
 using Poss.Win.Automation.Input;
@@ -9,16 +10,16 @@ namespace PoE.dlls.Flasks
     {
         private readonly List<IFlask> flasks = [];
 
-        private readonly InputSimulator simulator;
+        private readonly InputSimulatorHost _inputHost;
 
         public FlaskTiming Timing { get; } = new();
 
         private CancellationTokenSource? cts;
         private CancellationToken token;
 
-        public FlaskManager(InputSimulator _simulator)
+        public FlaskManager(InputSimulatorHost inputHost)
         {
-            simulator = _simulator;
+            _inputHost = inputHost;
 
             cts = new CancellationTokenSource();
             token = cts.Token;
@@ -40,10 +41,10 @@ namespace PoE.dlls.Flasks
 
             switch (type)
             {
-                case FlaskType.HP: flasks.Add(new HP(simulator, key, numer, Timing)); break;
-                case FlaskType.MP: flasks.Add(new MP(simulator, key, numer, Timing)); break;
-                case FlaskType.Utility: flasks.Add(new Utility(simulator, key, numer, Timing)); break;
-                case FlaskType.Tincture: flasks.Add(new Tincture(simulator, key, numer, Timing)); break;
+                case FlaskType.HP: flasks.Add(new HP(_inputHost, key, numer, Timing)); break;
+                case FlaskType.MP: flasks.Add(new MP(_inputHost, key, numer, Timing)); break;
+                case FlaskType.Utility: flasks.Add(new Utility(_inputHost, key, numer, Timing)); break;
+                case FlaskType.Tincture: flasks.Add(new Tincture(_inputHost, key, numer, Timing)); break;
                 default: throw new NotSupportedException("Unsupported flask type.");
             }
         }
@@ -61,7 +62,7 @@ namespace PoE.dlls.Flasks
             {
                 await Task.Delay(Timing.PollDelay);
 
-                if (!simulator.IsActiveWindow()) continue;
+                if (!_inputHost.Simulator.IsActiveWindow()) continue;
 
                 List<Task> tasks = [];
 
@@ -83,5 +84,7 @@ namespace PoE.dlls.Flasks
             FlaskLog.StopRequested();
             cts.Cancel();
         }
+
+        internal IReadOnlyList<IFlask> RegisteredFlasksForTests => flasks;
     }
 }

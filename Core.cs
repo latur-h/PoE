@@ -27,11 +27,11 @@ namespace PoE
             {
                 while (true)
                 {
-                    if (_input.GetKeyState("XButton1"))
+                    if (_inputHost.Simulator.GetKeyState("XButton1"))
                     {
-                        _input.Send("LButton Down");
+                        _inputHost.Simulator.Send("LButton Down");
                         await Task.Delay(20);
-                        _input.Send("LButton Up");
+                        _inputHost.Simulator.Send("LButton Up");
                         await Task.Delay(20);
                     }
                 }
@@ -139,9 +139,9 @@ namespace PoE
 
             while (!token.IsCancellationRequested)
             {
-                _input.Send("LButton Down");
+                _inputHost.Simulator.Send("LButton Down");
                 await Task.Delay(20);
-                _input.Send("LButton Up");
+                _inputHost.Simulator.Send("LButton Up");
                 await Task.Delay(20);
             }
 
@@ -188,7 +188,7 @@ namespace PoE
                 _settings.Modifiers.Items,
                 _settings.Modifiers.Orbs);
 
-            Gambler = new Gambler(this, _input, TimeSpan.FromMilliseconds(_settings.Modifiers.Delay), _settings.Modifiers.Speed,
+            Gambler = new Gambler(this, _inputHost, TimeSpan.FromMilliseconds(_settings.Modifiers.Delay), _settings.Modifiers.Speed,
                 _settings.Modifiers.GambleType, coords.Item, coords.Base, coords.Second, coords.Third, rules);
 
             await Gambler.StartGambling();

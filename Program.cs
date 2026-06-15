@@ -1,16 +1,15 @@
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+using PoE.dlls.Automation;
 using PoE.dlls.Flasks;
 using PoE.dlls.GameData;
 using PoE.dlls.Settings;
 using Poss.Win.Automation.GlobalHotKeys;
-using Poss.Win.Automation.Input;
 
 namespace PoE
 {
     internal static class Program
     {
-        private const string processName = "PathOfExile.exe";
         private const string mutexName = "Global\\poe_app";
         private static Mutex? mutex;
 
@@ -25,8 +24,8 @@ namespace PoE
                 .ConfigureServices((context, services) =>
                 {
                     // Automation
+                    services.AddSingleton<InputSimulatorHost>();
                     services.AddSingleton<GlobalHotKeyManager>();
-                    services.AddSingleton(x => new InputSimulator(processName));
 
                     // Flask manager
                     services.AddSingleton<FlaskManager>();
