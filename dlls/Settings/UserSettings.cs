@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using Newtonsoft.Json;
+using PoE.dlls.Settings.Mods;
 
 namespace PoE.dlls.Settings
 {
@@ -44,6 +45,7 @@ namespace PoE.dlls.Settings
                     Settings = JsonConvert.DeserializeObject<Settings>(json) ?? new Settings();
 
                 Settings.FlaskControls ??= new UIFlaskControls();
+                GambleSettingsMigration.EnsureMigrated(Settings.Modifiers);
             }
             catch (Exception ex)
             {

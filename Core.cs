@@ -2,6 +2,7 @@ using PoE.dlls.Flasks.Base;
 using PoE.dlls.Gamba;
 using PoE.dlls.Gamble;
 using PoE.dlls.InteropServices;
+using PoE.dlls.Settings.Mods;
 
 namespace PoE
 {
@@ -222,30 +223,20 @@ namespace PoE
             if (Gambler is not null && Gambler.IsRunning())
                 return;
 
-            List<Rule> rules = new List<Rule>();
+            var store = _settings.Modifiers.GetModeStore(_settings.Modifiers.GambleType);
+            var preset = _settings.Modifiers.GetActivePreset();
 
-            if (!string.IsNullOrEmpty(_settings.Modifiers.Mode.Content1))
-                rules.Add(new Rule(_settings.Modifiers.Mode.Priority1, _settings.Modifiers.Mode.modifierType1, _settings.Modifiers.Mode.Tier1, _settings.Modifiers.Mode.Content1));
-            if (!string.IsNullOrEmpty(_settings.Modifiers.Mode.Content2))
-                rules.Add(new Rule(_settings.Modifiers.Mode.Priority2, _settings.Modifiers.Mode.modifierType2, _settings.Modifiers.Mode.Tier2, _settings.Modifiers.Mode.Content2));
-            if (!string.IsNullOrEmpty(_settings.Modifiers.Mode.Content3))
-                rules.Add(new Rule(_settings.Modifiers.Mode.Priority3, _settings.Modifiers.Mode.modifierType3, _settings.Modifiers.Mode.Tier3, _settings.Modifiers.Mode.Content3));
-            if (!string.IsNullOrEmpty(_settings.Modifiers.Mode.Content4))
-                rules.Add(new Rule(_settings.Modifiers.Mode.Priority4, _settings.Modifiers.Mode.modifierType4, _settings.Modifiers.Mode.Tier4, _settings.Modifiers.Mode.Content4));
-            if (!string.IsNullOrEmpty(_settings.Modifiers.Mode.Content5))
-                rules.Add(new Rule(_settings.Modifiers.Mode.Priority5, _settings.Modifiers.Mode.modifierType5, _settings.Modifiers.Mode.Tier5, _settings.Modifiers.Mode.Content5));
-            if (!string.IsNullOrEmpty(_settings.Modifiers.Mode.Content6))
-                rules.Add(new Rule(_settings.Modifiers.Mode.Priority6, _settings.Modifiers.Mode.modifierType6, _settings.Modifiers.Mode.Tier6, _settings.Modifiers.Mode.Content6));
-            if (!string.IsNullOrEmpty(_settings.Modifiers.Mode.Content7))
-                rules.Add(new Rule(_settings.Modifiers.Mode.Priority7, _settings.Modifiers.Mode.modifierType7, _settings.Modifiers.Mode.Tier7, _settings.Modifiers.Mode.Content7));
-            if (!string.IsNullOrEmpty(_settings.Modifiers.Mode.Content8))
-                rules.Add(new Rule(_settings.Modifiers.Mode.Priority8, _settings.Modifiers.Mode.modifierType8, _settings.Modifiers.Mode.Tier8, _settings.Modifiers.Mode.Content8));
+            List<Rule> rules = preset.Rules
+                .Where(r => !string.IsNullOrEmpty(r.Content))
+                .Take(GambleModeLayout.MaxRules)
+                .Select(r => new Rule(r.Priority, r.ModifierType, r.Tier, r.Content))
+                .ToList();
 
             if (rules.Count == 0)
                 return;
 
             Gambler = new Gambler(this, _input, TimeSpan.FromMilliseconds(_settings.Modifiers.Delay), _settings.Modifiers.Speed,
-                _settings.Modifiers.GambleType, _settings.Modifiers.Mode.Item, _settings.Modifiers.Mode.Base, _settings.Modifiers.Mode.Second, rules);
+                _settings.Modifiers.GambleType, store.Item, store.Base, store.Second, rules);
 
             await Gambler.StartGambling();
 

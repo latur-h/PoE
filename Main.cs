@@ -3,9 +3,11 @@ using PoE.dlls.Flasks.Base;
 using PoE.dlls.Gamble;
 using PoE.dlls.Gamble.Modifiers;
 using PoE.dlls.InteropServices;
+using PoE.dlls.Gamble.UI;
 using PoE.dlls.KeyBindings;
 using PoE.dlls.Logger;
 using PoE.dlls.Settings;
+using PoE.dlls.Settings.Mods;
 using PoE.dlls.Style;
 using Poss.Win.Automation.GlobalHotKeys;
 using Poss.Win.Automation.Input;
@@ -18,6 +20,9 @@ namespace PoE
         private readonly GlobalHotKeyManager _hotkeys;
         private readonly FlaskManager _flaskManager;
         private readonly UserSettings _userSettings;
+        private GamblePresetBar gamblePresetBar = null!;
+        private GambleRulesPanel gambleRulesPanel = null!;
+        private ToolTip toolTip_Gamble = null!;
         private Settings _settings = null!;
         private TextBoxLogger _logger = null!;
 
@@ -219,10 +224,6 @@ namespace PoE
             label_Flask4_Slider.Text = $"{slider_Flask4.Value}";
             label_Flask5_Slider.Text = $"{slider_Flask5.Value}";
 
-            label_Modifier.ForeColor = StaticColors.ForeGround;
-            label_ModifierType.ForeColor = StaticColors.ForeGround;
-            label_Priority.ForeColor = StaticColors.ForeGround;
-            label_Tier.ForeColor = StaticColors.ForeGround;
             label_GambleType.ForeColor = StaticColors.ForeGround;
             label_ItemXY.ForeColor = StaticColors.ForeGround;
             label_BaseXY.ForeColor = StaticColors.ForeGround;
@@ -243,134 +244,24 @@ namespace PoE
 
             comboBox_GambleType.Items.AddRange(Enum.GetNames<GambleType>());
             comboBox_GambleType.SelectedIndex = 0;
+
+            InitializeGamblePresetBar();
+            InitializeGambleRulesPanel();
+            SetupGambleModeHelp();
+
             comboBox_GambleType.SelectedIndexChanged += (s, e) =>
             {
+                gambleRulesPanel.Commit();
+
                 GambleType gambleType = Enum.Parse<GambleType>(comboBox_GambleType.SelectedItem?.ToString() ?? string.Empty);
                 _settings.Modifiers.GambleType = gambleType;
-
-                _settings.Modifiers.Mode = gambleType switch
-                {
-                    GambleType.Alt => _settings.Modifiers._uialt,
-                    GambleType.Alt_Aug => _settings.Modifiers._uialt_aug,
-                    GambleType.Chaos => _settings.Modifiers._uichaos,
-                    GambleType.Chromatic => _settings.Modifiers._uichromatic,
-                    GambleType.Eldritch => _settings.Modifiers._uieldritch,
-                    GambleType.Essence => _settings.Modifiers._uiesscence,
-                    GambleType.Harvest => _settings.Modifiers._uiharvest,
-                    GambleType.Map => _settings.Modifiers._uimap,
-                    GambleType.MapT17 => _settings.Modifiers._uimapT17,
-                    _ => _settings.Modifiers._uialt
-                };
-
-                textBox_ItemXY._textBox.Text = $"{_settings.Modifiers.Mode.Item.X}, {_settings.Modifiers.Mode.Item.Y}";
-                textBox_BaseXY._textBox.Text = $"{_settings.Modifiers.Mode.Base.X}, {_settings.Modifiers.Mode.Base.Y}";
-                textBox_SecondXY._textBox.Text = $"{_settings.Modifiers.Mode.Second.X}, {_settings.Modifiers.Mode.Second.Y}";
-
-                comboBox_Mod1.SelectedItem = _settings.Modifiers.Mode.modifierType1.ToString();
-                comboBox_Mod2.SelectedItem = _settings.Modifiers.Mode.modifierType2.ToString();
-                comboBox_Mod3.SelectedItem = _settings.Modifiers.Mode.modifierType3.ToString();
-                comboBox_Mod4.SelectedItem = _settings.Modifiers.Mode.modifierType4.ToString();
-                comboBox_Mod5.SelectedItem = _settings.Modifiers.Mode.modifierType5.ToString();
-                comboBox_Mod6.SelectedItem = _settings.Modifiers.Mode.modifierType6.ToString();
-                comboBox_Mod7.SelectedItem = _settings.Modifiers.Mode.modifierType7.ToString();
-                comboBox_Mod8.SelectedItem = _settings.Modifiers.Mode.modifierType8.ToString();
-
-                textBox_Priority1._textBox.Text = _settings.Modifiers.Mode.Priority1.ToString();
-                textBox_Priority2._textBox.Text = _settings.Modifiers.Mode.Priority2.ToString();
-                textBox_Priority3._textBox.Text = _settings.Modifiers.Mode.Priority3.ToString();
-                textBox_Priority4._textBox.Text = _settings.Modifiers.Mode.Priority4.ToString();
-                textBox_Priority5._textBox.Text = _settings.Modifiers.Mode.Priority5.ToString();
-                textBox_Priority6._textBox.Text = _settings.Modifiers.Mode.Priority6.ToString();
-                textBox_Priority7._textBox.Text = _settings.Modifiers.Mode.Priority7.ToString();
-                textBox_Priority8._textBox.Text = _settings.Modifiers.Mode.Priority8.ToString();
-
-                textBox_Tier1._textBox.Text = _settings.Modifiers.Mode.Tier1.ToString();
-                textBox_Tier2._textBox.Text = _settings.Modifiers.Mode.Tier2.ToString();
-                textBox_Tier3._textBox.Text = _settings.Modifiers.Mode.Tier3.ToString();
-                textBox_Tier4._textBox.Text = _settings.Modifiers.Mode.Tier4.ToString();
-                textBox_Tier5._textBox.Text = _settings.Modifiers.Mode.Tier5.ToString();
-                textBox_Tier6._textBox.Text = _settings.Modifiers.Mode.Tier6.ToString();
-                textBox_Tier7._textBox.Text = _settings.Modifiers.Mode.Tier7.ToString();
-                textBox_Tier8._textBox.Text = _settings.Modifiers.Mode.Tier8.ToString();
-
-                textBox_Mod1._textBox.Text = _settings.Modifiers.Mode.Content1;
-                textBox_Mod2._textBox.Text = _settings.Modifiers.Mode.Content2;
-                textBox_Mod3._textBox.Text = _settings.Modifiers.Mode.Content3;
-                textBox_Mod4._textBox.Text = _settings.Modifiers.Mode.Content4;
-                textBox_Mod5._textBox.Text = _settings.Modifiers.Mode.Content5;
-                textBox_Mod6._textBox.Text = _settings.Modifiers.Mode.Content6;
-                textBox_Mod7._textBox.Text = _settings.Modifiers.Mode.Content7;
-                textBox_Mod8._textBox.Text = _settings.Modifiers.Mode.Content8;
-            };
-
-            comboBox_Mod1.Items.AddRange(Enum.GetNames<ModifierType>());
-            comboBox_Mod1.SelectedIndex = 0;
-            comboBox_Mod1.SelectedIndexChanged += (s, e) =>
-            {
-                ModifierType modifierType = Enum.Parse<ModifierType>(comboBox_Mod1.SelectedItem?.ToString() ?? string.Empty);
-                _settings.Modifiers.Mode.modifierType1 = modifierType;
-            };
-
-            comboBox_Mod2.Items.AddRange(Enum.GetNames<ModifierType>());
-            comboBox_Mod2.SelectedIndex = 0;
-            comboBox_Mod2.SelectedIndexChanged += (s, e) =>
-            {
-                ModifierType modifierType = Enum.Parse<ModifierType>(comboBox_Mod2.SelectedItem?.ToString() ?? string.Empty);
-                _settings.Modifiers.Mode.modifierType2 = modifierType;
-            };
-
-            comboBox_Mod3.Items.AddRange(Enum.GetNames<ModifierType>());
-            comboBox_Mod3.SelectedIndex = 0;
-            comboBox_Mod3.SelectedIndexChanged += (s, e) =>
-            {
-                ModifierType modifierType = Enum.Parse<ModifierType>(comboBox_Mod3.SelectedItem?.ToString() ?? string.Empty);
-                _settings.Modifiers.Mode.modifierType3 = modifierType;
-            };
-
-            comboBox_Mod4.Items.AddRange(Enum.GetNames<ModifierType>());
-            comboBox_Mod4.SelectedIndex = 0;
-            comboBox_Mod4.SelectedIndexChanged += (s, e) =>
-            {
-                ModifierType modifierType = Enum.Parse<ModifierType>(comboBox_Mod4.SelectedItem?.ToString() ?? string.Empty);
-                _settings.Modifiers.Mode.modifierType4 = modifierType;
-            };
-
-            comboBox_Mod5.Items.AddRange(Enum.GetNames<ModifierType>());
-            comboBox_Mod5.SelectedIndex = 0;
-            comboBox_Mod5.SelectedIndexChanged += (s, e) =>
-            {
-                ModifierType modifierType = Enum.Parse<ModifierType>(comboBox_Mod5.SelectedItem?.ToString() ?? string.Empty);
-                _settings.Modifiers.Mode.modifierType5 = modifierType;
-            };
-
-            comboBox_Mod6.Items.AddRange(Enum.GetNames<ModifierType>());
-            comboBox_Mod6.SelectedIndex = 0;
-            comboBox_Mod6.SelectedIndexChanged += (s, e) =>
-            {
-                ModifierType modifierType = Enum.Parse<ModifierType>(comboBox_Mod6.SelectedItem?.ToString() ?? string.Empty);
-                _settings.Modifiers.Mode.modifierType6 = modifierType;
-            };
-
-            comboBox_Mod7.Items.AddRange(Enum.GetNames<ModifierType>());
-            comboBox_Mod7.SelectedIndex = 0;
-            comboBox_Mod7.SelectedIndexChanged += (s, e) =>
-            {
-                ModifierType modifierType = Enum.Parse<ModifierType>(comboBox_Mod7.SelectedItem?.ToString() ?? string.Empty);
-                _settings.Modifiers.Mode.modifierType7 = modifierType;
-            };
-
-            comboBox_Mod8.Items.AddRange(Enum.GetNames<ModifierType>());
-            comboBox_Mod8.SelectedIndex = 0;
-            comboBox_Mod8.SelectedIndexChanged += (s, e) =>
-            {
-                ModifierType modifierType = Enum.Parse<ModifierType>(comboBox_Mod8.SelectedItem?.ToString() ?? string.Empty);
-                _settings.Modifiers.Mode.modifierType8 = modifierType;
+                _settings.Modifiers.RefreshEditAdapter();
+                LoadGambleModeIntoUi();
             };
 
             comboBox_GambleType.SelectedItem = _settings.Modifiers.GambleType.ToString();
-            textBox_ItemXY._textBox.Text = $"{_settings.Modifiers.Mode.Item.X}, {_settings.Modifiers.Mode.Item.Y}";
-            textBox_BaseXY._textBox.Text = $"{_settings.Modifiers.Mode.Base.X}, {_settings.Modifiers.Mode.Base.Y}";
-            textBox_SecondXY._textBox.Text = $"{_settings.Modifiers.Mode.Second.X}, {_settings.Modifiers.Mode.Second.Y}";
+            _settings.Modifiers.RefreshEditAdapter();
+            LoadGambleModeIntoUi();
             textBox_GamblerDelay._textBox.Text = _settings.Modifiers.Delay.ToString();
             textBox_GambleSpeed._textBox.Text = _settings.Modifiers.Speed.ToString();
             textBox_FlaskDelay._textBox.Text = _settings.FlaskControls.Delay.ToString();
@@ -378,42 +269,6 @@ namespace PoE
             textBox_FlaskHpMpCooldown._textBox.Text = _settings.FlaskControls.HpMpCooldown.ToString();
             textBox_FlaskUtilityCooldown._textBox.Text = _settings.FlaskControls.UtilityCooldown.ToString();
             textBox_FlaskTinctureCooldown._textBox.Text = _settings.FlaskControls.TinctureCooldown.ToString();
-
-            comboBox_Mod1.SelectedItem = _settings.Modifiers.Mode.modifierType1.ToString();
-            comboBox_Mod2.SelectedItem = _settings.Modifiers.Mode.modifierType2.ToString();
-            comboBox_Mod3.SelectedItem = _settings.Modifiers.Mode.modifierType3.ToString();
-            comboBox_Mod4.SelectedItem = _settings.Modifiers.Mode.modifierType4.ToString();
-            comboBox_Mod5.SelectedItem = _settings.Modifiers.Mode.modifierType5.ToString();
-            comboBox_Mod6.SelectedItem = _settings.Modifiers.Mode.modifierType6.ToString();
-            comboBox_Mod7.SelectedItem = _settings.Modifiers.Mode.modifierType7.ToString();
-            comboBox_Mod8.SelectedItem = _settings.Modifiers.Mode.modifierType8.ToString();
-
-            textBox_Priority1._textBox.Text = _settings.Modifiers.Mode.Priority1.ToString();
-            textBox_Priority2._textBox.Text = _settings.Modifiers.Mode.Priority2.ToString();
-            textBox_Priority3._textBox.Text = _settings.Modifiers.Mode.Priority3.ToString();
-            textBox_Priority4._textBox.Text = _settings.Modifiers.Mode.Priority4.ToString();
-            textBox_Priority5._textBox.Text = _settings.Modifiers.Mode.Priority5.ToString();
-            textBox_Priority6._textBox.Text = _settings.Modifiers.Mode.Priority6.ToString();
-            textBox_Priority7._textBox.Text = _settings.Modifiers.Mode.Priority7.ToString();
-            textBox_Priority8._textBox.Text = _settings.Modifiers.Mode.Priority8.ToString();
-
-            textBox_Tier1._textBox.Text = _settings.Modifiers.Mode.Tier1.ToString();
-            textBox_Tier2._textBox.Text = _settings.Modifiers.Mode.Tier2.ToString();
-            textBox_Tier3._textBox.Text = _settings.Modifiers.Mode.Tier3.ToString();
-            textBox_Tier4._textBox.Text = _settings.Modifiers.Mode.Tier4.ToString();
-            textBox_Tier5._textBox.Text = _settings.Modifiers.Mode.Tier5.ToString();
-            textBox_Tier6._textBox.Text = _settings.Modifiers.Mode.Tier6.ToString();
-            textBox_Tier7._textBox.Text = _settings.Modifiers.Mode.Tier7.ToString();
-            textBox_Tier8._textBox.Text = _settings.Modifiers.Mode.Tier8.ToString();
-
-            textBox_Mod1._textBox.Text = _settings.Modifiers.Mode.Content1;
-            textBox_Mod2._textBox.Text = _settings.Modifiers.Mode.Content2;
-            textBox_Mod3._textBox.Text = _settings.Modifiers.Mode.Content3;
-            textBox_Mod4._textBox.Text = _settings.Modifiers.Mode.Content4;
-            textBox_Mod5._textBox.Text = _settings.Modifiers.Mode.Content5;
-            textBox_Mod6._textBox.Text = _settings.Modifiers.Mode.Content6;
-            textBox_Mod7._textBox.Text = _settings.Modifiers.Mode.Content7;
-            textBox_Mod8._textBox.Text = _settings.Modifiers.Mode.Content8;
 
             textBox_ItemXY._textBox.KeyUp += (s, e) =>
             {
@@ -526,121 +381,6 @@ namespace PoE
             BindFlaskDelayField(textBox_FlaskUtilityCooldown, v => _settings.FlaskControls.UtilityCooldown = v);
             BindFlaskDelayField(textBox_FlaskTinctureCooldown, v => _settings.FlaskControls.TinctureCooldown = v);
 
-            textBox_Priority1._textBox.KeyUp += (s, e) =>
-            {
-                if (Priority_NumberOnly(textBox_Priority1._textBox))
-                    _settings.Modifiers.Mode.Priority1 = decimal.Parse(textBox_Priority1._textBox.Text);
-            };
-            textBox_Priority2._textBox.KeyUp += (s, e) =>
-            {
-                if (Priority_NumberOnly(textBox_Priority2._textBox))
-                    _settings.Modifiers.Mode.Priority2 = decimal.Parse(textBox_Priority2._textBox.Text);
-            };
-            textBox_Priority3._textBox.KeyUp += (s, e) =>
-            {
-                if (Priority_NumberOnly(textBox_Priority3._textBox))
-                    _settings.Modifiers.Mode.Priority3 = decimal.Parse(textBox_Priority3._textBox.Text);
-            };
-            textBox_Priority4._textBox.KeyUp += (s, e) =>
-            {
-                if (Priority_NumberOnly(textBox_Priority4._textBox))
-                    _settings.Modifiers.Mode.Priority4 = decimal.Parse(textBox_Priority4._textBox.Text);
-            };
-            textBox_Priority5._textBox.KeyUp += (s, e) =>
-            {
-                if (Priority_NumberOnly(textBox_Priority5._textBox))
-                    _settings.Modifiers.Mode.Priority5 = decimal.Parse(textBox_Priority5._textBox.Text);
-            };
-            textBox_Priority6._textBox.KeyUp += (s, e) =>
-            {
-                if (Priority_NumberOnly(textBox_Priority6._textBox))
-                    _settings.Modifiers.Mode.Priority6 = decimal.Parse(textBox_Priority6._textBox.Text);
-            };
-            textBox_Priority7._textBox.KeyUp += (s, e) =>
-            {
-                if (Priority_NumberOnly(textBox_Priority7._textBox))
-                    _settings.Modifiers.Mode.Priority7 = decimal.Parse(textBox_Priority7._textBox.Text);
-            };
-            textBox_Priority8._textBox.KeyUp += (s, e) =>
-            {
-                if (Priority_NumberOnly(textBox_Priority8._textBox))
-                    _settings.Modifiers.Mode.Priority8 = decimal.Parse(textBox_Priority8._textBox.Text);
-            };
-
-            textBox_Tier1._textBox.KeyUp += (s, e) =>
-            {
-                if (Tier_NumberOnly(textBox_Tier1._textBox))
-                    _settings.Modifiers.Mode.Tier1 = int.Parse(textBox_Tier1._textBox.Text);
-            };
-            textBox_Tier2._textBox.KeyUp += (s, e) =>
-            {
-                if (Tier_NumberOnly(textBox_Tier2._textBox))
-                    _settings.Modifiers.Mode.Tier2 = int.Parse(textBox_Tier2._textBox.Text);
-            };
-            textBox_Tier3._textBox.KeyUp += (s, e) =>
-            {
-                if (Tier_NumberOnly(textBox_Tier3._textBox))
-                    _settings.Modifiers.Mode.Tier3 = int.Parse(textBox_Tier3._textBox.Text);
-            };
-            textBox_Tier4._textBox.KeyUp += (s, e) =>
-            {
-                if (Tier_NumberOnly(textBox_Tier4._textBox))
-                    _settings.Modifiers.Mode.Tier4 = int.Parse(textBox_Tier4._textBox.Text);
-            };
-            textBox_Tier5._textBox.KeyUp += (s, e) =>
-            {
-                if (Tier_NumberOnly(textBox_Tier5._textBox))
-                    _settings.Modifiers.Mode.Tier5 = int.Parse(textBox_Tier5._textBox.Text);
-            };
-            textBox_Tier6._textBox.KeyUp += (s, e) =>
-            {
-                if (Tier_NumberOnly(textBox_Tier6._textBox))
-                    _settings.Modifiers.Mode.Tier6 = int.Parse(textBox_Tier6._textBox.Text);
-            };
-            textBox_Tier7._textBox.KeyUp += (s, e) =>
-            {
-                if (Tier_NumberOnly(textBox_Tier7._textBox))
-                    _settings.Modifiers.Mode.Tier7 = int.Parse(textBox_Tier7._textBox.Text);
-            };
-            textBox_Tier8._textBox.KeyUp += (s, e) =>
-            {
-                if (Tier_NumberOnly(textBox_Tier8._textBox))
-                    _settings.Modifiers.Mode.Tier8 = int.Parse(textBox_Tier8._textBox.Text);
-            };
-
-            textBox_Mod1._textBox.KeyUp += (s, e) =>
-            {
-                _settings.Modifiers.Mode.Content1 = textBox_Mod1._textBox.Text;
-            };
-            textBox_Mod2._textBox.KeyUp += (s, e) =>
-            {
-                _settings.Modifiers.Mode.Content2 = textBox_Mod2._textBox.Text;
-            };
-            textBox_Mod3._textBox.KeyUp += (s, e) =>
-            {
-                _settings.Modifiers.Mode.Content3 = textBox_Mod3._textBox.Text;
-            };
-            textBox_Mod4._textBox.KeyUp += (s, e) =>
-            {
-                _settings.Modifiers.Mode.Content4 = textBox_Mod4._textBox.Text;
-            };
-            textBox_Mod5._textBox.KeyUp += (s, e) =>
-            {
-                _settings.Modifiers.Mode.Content5 = textBox_Mod5._textBox.Text;
-            };
-            textBox_Mod6._textBox.KeyUp += (s, e) =>
-            {
-                _settings.Modifiers.Mode.Content6 = textBox_Mod6._textBox.Text;
-            };
-            textBox_Mod7._textBox.KeyUp += (s, e) =>
-            {
-                _settings.Modifiers.Mode.Content7 = textBox_Mod7._textBox.Text;
-            };
-            textBox_Mod8._textBox.KeyUp += (s, e) =>
-            {
-                _settings.Modifiers.Mode.Content8 = textBox_Mod8._textBox.Text;
-            };
-
             button_Record1.Click += (s, e) =>
             {
                 if (_getCoordinatesBase)
@@ -713,6 +453,74 @@ namespace PoE
             SetupSettingsHints();
 
             _ = Init();
+        }
+
+        private void LoadGambleModeIntoUi()
+        {
+            var mode = _settings.Modifiers.Mode;
+
+            textBox_ItemXY._textBox.Text = $"{mode.Item.X}, {mode.Item.Y}";
+            textBox_BaseXY._textBox.Text = $"{mode.Base.X}, {mode.Base.Y}";
+            textBox_SecondXY._textBox.Text = $"{mode.Second.X}, {mode.Second.Y}";
+
+            gamblePresetBar.RefreshPresets();
+            var store = _settings.Modifiers.GetModeStore(_settings.Modifiers.GambleType);
+            gambleRulesPanel.PurgeViewsExcept(store.Presets);
+            gambleRulesPanel.Bind(_settings.Modifiers.GetActivePreset());
+
+            UpdateGambleSecondCoordinateVisibility();
+        }
+
+        private void InitializeGamblePresetBar()
+        {
+            gamblePresetBar = new GamblePresetBar
+            {
+                Location = new Point(7, 64),
+                Size = new Size(603, 34),
+                Anchor = AnchorStyles.Top | AnchorStyles.Left | AnchorStyles.Right,
+            };
+            gamblePresetBar.Bind(_settings.Modifiers);
+            gamblePresetBar.PresetChanging += (_, _) => gambleRulesPanel.Commit();
+            gamblePresetBar.PresetRemoved += (_, preset) => gambleRulesPanel.DropPresetView(preset);
+            gamblePresetBar.PresetChanged += (_, _) =>
+            {
+                _settings.Modifiers.RefreshEditAdapter();
+                gambleRulesPanel.Bind(_settings.Modifiers.GetActivePreset());
+            };
+            tabPage_Gamble.Controls.Add(gamblePresetBar);
+        }
+
+        private void InitializeGambleRulesPanel()
+        {
+            gambleRulesPanel = new GambleRulesPanel
+            {
+                Location = new Point(7, 98),
+                Size = new Size(603, 294),
+                Anchor = AnchorStyles.Top | AnchorStyles.Bottom | AnchorStyles.Left | AnchorStyles.Right,
+            };
+            tabPage_Gamble.Controls.Add(gambleRulesPanel);
+        }
+
+        private void SetupGambleModeHelp()
+        {
+            toolTip_Gamble = new ToolTip(components);
+            SettingsHintHelper.Configure(toolTip_Gamble);
+
+            SettingsHintHelper.Attach(
+                toolTip_Gamble,
+                tabPage_Gamble,
+                label_GambleType,
+                comboBox_GambleType,
+                "How this gamble mode works",
+                () => GambleModeHelpDialog.ShowForMode(this, _settings.Modifiers.GambleType));
+        }
+
+        private void UpdateGambleSecondCoordinateVisibility()
+        {
+            bool showSecond = GambleModeLayout.UsesSecond(_settings.Modifiers.GambleType);
+            label_SecondXY.Visible = showSecond;
+            textBox_SecondXY.Visible = showSecond;
+            button_Record3.Visible = showSecond;
         }
 
         private void SetupSettingsHints()
@@ -838,32 +646,6 @@ namespace PoE
             textBox._textBox.ForeColor = StaticColors.ForeGround;
         }
 
-        private bool Priority_NumberOnly(TextBox textBox)
-        {
-            if (decimal.TryParse(textBox.Text, out decimal value))
-            {
-                textBox.ForeColor = StaticColors.ForeGround;
-                return true;
-            }
-            else
-            {
-                textBox.ForeColor = Color.Red;
-                return false;
-            }
-        }
-        private bool Tier_NumberOnly(TextBox textBox)
-        {
-            if (int.TryParse(textBox.Text, out int value) && value > 0 && value < 10)
-            {
-                textBox.ForeColor = StaticColors.ForeGround;
-                return true;
-            }
-            else
-            {
-                textBox.ForeColor = Color.Red;
-                return false;
-            }
-        }
         private bool Delay_NumberOnly(TextBox textBox)
         {
             if (int.TryParse(textBox.Text, out int value))
@@ -894,6 +676,7 @@ namespace PoE
         private void Main_FormClosing(object sender, FormClosingEventArgs e)
         {
             _hotkeys.Stop();
+            gambleRulesPanel.Commit();
 
             _userSettings.SaveSettings();
         }

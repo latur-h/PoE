@@ -1,11 +1,6 @@
-﻿using PoE.dlls.Gamble;
+﻿using Newtonsoft.Json;
+using PoE.dlls.Gamble;
 using PoE.dlls.Gamble.Modifiers;
-using PoE.dlls.InteropServices;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace PoE.dlls.Settings.Mods
 {
@@ -19,48 +14,76 @@ namespace PoE.dlls.Settings.Mods
         public int Delay { get; set; } = 40;
         public double Speed { get; set; } = 10.0;
 
-        public IUIMods Mode { get; set; } = new UIAlt
+        public Dictionary<GambleType, GambleModeStore> ModeStores { get; set; } = [];
+
+        [JsonIgnore]
+        private GambleEditAdapter? _editAdapter;
+
+        [JsonIgnore]
+        public IUIMods Mode => GetEditAdapter();
+
+        [JsonProperty]
+        internal UIAlt _uialt { get; set; } = new();
+
+        [JsonProperty]
+        internal UIAlt_Aug _uialt_aug { get; set; } = new();
+
+        [JsonProperty]
+        internal UIChaos _uichaos { get; set; } = new();
+
+        [JsonProperty]
+        internal UIChromatic _uichromatic { get; set; } = new();
+
+        [JsonProperty]
+        internal UIEldritch _uieldritch { get; set; } = new();
+
+        [JsonProperty]
+        internal UIEssence _uiesscence { get; set; } = new();
+
+        [JsonProperty]
+        internal UIHarvest _uiharvest { get; set; } = new();
+
+        [JsonProperty]
+        internal UIMap _uimap { get; set; } = new();
+
+        [JsonProperty]
+        internal UIMapT17 _uimapT17 { get; set; } = new();
+
+        public UIModifiers()
         {
-            Item = new Coordinates(0, 0),
-            Base = new Coordinates(0, 0),
-            Second = new Coordinates(0, 0),
+            foreach (GambleType type in Enum.GetValues<GambleType>())
+                ModeStores[type] = new GambleModeStore();
+        }
 
-            Priority1 = 0,
-            Priority2 = 0,
-            Priority3 = 0,
-            Priority4 = 0,
-            Priority5 = 0,
-            Priority6 = 0,
-            Priority7 = 0,
-            Priority8 = 0,
+        public GambleModeStore GetModeStore(GambleType type) => ModeStores[type];
 
-            modifierType1 = ModifierType.Any,
-            modifierType2 = ModifierType.Any,
-            modifierType3 = ModifierType.Any,
-            modifierType4 = ModifierType.Any,
-            modifierType5 = ModifierType.Any,
-            modifierType6 = ModifierType.Any,
-            modifierType7 = ModifierType.Any,
-            modifierType8 = ModifierType.Any,
+        public GamblePreset GetActivePreset(GambleType? type = null)
+        {
+            type ??= GambleType;
+            var store = GetModeStore(type.Value);
+            GamblePresetHelper.NormalizeModeStore(store);
 
-            Tier1 = 1,
-            Tier2 = 1,
-            Tier3 = 1,
-            Tier4 = 1,
-            Tier5 = 1,
-            Tier6 = 1,
-            Tier7 = 1,
-            Tier8 = 1
-        };
+            return store.Presets.First(p =>
+                string.Equals(p.Name, store.ActivePresetName, StringComparison.OrdinalIgnoreCase));
+        }
 
-        public UIAlt _uialt { get; set; } = new();
-        public UIAlt_Aug _uialt_aug { get; set; } = new();
-        public UIChaos _uichaos { get; set; } = new();
-        public UIChromatic _uichromatic { get; set; } = new();
-        public UIEldritch _uieldritch { get; set; } = new();
-        public UIEssence _uiesscence { get; set; } = new();
-        public UIHarvest _uiharvest { get; set; } = new();
-        public UIMap _uimap { get; set; } = new();
-        public UIMapT17 _uimapT17 { get; set; } = new();
+        public IUIMods GetEditAdapter()
+        {
+            _editAdapter ??= new GambleEditAdapter(this);
+            _editAdapter.Bind(GambleType);
+            return _editAdapter;
+        }
+
+        public void RefreshEditAdapter() => _editAdapter?.Bind(GambleType);
+
+        public bool ShouldSerialize_uialt() => false;
+        public bool ShouldSerialize__uialt_aug() => false;
+        public bool ShouldSerialize__uichaos() => false;
+        public bool ShouldSerialize__uichromatic() => false;
+        public bool ShouldSerialize__uieldritch() => false;
+        public bool ShouldSerialize__uiesscence() => false;
+        public bool ShouldSerialize__uiharvest() => false;
+        public bool ShouldSerialize__uimap() => false;
+        public bool ShouldSerialize__uimapT17() => false;
     }
 }

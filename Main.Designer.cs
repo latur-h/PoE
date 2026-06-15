@@ -78,42 +78,6 @@ namespace PoE
             label_GambleType = new Label();
             textBox_BaseXY = new FlatTextBox();
             textBox_ItemXY = new FlatTextBox();
-            label_Modifier = new Label();
-            label_Tier = new Label();
-            label_Priority = new Label();
-            label_ModifierType = new Label();
-            textBox_Tier8 = new FlatTextBox();
-            textBox_Priority8 = new FlatTextBox();
-            textBox_Tier7 = new FlatTextBox();
-            textBox_Priority7 = new FlatTextBox();
-            textBox_Tier6 = new FlatTextBox();
-            textBox_Priority6 = new FlatTextBox();
-            textBox_Tier5 = new FlatTextBox();
-            textBox_Priority5 = new FlatTextBox();
-            textBox_Tier4 = new FlatTextBox();
-            textBox_Priority4 = new FlatTextBox();
-            textBox_Tier3 = new FlatTextBox();
-            textBox_Priority3 = new FlatTextBox();
-            textBox_Tier2 = new FlatTextBox();
-            textBox_Priority2 = new FlatTextBox();
-            textBox_Tier1 = new FlatTextBox();
-            textBox_Priority1 = new FlatTextBox();
-            comboBox_Mod8 = new FlatComboBox();
-            comboBox_Mod7 = new FlatComboBox();
-            comboBox_Mod6 = new FlatComboBox();
-            comboBox_Mod5 = new FlatComboBox();
-            comboBox_Mod4 = new FlatComboBox();
-            comboBox_Mod3 = new FlatComboBox();
-            comboBox_Mod2 = new FlatComboBox();
-            comboBox_Mod1 = new FlatComboBox();
-            textBox_Mod8 = new FlatTextBox();
-            textBox_Mod7 = new FlatTextBox();
-            textBox_Mod6 = new FlatTextBox();
-            textBox_Mod5 = new FlatTextBox();
-            textBox_Mod4 = new FlatTextBox();
-            textBox_Mod3 = new FlatTextBox();
-            textBox_Mod2 = new FlatTextBox();
-            textBox_Mod1 = new FlatTextBox();
             comboBox_GambleType = new FlatComboBox();
             tabPage_Settings = new TabPage();
             groupBox_FlaskSettings = new FlatGroupBox();
@@ -569,42 +533,6 @@ namespace PoE
             tabPage_Gamble.Controls.Add(label_GambleType);
             tabPage_Gamble.Controls.Add(textBox_BaseXY);
             tabPage_Gamble.Controls.Add(textBox_ItemXY);
-            tabPage_Gamble.Controls.Add(label_Modifier);
-            tabPage_Gamble.Controls.Add(label_Tier);
-            tabPage_Gamble.Controls.Add(label_Priority);
-            tabPage_Gamble.Controls.Add(label_ModifierType);
-            tabPage_Gamble.Controls.Add(textBox_Tier8);
-            tabPage_Gamble.Controls.Add(textBox_Priority8);
-            tabPage_Gamble.Controls.Add(textBox_Tier7);
-            tabPage_Gamble.Controls.Add(textBox_Priority7);
-            tabPage_Gamble.Controls.Add(textBox_Tier6);
-            tabPage_Gamble.Controls.Add(textBox_Priority6);
-            tabPage_Gamble.Controls.Add(textBox_Tier5);
-            tabPage_Gamble.Controls.Add(textBox_Priority5);
-            tabPage_Gamble.Controls.Add(textBox_Tier4);
-            tabPage_Gamble.Controls.Add(textBox_Priority4);
-            tabPage_Gamble.Controls.Add(textBox_Tier3);
-            tabPage_Gamble.Controls.Add(textBox_Priority3);
-            tabPage_Gamble.Controls.Add(textBox_Tier2);
-            tabPage_Gamble.Controls.Add(textBox_Priority2);
-            tabPage_Gamble.Controls.Add(textBox_Tier1);
-            tabPage_Gamble.Controls.Add(textBox_Priority1);
-            tabPage_Gamble.Controls.Add(comboBox_Mod8);
-            tabPage_Gamble.Controls.Add(comboBox_Mod7);
-            tabPage_Gamble.Controls.Add(comboBox_Mod6);
-            tabPage_Gamble.Controls.Add(comboBox_Mod5);
-            tabPage_Gamble.Controls.Add(comboBox_Mod4);
-            tabPage_Gamble.Controls.Add(comboBox_Mod3);
-            tabPage_Gamble.Controls.Add(comboBox_Mod2);
-            tabPage_Gamble.Controls.Add(comboBox_Mod1);
-            tabPage_Gamble.Controls.Add(textBox_Mod8);
-            tabPage_Gamble.Controls.Add(textBox_Mod7);
-            tabPage_Gamble.Controls.Add(textBox_Mod6);
-            tabPage_Gamble.Controls.Add(textBox_Mod5);
-            tabPage_Gamble.Controls.Add(textBox_Mod4);
-            tabPage_Gamble.Controls.Add(textBox_Mod3);
-            tabPage_Gamble.Controls.Add(textBox_Mod2);
-            tabPage_Gamble.Controls.Add(textBox_Mod1);
             tabPage_Gamble.Controls.Add(comboBox_GambleType);
             tabPage_Gamble.Location = new Point(4, 36);
             tabPage_Gamble.Name = "tabPage_Gamble";
@@ -710,373 +638,41 @@ namespace PoE
             textBox_ItemXY.TabIndex = 38;
             textBox_ItemXY.TextAlign = HorizontalAlignment.Center;
             // 
-            // label_Modifier
-            // 
-            label_Modifier.AutoSize = true;
-            label_Modifier.Font = new Font("Segoe UI", 12F, FontStyle.Regular, GraphicsUnit.Point, 0);
-            label_Modifier.Location = new Point(407, 70);
-            label_Modifier.Name = "label_Modifier";
-            label_Modifier.Size = new Size(125, 21);
-            label_Modifier.TabIndex = 37;
-            label_Modifier.Text = "Modifier content";
-            // 
-            // label_Tier
-            // 
-            label_Tier.AutoSize = true;
-            label_Tier.Font = new Font("Segoe UI", 12F, FontStyle.Regular, GraphicsUnit.Point, 0);
-            label_Tier.Location = new Point(245, 70);
-            label_Tier.Name = "label_Tier";
-            label_Tier.Size = new Size(36, 21);
-            label_Tier.TabIndex = 36;
-            label_Tier.Text = "Tier";
-            // 
-            // label_Priority
-            // 
-            label_Priority.AutoSize = true;
-            label_Priority.Font = new Font("Segoe UI", 12F, FontStyle.Regular, GraphicsUnit.Point, 0);
-            label_Priority.Location = new Point(7, 70);
-            label_Priority.Name = "label_Priority";
-            label_Priority.Size = new Size(61, 21);
-            label_Priority.TabIndex = 35;
-            label_Priority.Text = "Priority";
-            // 
-            // label_ModifierType
-            // 
-            label_ModifierType.AutoSize = true;
-            label_ModifierType.Font = new Font("Segoe UI", 12F, FontStyle.Regular, GraphicsUnit.Point, 0);
-            label_ModifierType.Location = new Point(90, 70);
-            label_ModifierType.Name = "label_ModifierType";
-            label_ModifierType.Size = new Size(103, 21);
-            label_ModifierType.TabIndex = 34;
-            label_ModifierType.Text = "Modifier type";
-            // 
-            // textBox_Tier8
-            // 
-            textBox_Tier8.BackColor = Color.Transparent;
-            textBox_Tier8.Font = new Font("Segoe UI", 12F, FontStyle.Regular, GraphicsUnit.Point, 0);
-            textBox_Tier8.Location = new Point(234, 356);
-            textBox_Tier8.Name = "textBox_Tier8";
-            textBox_Tier8.Size = new Size(59, 30);
-            textBox_Tier8.TabIndex = 33;
-            textBox_Tier8.TextAlign = HorizontalAlignment.Center;
-            // 
-            // textBox_Priority8
-            // 
-            textBox_Priority8.BackColor = Color.Transparent;
-            textBox_Priority8.Font = new Font("Segoe UI", 12F, FontStyle.Regular, GraphicsUnit.Point, 0);
-            textBox_Priority8.Location = new Point(7, 356);
-            textBox_Priority8.Name = "textBox_Priority8";
-            textBox_Priority8.Size = new Size(59, 30);
-            textBox_Priority8.TabIndex = 32;
-            textBox_Priority8.TextAlign = HorizontalAlignment.Center;
-            // 
-            // textBox_Tier7
-            // 
-            textBox_Tier7.BackColor = Color.Transparent;
-            textBox_Tier7.Font = new Font("Segoe UI", 12F, FontStyle.Regular, GraphicsUnit.Point, 0);
-            textBox_Tier7.Location = new Point(234, 320);
-            textBox_Tier7.Name = "textBox_Tier7";
-            textBox_Tier7.Size = new Size(59, 30);
-            textBox_Tier7.TabIndex = 31;
-            textBox_Tier7.TextAlign = HorizontalAlignment.Center;
-            // 
-            // textBox_Priority7
-            // 
-            textBox_Priority7.BackColor = Color.Transparent;
-            textBox_Priority7.Font = new Font("Segoe UI", 12F, FontStyle.Regular, GraphicsUnit.Point, 0);
-            textBox_Priority7.Location = new Point(7, 320);
-            textBox_Priority7.Name = "textBox_Priority7";
-            textBox_Priority7.Size = new Size(59, 30);
-            textBox_Priority7.TabIndex = 30;
-            textBox_Priority7.TextAlign = HorizontalAlignment.Center;
-            // 
-            // textBox_Tier6
-            // 
-            textBox_Tier6.BackColor = Color.Transparent;
-            textBox_Tier6.Font = new Font("Segoe UI", 12F, FontStyle.Regular, GraphicsUnit.Point, 0);
-            textBox_Tier6.Location = new Point(234, 284);
-            textBox_Tier6.Name = "textBox_Tier6";
-            textBox_Tier6.Size = new Size(59, 30);
-            textBox_Tier6.TabIndex = 29;
-            textBox_Tier6.TextAlign = HorizontalAlignment.Center;
-            // 
-            // textBox_Priority6
-            // 
-            textBox_Priority6.BackColor = Color.Transparent;
-            textBox_Priority6.Font = new Font("Segoe UI", 12F, FontStyle.Regular, GraphicsUnit.Point, 0);
-            textBox_Priority6.Location = new Point(7, 284);
-            textBox_Priority6.Name = "textBox_Priority6";
-            textBox_Priority6.Size = new Size(59, 30);
-            textBox_Priority6.TabIndex = 28;
-            textBox_Priority6.TextAlign = HorizontalAlignment.Center;
-            // 
-            // textBox_Tier5
-            // 
-            textBox_Tier5.BackColor = Color.Transparent;
-            textBox_Tier5.Font = new Font("Segoe UI", 12F, FontStyle.Regular, GraphicsUnit.Point, 0);
-            textBox_Tier5.Location = new Point(234, 248);
-            textBox_Tier5.Name = "textBox_Tier5";
-            textBox_Tier5.Size = new Size(59, 30);
-            textBox_Tier5.TabIndex = 27;
-            textBox_Tier5.TextAlign = HorizontalAlignment.Center;
-            // 
-            // textBox_Priority5
-            // 
-            textBox_Priority5.BackColor = Color.Transparent;
-            textBox_Priority5.Font = new Font("Segoe UI", 12F, FontStyle.Regular, GraphicsUnit.Point, 0);
-            textBox_Priority5.Location = new Point(7, 248);
-            textBox_Priority5.Name = "textBox_Priority5";
-            textBox_Priority5.Size = new Size(59, 30);
-            textBox_Priority5.TabIndex = 26;
-            textBox_Priority5.TextAlign = HorizontalAlignment.Center;
-            // 
-            // textBox_Tier4
-            // 
-            textBox_Tier4.BackColor = Color.Transparent;
-            textBox_Tier4.Font = new Font("Segoe UI", 12F, FontStyle.Regular, GraphicsUnit.Point, 0);
-            textBox_Tier4.Location = new Point(234, 212);
-            textBox_Tier4.Name = "textBox_Tier4";
-            textBox_Tier4.Size = new Size(59, 30);
-            textBox_Tier4.TabIndex = 25;
-            textBox_Tier4.TextAlign = HorizontalAlignment.Center;
-            // 
-            // textBox_Priority4
-            // 
-            textBox_Priority4.BackColor = Color.Transparent;
-            textBox_Priority4.Font = new Font("Segoe UI", 12F, FontStyle.Regular, GraphicsUnit.Point, 0);
-            textBox_Priority4.Location = new Point(7, 212);
-            textBox_Priority4.Name = "textBox_Priority4";
-            textBox_Priority4.Size = new Size(59, 30);
-            textBox_Priority4.TabIndex = 24;
-            textBox_Priority4.TextAlign = HorizontalAlignment.Center;
-            // 
-            // textBox_Tier3
-            // 
-            textBox_Tier3.BackColor = Color.Transparent;
-            textBox_Tier3.Font = new Font("Segoe UI", 12F, FontStyle.Regular, GraphicsUnit.Point, 0);
-            textBox_Tier3.Location = new Point(234, 176);
-            textBox_Tier3.Name = "textBox_Tier3";
-            textBox_Tier3.Size = new Size(59, 30);
-            textBox_Tier3.TabIndex = 23;
-            textBox_Tier3.TextAlign = HorizontalAlignment.Center;
-            // 
-            // textBox_Priority3
-            // 
-            textBox_Priority3.BackColor = Color.Transparent;
-            textBox_Priority3.Font = new Font("Segoe UI", 12F, FontStyle.Regular, GraphicsUnit.Point, 0);
-            textBox_Priority3.Location = new Point(7, 176);
-            textBox_Priority3.Name = "textBox_Priority3";
-            textBox_Priority3.Size = new Size(59, 30);
-            textBox_Priority3.TabIndex = 22;
-            textBox_Priority3.TextAlign = HorizontalAlignment.Center;
-            // 
-            // textBox_Tier2
-            // 
-            textBox_Tier2.BackColor = Color.Transparent;
-            textBox_Tier2.Font = new Font("Segoe UI", 12F, FontStyle.Regular, GraphicsUnit.Point, 0);
-            textBox_Tier2.Location = new Point(234, 140);
-            textBox_Tier2.Name = "textBox_Tier2";
-            textBox_Tier2.Size = new Size(59, 30);
-            textBox_Tier2.TabIndex = 21;
-            textBox_Tier2.TextAlign = HorizontalAlignment.Center;
-            // 
-            // textBox_Priority2
-            // 
-            textBox_Priority2.BackColor = Color.Transparent;
-            textBox_Priority2.Font = new Font("Segoe UI", 12F, FontStyle.Regular, GraphicsUnit.Point, 0);
-            textBox_Priority2.Location = new Point(7, 140);
-            textBox_Priority2.Name = "textBox_Priority2";
-            textBox_Priority2.Size = new Size(59, 30);
-            textBox_Priority2.TabIndex = 20;
-            textBox_Priority2.TextAlign = HorizontalAlignment.Center;
-            // 
-            // textBox_Tier1
-            // 
-            textBox_Tier1.BackColor = Color.Transparent;
-            textBox_Tier1.Font = new Font("Segoe UI", 12F, FontStyle.Regular, GraphicsUnit.Point, 0);
-            textBox_Tier1.Location = new Point(234, 104);
-            textBox_Tier1.Name = "textBox_Tier1";
-            textBox_Tier1.Size = new Size(59, 30);
-            textBox_Tier1.TabIndex = 19;
-            textBox_Tier1.TextAlign = HorizontalAlignment.Center;
-            // 
-            // textBox_Priority1
-            // 
-            textBox_Priority1.BackColor = Color.Transparent;
-            textBox_Priority1.Font = new Font("Segoe UI", 12F, FontStyle.Regular, GraphicsUnit.Point, 0);
-            textBox_Priority1.Location = new Point(7, 104);
-            textBox_Priority1.Name = "textBox_Priority1";
-            textBox_Priority1.Size = new Size(59, 30);
-            textBox_Priority1.TabIndex = 18;
-            textBox_Priority1.TextAlign = HorizontalAlignment.Center;
-            // 
-            // comboBox_Mod8
-            // 
-            comboBox_Mod8.DrawMode = DrawMode.OwnerDrawFixed;
-            comboBox_Mod8.DropDownStyle = ComboBoxStyle.DropDownList;
-            comboBox_Mod8.FlatStyle = FlatStyle.Flat;
-            comboBox_Mod8.Font = new Font("Segoe UI", 12F, FontStyle.Regular, GraphicsUnit.Point, 0);
-            comboBox_Mod8.FormattingEnabled = true;
-            comboBox_Mod8.Location = new Point(90, 356);
-            comboBox_Mod8.Name = "comboBox_Mod8";
-            comboBox_Mod8.Size = new Size(121, 30);
-            comboBox_Mod8.TabIndex = 17;
-            // 
-            // comboBox_Mod7
-            // 
-            comboBox_Mod7.DrawMode = DrawMode.OwnerDrawFixed;
-            comboBox_Mod7.DropDownStyle = ComboBoxStyle.DropDownList;
-            comboBox_Mod7.FlatStyle = FlatStyle.Flat;
-            comboBox_Mod7.Font = new Font("Segoe UI", 12F, FontStyle.Regular, GraphicsUnit.Point, 0);
-            comboBox_Mod7.FormattingEnabled = true;
-            comboBox_Mod7.Location = new Point(90, 320);
-            comboBox_Mod7.Name = "comboBox_Mod7";
-            comboBox_Mod7.Size = new Size(121, 30);
-            comboBox_Mod7.TabIndex = 16;
-            // 
-            // comboBox_Mod6
-            // 
-            comboBox_Mod6.DrawMode = DrawMode.OwnerDrawFixed;
-            comboBox_Mod6.DropDownStyle = ComboBoxStyle.DropDownList;
-            comboBox_Mod6.FlatStyle = FlatStyle.Flat;
-            comboBox_Mod6.Font = new Font("Segoe UI", 12F, FontStyle.Regular, GraphicsUnit.Point, 0);
-            comboBox_Mod6.FormattingEnabled = true;
-            comboBox_Mod6.Location = new Point(90, 284);
-            comboBox_Mod6.Name = "comboBox_Mod6";
-            comboBox_Mod6.Size = new Size(121, 30);
-            comboBox_Mod6.TabIndex = 14;
-            // 
-            // comboBox_Mod5
-            // 
-            comboBox_Mod5.DrawMode = DrawMode.OwnerDrawFixed;
-            comboBox_Mod5.DropDownStyle = ComboBoxStyle.DropDownList;
-            comboBox_Mod5.FlatStyle = FlatStyle.Flat;
-            comboBox_Mod5.Font = new Font("Segoe UI", 12F, FontStyle.Regular, GraphicsUnit.Point, 0);
-            comboBox_Mod5.FormattingEnabled = true;
-            comboBox_Mod5.Location = new Point(90, 248);
-            comboBox_Mod5.Name = "comboBox_Mod5";
-            comboBox_Mod5.Size = new Size(121, 30);
-            comboBox_Mod5.TabIndex = 13;
-            // 
-            // comboBox_Mod4
-            // 
-            comboBox_Mod4.DrawMode = DrawMode.OwnerDrawFixed;
-            comboBox_Mod4.DropDownStyle = ComboBoxStyle.DropDownList;
-            comboBox_Mod4.FlatStyle = FlatStyle.Flat;
-            comboBox_Mod4.Font = new Font("Segoe UI", 12F, FontStyle.Regular, GraphicsUnit.Point, 0);
-            comboBox_Mod4.FormattingEnabled = true;
-            comboBox_Mod4.Location = new Point(90, 212);
-            comboBox_Mod4.Name = "comboBox_Mod4";
-            comboBox_Mod4.Size = new Size(121, 30);
-            comboBox_Mod4.TabIndex = 12;
-            // 
-            // comboBox_Mod3
-            // 
-            comboBox_Mod3.DrawMode = DrawMode.OwnerDrawFixed;
-            comboBox_Mod3.DropDownStyle = ComboBoxStyle.DropDownList;
-            comboBox_Mod3.FlatStyle = FlatStyle.Flat;
-            comboBox_Mod3.Font = new Font("Segoe UI", 12F, FontStyle.Regular, GraphicsUnit.Point, 0);
-            comboBox_Mod3.FormattingEnabled = true;
-            comboBox_Mod3.Location = new Point(90, 176);
-            comboBox_Mod3.Name = "comboBox_Mod3";
-            comboBox_Mod3.Size = new Size(121, 30);
-            comboBox_Mod3.TabIndex = 11;
-            // 
-            // comboBox_Mod2
-            // 
-            comboBox_Mod2.DrawMode = DrawMode.OwnerDrawFixed;
-            comboBox_Mod2.DropDownStyle = ComboBoxStyle.DropDownList;
-            comboBox_Mod2.FlatStyle = FlatStyle.Flat;
-            comboBox_Mod2.Font = new Font("Segoe UI", 12F, FontStyle.Regular, GraphicsUnit.Point, 0);
-            comboBox_Mod2.FormattingEnabled = true;
-            comboBox_Mod2.Location = new Point(90, 140);
-            comboBox_Mod2.Name = "comboBox_Mod2";
-            comboBox_Mod2.Size = new Size(121, 30);
-            comboBox_Mod2.TabIndex = 10;
-            // 
-            // comboBox_Mod1
-            // 
-            comboBox_Mod1.DrawMode = DrawMode.OwnerDrawFixed;
-            comboBox_Mod1.DropDownStyle = ComboBoxStyle.DropDownList;
-            comboBox_Mod1.FlatStyle = FlatStyle.Flat;
-            comboBox_Mod1.Font = new Font("Segoe UI", 12F, FontStyle.Regular, GraphicsUnit.Point, 0);
-            comboBox_Mod1.FormattingEnabled = true;
-            comboBox_Mod1.Location = new Point(90, 104);
-            comboBox_Mod1.Name = "comboBox_Mod1";
-            comboBox_Mod1.Size = new Size(121, 30);
-            comboBox_Mod1.TabIndex = 9;
-            // 
-            // textBox_Mod8
-            // 
-            textBox_Mod8.BackColor = Color.Transparent;
-            textBox_Mod8.Location = new Point(320, 356);
-            textBox_Mod8.Name = "textBox_Mod8";
-            textBox_Mod8.Size = new Size(287, 30);
-            textBox_Mod8.TabIndex = 8;
-            textBox_Mod8.TextAlign = HorizontalAlignment.Left;
-            // 
-            // textBox_Mod7
-            // 
-            textBox_Mod7.BackColor = Color.Transparent;
-            textBox_Mod7.Location = new Point(320, 320);
-            textBox_Mod7.Name = "textBox_Mod7";
-            textBox_Mod7.Size = new Size(287, 30);
-            textBox_Mod7.TabIndex = 7;
-            textBox_Mod7.TextAlign = HorizontalAlignment.Left;
-            // 
-            // textBox_Mod6
-            // 
-            textBox_Mod6.BackColor = Color.Transparent;
-            textBox_Mod6.Location = new Point(320, 284);
-            textBox_Mod6.Name = "textBox_Mod6";
-            textBox_Mod6.Size = new Size(287, 30);
-            textBox_Mod6.TabIndex = 6;
-            textBox_Mod6.TextAlign = HorizontalAlignment.Left;
-            // 
-            // textBox_Mod5
-            // 
-            textBox_Mod5.BackColor = Color.Transparent;
-            textBox_Mod5.Location = new Point(320, 248);
-            textBox_Mod5.Name = "textBox_Mod5";
-            textBox_Mod5.Size = new Size(287, 30);
-            textBox_Mod5.TabIndex = 5;
-            textBox_Mod5.TextAlign = HorizontalAlignment.Left;
-            // 
-            // textBox_Mod4
-            // 
-            textBox_Mod4.BackColor = Color.Transparent;
-            textBox_Mod4.Location = new Point(320, 212);
-            textBox_Mod4.Name = "textBox_Mod4";
-            textBox_Mod4.Size = new Size(287, 30);
-            textBox_Mod4.TabIndex = 4;
-            textBox_Mod4.TextAlign = HorizontalAlignment.Left;
-            // 
-            // textBox_Mod3
-            // 
-            textBox_Mod3.BackColor = Color.Transparent;
-            textBox_Mod3.Location = new Point(320, 176);
-            textBox_Mod3.Name = "textBox_Mod3";
-            textBox_Mod3.Size = new Size(287, 30);
-            textBox_Mod3.TabIndex = 3;
-            textBox_Mod3.TextAlign = HorizontalAlignment.Left;
-            // 
-            // textBox_Mod2
-            // 
-            textBox_Mod2.BackColor = Color.Transparent;
-            textBox_Mod2.Location = new Point(320, 140);
-            textBox_Mod2.Name = "textBox_Mod2";
-            textBox_Mod2.Size = new Size(287, 30);
-            textBox_Mod2.TabIndex = 2;
-            textBox_Mod2.TextAlign = HorizontalAlignment.Left;
-            // 
-            // textBox_Mod1
-            // 
-            textBox_Mod1.BackColor = Color.Transparent;
-            textBox_Mod1.Location = new Point(320, 104);
-            textBox_Mod1.Name = "textBox_Mod1";
-            textBox_Mod1.Size = new Size(287, 30);
-            textBox_Mod1.TabIndex = 1;
-            textBox_Mod1.TextAlign = HorizontalAlignment.Left;
+            // 
+            // 
+            // 
+            // 
+            // 
+            // 
+            // 
+            // 
+            // 
+            // 
+            // 
+            // 
+            // 
+            // 
+            // 
+            // 
+            // 
+            // 
+            // 
+            // 
+            // 
+            // 
+            // 
+            // 
+            // 
+            // 
+            // 
+            // 
+            // 
+            // 
+            // 
+            // 
+            // 
+            // 
+            // 
             // 
             // comboBox_GambleType
             // 
@@ -1509,42 +1105,6 @@ namespace PoE
         private TextBox textBox_Logs;
         private TabPage tabPage_Gamble;
         private FlatComboBox comboBox_GambleType;
-        private FlatTextBox textBox_Mod1;
-        private FlatTextBox textBox_Mod8;
-        private FlatTextBox textBox_Mod7;
-        private FlatTextBox textBox_Mod6;
-        private FlatTextBox textBox_Mod5;
-        private FlatTextBox textBox_Mod4;
-        private FlatTextBox textBox_Mod3;
-        private FlatTextBox textBox_Mod2;
-        private FlatComboBox comboBox_Mod8;
-        private FlatComboBox comboBox_Mod7;
-        private FlatComboBox comboBox_Mod6;
-        private FlatComboBox comboBox_Mod5;
-        private FlatComboBox comboBox_Mod4;
-        private FlatComboBox comboBox_Mod3;
-        private FlatComboBox comboBox_Mod2;
-        private FlatComboBox comboBox_Mod1;
-        private Label label_Modifier;
-        private Label label_Tier;
-        private Label label_Priority;
-        private Label label_ModifierType;
-        private FlatTextBox textBox_Tier8;
-        private FlatTextBox textBox_Priority8;
-        private FlatTextBox textBox_Tier7;
-        private FlatTextBox textBox_Priority7;
-        private FlatTextBox textBox_Tier6;
-        private FlatTextBox textBox_Priority6;
-        private FlatTextBox textBox_Tier5;
-        private FlatTextBox textBox_Priority5;
-        private FlatTextBox textBox_Tier4;
-        private FlatTextBox textBox_Priority4;
-        private FlatTextBox textBox_Tier3;
-        private FlatTextBox textBox_Priority3;
-        private FlatTextBox textBox_Tier2;
-        private FlatTextBox textBox_Priority2;
-        private FlatTextBox textBox_Tier1;
-        private FlatTextBox textBox_Priority1;
         private Label label_BaseXY;
         private Label label_ItemXY;
         private Label label_GambleType;
