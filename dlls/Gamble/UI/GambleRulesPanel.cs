@@ -9,6 +9,13 @@ namespace PoE.dlls.Gamble.UI
         private const int RowHeight = 36;
         private const int HeaderHeight = 28;
         private const int AddBarHeight = 36;
+        private const int ColumnGap = 7;
+        private const int PriorityColumnWidth = 72;
+        private const int TypeColumnX = PriorityColumnWidth + ColumnGap;
+        private const int TypeColumnWidth = 121;
+        private const int TierColumnX = TypeColumnX + TypeColumnWidth + ColumnGap;
+        private const int TierColumnWidth = 59;
+        private const int ContentColumnX = TierColumnX + TierColumnWidth + ColumnGap;
 
         private static readonly Font UiFont = new("Segoe UI", 12F, FontStyle.Regular, GraphicsUnit.Point);
         private static readonly string[] ModifierTypeNames = Enum.GetNames<ModifierType>();
@@ -36,10 +43,10 @@ namespace PoE.dlls.Gamble.UI
                 BackColor = StaticColors.BackGround,
             };
 
-            header.Controls.Add(CreateHeaderLabel("Priority", 0, 59));
-            header.Controls.Add(CreateHeaderLabel("Type", 66, 121));
-            header.Controls.Add(CreateHeaderLabel("Tier", 200, 59));
-            header.Controls.Add(CreateHeaderLabel("Modifier content", 272, 287));
+            header.Controls.Add(CreateHeaderLabel("Priority", 0, PriorityColumnWidth));
+            header.Controls.Add(CreateHeaderLabel("Type", TypeColumnX, TypeColumnWidth));
+            header.Controls.Add(CreateHeaderLabel("Tier", TierColumnX, TierColumnWidth));
+            header.Controls.Add(CreateHeaderLabel("Modifier content", ContentColumnX, 287));
 
             _addButton = new Button
             {
@@ -336,7 +343,7 @@ namespace PoE.dlls.Gamble.UI
                 BackColor = StaticColors.BackGround;
                 Height = 34;
 
-                _priority = CreateTextBox(new Point(0, 2), new Size(59, 30), HorizontalAlignment.Center);
+                _priority = CreateTextBox(new Point(0, 2), new Size(PriorityColumnWidth, 30), HorizontalAlignment.Center);
                 _priority._textBox.Text = rule.Priority.ToString();
                 _priority._textBox.KeyUp += (_, _) =>
                 {
@@ -347,8 +354,8 @@ namespace PoE.dlls.Gamble.UI
 
                 _type = new FlatComboBox
                 {
-                    Location = new Point(66, 2),
-                    Size = new Size(121, 30),
+                    Location = new Point(TypeColumnX, 2),
+                    Size = new Size(TypeColumnWidth, 30),
                     Font = UiFont,
                 };
                 _type.Items.AddRange(ModifierTypeNames);
@@ -360,7 +367,7 @@ namespace PoE.dlls.Gamble.UI
                     Changed?.Invoke(this, EventArgs.Empty);
                 };
 
-                _tier = CreateTextBox(new Point(200, 2), new Size(59, 30), HorizontalAlignment.Center);
+                _tier = CreateTextBox(new Point(TierColumnX, 2), new Size(TierColumnWidth, 30), HorizontalAlignment.Center);
                 _tier._textBox.Text = rule.Tier.ToString();
                 _tier._textBox.KeyUp += (_, _) =>
                 {
@@ -369,7 +376,7 @@ namespace PoE.dlls.Gamble.UI
                     Changed?.Invoke(this, EventArgs.Empty);
                 };
 
-                _content = CreateTextBox(new Point(272, 2), new Size(287, 30), HorizontalAlignment.Left);
+                _content = CreateTextBox(new Point(ContentColumnX, 2), new Size(287, 30), HorizontalAlignment.Left);
                 _content._textBox.Text = rule.Content;
                 _content._textBox.KeyUp += (_, _) =>
                 {
