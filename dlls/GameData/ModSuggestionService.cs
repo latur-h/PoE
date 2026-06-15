@@ -8,6 +8,7 @@ namespace PoE.dlls.GameData
 
         public bool IsReady => _database.HasEntries;
 
-        public IReadOnlyList<string> Search(string prefix, int limit = 20) => _database.Search(prefix, limit);
+        public IReadOnlyList<ModSuggestionItem> Search(string term, int limit = 50, int offset = 0) =>
+            _database.Search(term, limit, offset);
     }
 }

@@ -12,10 +12,13 @@ namespace PoE.dlls.GameData
         private static nint _oodleModule;
         private static bool _oodleResolverSet;
 
+        // Item/map gamble autocomplete needs global stats, local weapon stats, and map/atlas text.
         private static readonly string[] StatDescriptionFiles =
         [
             "metadata/statdescriptions/stat_descriptions.txt",
+            "metadata/statdescriptions/weapon_stat_descriptions.txt",
             "metadata/statdescriptions/map_stat_descriptions.txt",
+            "metadata/statdescriptions/atlas_stat_descriptions.txt",
         ];
 
         private readonly string _gameFolder;

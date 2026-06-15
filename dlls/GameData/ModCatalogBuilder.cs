@@ -59,7 +59,7 @@ namespace PoE.dlls.GameData
             "StatsKey1", "StatsKey2", "StatsKey3", "StatsKey4", "StatsKey5", "StatsKey6",
         ];
 
-        public static HashSet<(ModSuggestionKind Kind, string Value)> Build(
+        public static HashSet<(string ModName, string ModContent)> Build(
             string schemaJsonPath,
             byte[] modsBytes,
             byte[] tagsBytes,
@@ -79,7 +79,7 @@ namespace PoE.dlls.GameData
             string?[] tagIds = BuildTagIds(tags);
             string?[] statIds = BuildStatIds(stats);
 
-            var entries = new HashSet<(ModSuggestionKind Kind, string Value)>();
+            var entries = new HashSet<(string ModName, string ModContent)>(ModEntryComparer.Instance);
             int includedMods = 0;
             var scanTimer = Stopwatch.StartNew();
             long lastProgressMs = 0;
@@ -100,19 +100,34 @@ namespace PoE.dlls.GameData
                 includedMods++;
 
                 string? name = mods.GetString(row, "Name")?.Trim();
-                if (!string.IsNullOrWhiteSpace(name))
-                    entries.Add((ModSuggestionKind.ModName, name));
+                if (string.IsNullOrWhiteSpace(name))
+                    continue;
 
-                string description = BuildDescription(mods, statIds, statTemplates, row);
-                if (!string.IsNullOrWhiteSpace(description))
-                    entries.Add((ModSuggestionKind.ModDescription, description));
+                entries.Add((name, string.Empty));
+
+                foreach (string line in BuildDescriptionLines(mods, statIds, statTemplates, row))
+                    entries.Add((name, line));
             }
 
-            GameDataLog.Info($"Scan complete — {includedMods:N0} mods matched filters, {entries.Count:N0} unique suggestions.");
+            GameDataLog.Info($"Scan complete — {includedMods:N0} mods matched filters, {entries.Count:N0} suggestion rows.");
             if (includedMods == 0)
                 WriteFilterDebugDump(mods, tagIds);
 
             return entries;
+        }
+
+        private sealed class ModEntryComparer : IEqualityComparer<(string ModName, string ModContent)>
+        {
+            public static ModEntryComparer Instance { get; } = new();
+
+            public bool Equals((string ModName, string ModContent) x, (string ModName, string ModContent) y) =>
+                string.Equals(x.ModName, y.ModName, StringComparison.OrdinalIgnoreCase)
+                && string.Equals(x.ModContent, y.ModContent, StringComparison.OrdinalIgnoreCase);
+
+            public int GetHashCode((string ModName, string ModContent) obj) =>
+                HashCode.Combine(
+                    StringComparer.OrdinalIgnoreCase.GetHashCode(obj.ModName),
+                    StringComparer.OrdinalIgnoreCase.GetHashCode(obj.ModContent));
         }
 
         private static void WriteFilterDebugDump(LibDat2DatTable mods, string?[] tagIds)
@@ -201,13 +216,13 @@ namespace PoE.dlls.GameData
             return hasItemOrMapSpawn && !onlyUniqueSpawn;
         }
 
-        private static string BuildDescription(
+        private static IReadOnlyList<string> BuildDescriptionLines(
             LibDat2DatTable mods,
             string?[] statIds,
             Dictionary<string, string> statTemplates,
             int row)
         {
-            var parts = new List<string>(StatKeyColumns.Length);
+            var lines = new List<string>(StatKeyColumns.Length);
             var seen = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
             foreach (string column in StatKeyColumns)
             {
@@ -223,10 +238,10 @@ namespace PoE.dlls.GameData
                     continue;
 
                 if (seen.Add(template))
-                    parts.Add(template);
+                    lines.Add(template);
             }
 
-            return string.Join(" / ", parts);
+            return lines;
         }
 
         private static string?[] BuildTagIds(LibDat2DatTable tags)

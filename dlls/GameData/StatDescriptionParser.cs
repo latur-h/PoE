@@ -103,18 +103,45 @@ namespace PoE.dlls.GameData
             for (int i = 0; i < translationCount && translation.Success; i++)
             {
                 string template = SimplifyTemplate(translation.Groups["description"].Value);
-                if (!string.IsNullOrWhiteSpace(template))
-                {
-                    foreach (string id in ids)
-                    {
-                        if (!map.ContainsKey(id))
-                            map[id] = template;
-                    }
-                }
+                foreach (string id in ids)
+                    TryAssignTemplate(map, id, template);
 
                 englishStart = translation.Index + translation.Length;
                 translation = TranslationRegex.Match(data, englishStart, englishEnd - englishStart);
             }
+        }
+
+        private static void TryAssignTemplate(Dictionary<string, string> map, string id, string template)
+        {
+            if (!IsUsefulTemplate(template))
+                return;
+
+            if (!map.TryGetValue(id, out string? existing) || IsBetterTemplate(template, existing))
+                map[id] = template;
+        }
+
+        private static bool IsUsefulTemplate(string template)
+        {
+            if (string.IsNullOrWhiteSpace(template))
+                return false;
+
+            if (template.StartsWith("No ", StringComparison.OrdinalIgnoreCase))
+                return false;
+
+            return true;
+        }
+
+        private static bool IsBetterTemplate(string candidate, string existing)
+        {
+            if (!IsUsefulTemplate(existing))
+                return true;
+
+            bool candidateHasValue = candidate.Contains('#') || candidate.Contains('%');
+            bool existingHasValue = existing.Contains('#') || existing.Contains('%');
+            if (candidateHasValue != existingHasValue)
+                return candidateHasValue;
+
+            return candidate.Length > existing.Length;
         }
 
         internal static string SimplifyTemplate(string template)

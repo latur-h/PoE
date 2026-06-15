@@ -140,8 +140,6 @@ namespace PoE.dlls.Gamble.Modes
             Regex getTier = new(@"\{.*?\(Tier:\s(?'Tier'\d+)\).*?\}", RegexOptions.IgnoreCase);
             Regex getContent = new(@"}(?'Content'.*?)$", RegexOptions.IgnoreCase | RegexOptions.Singleline);
 
-            Regex strip = new(@"\(\d+-\d+\)", RegexOptions.IgnoreCase);
-
             var mods = getModifiers.Matches(itemContent);
 
             List<Modifier> modifiers = [];
@@ -160,7 +158,7 @@ namespace PoE.dlls.Gamble.Modes
                     tier = int.Parse(getTier.Match(mod.Value).Groups["Tier"].Value.Trim());
 
                 string content = getContent.Match(mod.Value).Groups["Content"].Value.Trim();
-                content = strip.Replace(content, string.Empty).Trim();
+                content = GambleModContentMatcher.NormalizeItemModContent(content);
 
                 if (!Regex.IsMatch(content, @"fractured", RegexOptions.IgnoreCase))
                     GamblerLog.DebugMod(type, tier, name, content);
@@ -179,15 +177,7 @@ namespace PoE.dlls.Gamble.Modes
             {
                 foreach (var mod in modifiers)
                 {
-                    if (rule.Type != ModifierType.Any)
-                        if (mod.Type != rule.Type)
-                            continue;
-
-                    if (mod.Tier > rule.Tier)
-                        continue;
-
-                    Regex content = new(rule.Content, RegexOptions.IgnoreCase);
-                    if (!content.IsMatch(mod.Content))
+                    if (!GambleModContentMatcher.MatchesModRule(rule, mod))
                         continue;
 
                     requiredCount++;
@@ -199,14 +189,7 @@ namespace PoE.dlls.Gamble.Modes
                 {
                     foreach (var mod in modifiers)
                     {
-                        if (rule.Type != ModifierType.Any && mod.Type != rule.Type)
-                            continue;
-
-                        if (mod.Tier > rule.Tier)
-                            continue;
-
-                        Regex content = new(rule.Content, RegexOptions.IgnoreCase);
-                        if (!content.IsMatch(mod.Content))
+                        if (!GambleModContentMatcher.MatchesModRule(rule, mod))
                             continue;
 
                         optionalCount++;

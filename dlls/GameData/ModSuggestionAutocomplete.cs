@@ -1,53 +1,494 @@
+using PoE.dlls.Style;
+
 namespace PoE.dlls.GameData
 {
     public static class ModSuggestionAutocomplete
     {
+        private const int DebounceMs = 200;
+        private const int MinSearchLength = 2;
+        private const int PageSize = 50;
+        private const int MaxVisibleItems = 10;
+
         public static void Attach(TextBox textBox, ModSuggestionService service)
         {
-            var source = new AutoCompleteStringCollection();
-            textBox.AutoCompleteMode = AutoCompleteMode.SuggestAppend;
-            textBox.AutoCompleteSource = AutoCompleteSource.CustomSource;
-            textBox.AutoCompleteCustomSource = source;
+            SuggestionPopup? popup = null;
+            var watchedAncestors = new List<Control>();
 
-            textBox.TextChanged += (_, _) => RefreshSuggestions(textBox, service, source);
-            textBox.GotFocus += (_, _) => RefreshSuggestions(textBox, service, source);
-        }
-
-        private static void RefreshSuggestions(TextBox textBox, ModSuggestionService service, AutoCompleteStringCollection source)
-        {
-            if (!service.IsReady)
+            void EnsureAttached()
             {
-                source.Clear();
+                if (popup is not null || textBox.IsDisposed)
+                    return;
+
+                if (textBox.FindForm() is null)
+                    return;
+
+                popup = new SuggestionPopup(textBox, service);
+                textBox.Disposed += (_, _) => popup.Dispose();
+
+                foreach (Control ancestor in watchedAncestors)
+                {
+                    ancestor.ParentChanged -= OnParentChanged;
+                    ancestor.HandleCreated -= OnParentChanged;
+                }
+
+                watchedAncestors.Clear();
+            }
+
+            void OnParentChanged(object? sender, EventArgs e) => EnsureAttached();
+
+            if (textBox.FindForm() is not null)
+            {
+                EnsureAttached();
                 return;
             }
 
-            string prefix = GetSearchPrefix(textBox);
-            if (prefix.Length < 2)
+            for (Control? ancestor = textBox; ancestor is not null; ancestor = ancestor.Parent)
             {
-                source.Clear();
-                return;
+                ancestor.ParentChanged += OnParentChanged;
+                ancestor.HandleCreated += OnParentChanged;
+                watchedAncestors.Add(ancestor);
             }
 
-            source.Clear();
-            foreach (string suggestion in service.Search(prefix))
-                source.Add(suggestion);
+            textBox.Disposed += (_, _) =>
+            {
+                foreach (Control ancestor in watchedAncestors)
+                {
+                    ancestor.ParentChanged -= OnParentChanged;
+                    ancestor.HandleCreated -= OnParentChanged;
+                }
+
+                watchedAncestors.Clear();
+            };
         }
 
-        private static string GetSearchPrefix(TextBox textBox)
+        private sealed class SuggestionDropDownForm : Form
         {
-            string text = textBox.Text;
-            if (string.IsNullOrWhiteSpace(text))
-                return string.Empty;
+            protected override bool ShowWithoutActivation => true;
 
-            int caret = textBox.SelectionStart;
-            if (caret < 0 || caret > text.Length)
-                caret = text.Length;
+            protected override CreateParams CreateParams
+            {
+                get
+                {
+                    const int wsExNoActivate = 0x08000000;
+                    CreateParams cp = base.CreateParams;
+                    cp.ExStyle |= wsExNoActivate;
+                    return cp;
+                }
+            }
+        }
 
-            int start = caret;
-            while (start > 0 && !char.IsWhiteSpace(text[start - 1]))
-                start--;
+        private sealed class ScrollableListBox : ListBox
+        {
+            public event EventHandler? Scrolled;
 
-            return text[start..caret].Trim();
+            protected override void WndProc(ref Message m)
+            {
+                base.WndProc(ref m);
+
+                const int WM_VSCROLL = 0x115;
+                const int WM_MOUSEWHEEL = 0x20A;
+                if (m.Msg is WM_VSCROLL or WM_MOUSEWHEEL)
+                    Scrolled?.Invoke(this, EventArgs.Empty);
+            }
+        }
+
+        private sealed class SuggestionPopup : IDisposable
+        {
+            private readonly TextBox _textBox;
+            private readonly ModSuggestionService _service;
+            private readonly Form _owner;
+            private readonly SuggestionDropDownForm _popup;
+            private readonly ScrollableListBox _list;
+            private readonly System.Windows.Forms.Timer _debounce;
+            private readonly System.Windows.Forms.Timer _hideTimer;
+            private readonly List<ModSuggestionItem> _items = [];
+            private string _lastTerm = string.Empty;
+            private int _keyboardIndex = -1;
+            private bool _selecting;
+            private bool _hasMore;
+            private bool _loadingMore;
+            private bool _blockAutoShow;
+            private IMessageFilter? _clickOutsideFilter;
+
+            public SuggestionPopup(TextBox textBox, ModSuggestionService service)
+            {
+                _textBox = textBox;
+                _service = service;
+                _owner = textBox.FindForm()
+                    ?? throw new InvalidOperationException("Autocomplete requires a parent form.");
+
+                _list = new ScrollableListBox
+                {
+                    Dock = DockStyle.Fill,
+                    BorderStyle = BorderStyle.FixedSingle,
+                    IntegralHeight = false,
+                    Font = textBox.Font,
+                    BackColor = StaticColors.BackGround,
+                    ForeColor = StaticColors.ForeGround,
+                    TabStop = false,
+                };
+                _list.Scrolled += (_, _) => TryLoadMore();
+                _list.MouseDown += (_, _) => _selecting = true;
+                _list.Click += (_, _) => AcceptSelection();
+
+                _popup = new SuggestionDropDownForm
+                {
+                    FormBorderStyle = FormBorderStyle.None,
+                    ShowInTaskbar = false,
+                    StartPosition = FormStartPosition.Manual,
+                    AutoSize = false,
+                    BackColor = StaticColors.BackGround,
+                    Owner = _owner,
+                    Size = new Size(420, 160),
+                };
+                _popup.Controls.Add(_list);
+                _popup.Deactivate += (_, _) =>
+                {
+                    if (!_selecting)
+                        HidePopup();
+                };
+
+                _debounce = new System.Windows.Forms.Timer { Interval = DebounceMs };
+                _debounce.Tick += (_, _) =>
+                {
+                    _debounce.Stop();
+                    RefreshSuggestions();
+                };
+
+                _hideTimer = new System.Windows.Forms.Timer { Interval = 150 };
+                _hideTimer.Tick += (_, _) =>
+                {
+                    _hideTimer.Stop();
+                    if (_selecting || _textBox.Focused)
+                        return;
+
+                    HidePopup();
+                };
+
+                _textBox.TextChanged += (_, _) => ScheduleRefresh();
+                _textBox.GotFocus += (_, _) =>
+                {
+                    if (!_blockAutoShow)
+                        ScheduleRefresh();
+                };
+                _textBox.MouseDown += (_, _) => _blockAutoShow = false;
+                _textBox.KeyDown += (_, e) =>
+                {
+                    if (e.KeyCode is Keys.Back or Keys.Delete
+                        or >= Keys.Space and <= Keys.Z
+                        or >= Keys.NumPad0 and <= Keys.NumPad9)
+                    {
+                        _blockAutoShow = false;
+                    }
+
+                    OnTextBoxKeyDown(_, e);
+                };
+                _textBox.LostFocus += (_, _) =>
+                {
+                    if (_selecting)
+                        return;
+
+                    _hideTimer.Stop();
+                    _hideTimer.Start();
+                };
+
+                _owner.LocationChanged += (_, _) => RepositionPopup();
+                _owner.SizeChanged += (_, _) => RepositionPopup();
+            }
+
+            private Control AnchorControl => _textBox.Parent ?? _textBox;
+
+            public void Dispose()
+            {
+                RemoveClickOutsideFilter();
+                _debounce.Dispose();
+                _hideTimer.Dispose();
+                _popup.Dispose();
+            }
+
+            private void ScheduleRefresh()
+            {
+                if (_blockAutoShow)
+                    return;
+
+                _debounce.Stop();
+                _debounce.Start();
+            }
+
+            private void RefreshSuggestions()
+            {
+                if (_textBox.IsDisposed)
+                    return;
+
+                try
+                {
+                    if (!_service.IsReady)
+                    {
+                        HidePopup();
+                        return;
+                    }
+
+                    string term = GetSearchTerm(_textBox);
+                    if (term.Length < MinSearchLength)
+                    {
+                        HidePopup();
+                        return;
+                    }
+
+                    ResetResults();
+                    _lastTerm = term;
+                    IReadOnlyList<ModSuggestionItem> suggestions = _service.Search(term, PageSize, 0);
+                    if (suggestions.Count == 0)
+                    {
+                        HidePopup();
+                        return;
+                    }
+
+                    AppendSuggestions(suggestions);
+                    _hasMore = suggestions.Count >= PageSize;
+                    _keyboardIndex = -1;
+                    ShowPopup();
+                }
+                catch (Exception ex)
+                {
+                    GameDataLog.Error($"Mod autocomplete failed: {ex.Message}", ex);
+                    HidePopup();
+                }
+            }
+
+            private void ResetResults()
+            {
+                _items.Clear();
+                _list.Items.Clear();
+                _hasMore = true;
+                _loadingMore = false;
+            }
+
+            private void AppendSuggestions(IReadOnlyList<ModSuggestionItem> suggestions)
+            {
+                if (suggestions.Count == 0)
+                    return;
+
+                _list.BeginUpdate();
+                foreach (ModSuggestionItem item in suggestions)
+                {
+                    _items.Add(item);
+                    _list.Items.Add(item.DisplayText);
+                }
+
+                _list.EndUpdate();
+            }
+
+            private void TryLoadMore()
+            {
+                if (_loadingMore || !_hasMore || string.IsNullOrEmpty(_lastTerm))
+                    return;
+
+                if (_list.Items.Count == 0)
+                    return;
+
+                int visible = Math.Max(1, _list.ClientSize.Height / Math.Max(1, _list.ItemHeight));
+                if (_list.TopIndex + visible < _list.Items.Count - 2)
+                    return;
+
+                LoadMoreSuggestions();
+            }
+
+            private void LoadMoreSuggestions()
+            {
+                if (_loadingMore || !_hasMore || string.IsNullOrEmpty(_lastTerm))
+                    return;
+
+                _loadingMore = true;
+                try
+                {
+                    IReadOnlyList<ModSuggestionItem> suggestions = _service.Search(_lastTerm, PageSize, _items.Count);
+                    _hasMore = suggestions.Count >= PageSize;
+                    AppendSuggestions(suggestions);
+                    RepositionPopup();
+                }
+                catch (Exception ex)
+                {
+                    GameDataLog.Error($"Mod autocomplete pagination failed: {ex.Message}", ex);
+                }
+                finally
+                {
+                    _loadingMore = false;
+                }
+            }
+
+            private void ShowPopup()
+            {
+                RepositionPopup();
+                if (!_popup.Visible)
+                {
+                    _popup.Show(_owner);
+                    InstallClickOutsideFilter();
+                }
+
+                _textBox.Focus();
+            }
+
+            private void InstallClickOutsideFilter()
+            {
+                if (_clickOutsideFilter is not null)
+                    return;
+
+                _clickOutsideFilter = new OutsideClickFilter(this);
+                Application.AddMessageFilter(_clickOutsideFilter);
+            }
+
+            private void RemoveClickOutsideFilter()
+            {
+                if (_clickOutsideFilter is null)
+                    return;
+
+                Application.RemoveMessageFilter(_clickOutsideFilter);
+                _clickOutsideFilter = null;
+            }
+
+            private bool IsInsideAutocompleteArea(Point screen)
+            {
+                if (_popup.Visible && _popup.Bounds.Contains(screen))
+                    return true;
+
+                Control anchor = AnchorControl;
+                Rectangle anchorBounds = new(anchor.PointToScreen(Point.Empty), anchor.Size);
+                return anchorBounds.Contains(screen);
+            }
+
+            private void DismissForOutsideClick()
+            {
+                if (_selecting)
+                    return;
+
+                HidePopup();
+            }
+
+            private void RepositionPopup()
+            {
+                if (_items.Count == 0)
+                    return;
+
+                Control anchor = AnchorControl;
+                Point screen = anchor.PointToScreen(new Point(0, anchor.Height + 2));
+                int width = Math.Max(anchor.Width, 360);
+                int visibleRows = Math.Min(MaxVisibleItems, Math.Max(_list.Items.Count, 1));
+                int height = Math.Min(320, Math.Max(80, _list.ItemHeight * visibleRows + 8));
+                _popup.Size = new Size(width, height);
+                _popup.Location = screen;
+            }
+
+            private void HidePopup()
+            {
+                _debounce.Stop();
+                RemoveClickOutsideFilter();
+
+                if (_popup.Visible)
+                    _popup.Hide();
+
+                _keyboardIndex = -1;
+                ResetResults();
+                _lastTerm = string.Empty;
+            }
+
+            private void OnTextBoxKeyDown(object? sender, KeyEventArgs e)
+            {
+                if (!_popup.Visible || _list.Items.Count == 0)
+                    return;
+
+                if (e.KeyCode == Keys.Down)
+                {
+                    _keyboardIndex = Math.Min(_keyboardIndex + 1, _list.Items.Count - 1);
+                    _list.SelectedIndex = _keyboardIndex;
+                    if (_keyboardIndex >= _list.Items.Count - 1)
+                        LoadMoreSuggestions();
+                    e.Handled = true;
+                }
+                else if (e.KeyCode == Keys.Up)
+                {
+                    _keyboardIndex = Math.Max(_keyboardIndex - 1, -1);
+                    _list.SelectedIndex = _keyboardIndex;
+                    e.Handled = true;
+                }
+                else if (e.KeyCode == Keys.Enter && _keyboardIndex >= 0)
+                {
+                    AcceptSelection();
+                    e.Handled = true;
+                }
+                else if (e.KeyCode == Keys.Escape)
+                {
+                    HidePopup();
+                    e.Handled = true;
+                }
+            }
+
+            private void AcceptSelection()
+            {
+                int index = _list.SelectedIndex;
+                if (index < 0 || index >= _items.Count)
+                {
+                    _selecting = false;
+                    return;
+                }
+
+                ModSuggestionItem item = _items[index];
+                _selecting = true;
+                _blockAutoShow = true;
+                _debounce.Stop();
+                try
+                {
+                    ReplaceSearchTerm(_textBox, item.GetInsertText(_lastTerm));
+                    HidePopup();
+                    _textBox.Focus();
+                }
+                finally
+                {
+                    _selecting = false;
+                }
+            }
+
+            private static string GetSearchTerm(TextBox textBox)
+            {
+                string text = textBox.Text;
+                if (string.IsNullOrWhiteSpace(text))
+                    return string.Empty;
+
+                int caret = textBox.SelectionStart;
+                if (caret < 0 || caret > text.Length)
+                    caret = text.Length;
+
+                return text[..caret].Trim();
+            }
+
+            private static void ReplaceSearchTerm(TextBox textBox, string replacement)
+            {
+                string text = textBox.Text;
+                int caret = textBox.SelectionStart;
+                if (caret < 0 || caret > text.Length)
+                    caret = text.Length;
+
+                int start = text[..caret].Length - text[..caret].TrimStart().Length;
+                textBox.Text = text[..start] + replacement + text[caret..];
+                textBox.SelectionStart = start + replacement.Length;
+                textBox.SelectionLength = 0;
+            }
+
+            private sealed class OutsideClickFilter(SuggestionPopup popup) : IMessageFilter
+            {
+                public bool PreFilterMessage(ref Message m)
+                {
+                    const int WM_LBUTTONDOWN = 0x0201;
+                    if (m.Msg != WM_LBUTTONDOWN || !popup._popup.Visible)
+                        return false;
+
+                    if (popup.IsInsideAutocompleteArea(Control.MousePosition))
+                        return false;
+
+                    popup.DismissForOutsideClick();
+                    return false;
+                }
+            }
         }
     }
 }

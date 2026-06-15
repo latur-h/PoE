@@ -189,7 +189,6 @@ namespace PoE.dlls.Gamble.Modes
             Regex getName = new(@"\{.*?""(?'Name'.*?)"".*?\}", RegexOptions.IgnoreCase);
             Regex getTier = new(@"\{.*?\(Tier:\s(?'Tier'\d+)\).*?\}", RegexOptions.IgnoreCase);
             Regex getContent = new(@"}(?'Content'.*?)$", RegexOptions.IgnoreCase | RegexOptions.Singleline);
-            Regex strip = new(@"\(\d+-\d+\)", RegexOptions.IgnoreCase);
 
             var mods = getModifiers.Matches(itemContent);
             List<Modifier> modifiers = [];
@@ -210,7 +209,7 @@ namespace PoE.dlls.Gamble.Modes
                     : 0;
 
                 string content = getContent.Match(mod.Value).Groups["Content"].Value.Trim();
-                content = strip.Replace(content, string.Empty).Trim();
+                content = GambleModContentMatcher.NormalizeItemModContent(content);
 
                 if (logMods && !Regex.IsMatch(content, @"fractured", RegexOptions.IgnoreCase))
                     GamblerLog.DebugMod(type, tier, name, content);

@@ -70,7 +70,7 @@ namespace PoE.dlls.GameData
             foreach (var (path, bytes) in statDescriptionFiles)
                 GameDataLog.Info($"Read {path} ({FormatBytes(bytes.Length)}).");
 
-            HashSet<(ModSuggestionKind Kind, string Value)> uniqueEntries;
+            HashSet<(string ModName, string ModContent)> uniqueEntries;
             try
             {
                 uniqueEntries = ModCatalogBuilder.Build(
@@ -88,9 +88,9 @@ namespace PoE.dlls.GameData
             if (uniqueEntries.Count == 0)
                 return Fail("No item or map modifier names/descriptions matched the current filters.");
 
-            int nameCount = uniqueEntries.Count(e => e.Kind == ModSuggestionKind.ModName);
-            int descriptionCount = uniqueEntries.Count(e => e.Kind == ModSuggestionKind.ModDescription);
-            GameDataLog.Info($"Extracted {nameCount} mod names and {descriptionCount} descriptions ({uniqueEntries.Count} total suggestions).");
+            int nameRows = uniqueEntries.Count(e => string.IsNullOrEmpty(e.ModContent));
+            int contentRows = uniqueEntries.Count - nameRows;
+            GameDataLog.Info($"Extracted {nameRows:N0} name rows and {contentRows:N0} stat-line rows ({uniqueEntries.Count:N0} total suggestions).");
 
             GameDataLog.Info("Writing SQLite mod cache…");
             try
