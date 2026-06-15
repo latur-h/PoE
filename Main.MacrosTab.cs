@@ -11,12 +11,9 @@ namespace PoE
         private FlatTextBox textBox_MacrosEnableKey = null!;
         private Label label_MacrosEnableKey = null!;
         private CheckBox checkBox_MacrosFeatureEnabled = null!;
-        private Label label_MacrosGlobalSection = null!;
-        private Label label_MacrosBuildSection = null!;
-        private Panel? _macrosSectionSeparator;
-        private MacrosPanel _globalMacrosPanel = null!;
-        private MacroBuildPresetBar _macroBuildPresetBar = null!;
-        private MacrosPanel _buildMacrosPanel = null!;
+        private Label label_MacrosHelp = null!;
+        private MacroProfileBar _macroProfileBar = null!;
+        private MacrosPanel _macrosPanel = null!;
         private ToolTip toolTip_Macros = null!;
         private MacroKeyFieldBinder? _macrosEnableKeyBinder;
         private bool _macrosTabUiReady;
@@ -60,62 +57,39 @@ namespace PoE
             };
             checkBox_MacrosFeatureEnabled.CheckedChanged += (_, _) => OnMacrosFeatureEnabledChanged();
 
-            label_MacrosGlobalSection = new Label
+            label_MacrosHelp = new Label
             {
                 AutoSize = true,
-                Location = new Point(7, 44),
-                Text = "Global (always active)",
+                Location = new Point(318, 10),
+                Text = "ⓘ",
+                Font = new Font("Segoe UI", 14F, FontStyle.Bold),
                 ForeColor = StaticColors.ForeGround,
                 BackColor = StaticColors.BackGround,
-                Font = new Font("Segoe UI", 12F, FontStyle.Bold),
+                Cursor = Cursors.Hand,
             };
+            label_MacrosHelp.Click += (_, _) => MacroModeHelpDialog.ShowHelp(this);
 
-            _globalMacrosPanel = new MacrosPanel
-            {
-                Location = new Point(7, 68),
-                Size = new Size(920, 140),
-                Anchor = AnchorStyles.Top | AnchorStyles.Left | AnchorStyles.Right,
-            };
-
-            _macrosSectionSeparator = new Panel
-            {
-                Height = 1,
-                BackColor = StaticColors.TabControlForeGround,
-            };
-
-            label_MacrosBuildSection = new Label
-            {
-                AutoSize = true,
-                Text = "Build profile",
-                ForeColor = StaticColors.ForeGround,
-                BackColor = StaticColors.BackGround,
-                Font = new Font("Segoe UI", 12F, FontStyle.Bold),
-            };
-
-            _macroBuildPresetBar = new MacroBuildPresetBar
+            _macroProfileBar = new MacroProfileBar
             {
                 Anchor = AnchorStyles.Top | AnchorStyles.Left | AnchorStyles.Right,
             };
-            _macroBuildPresetBar.Bind(_settings.Macros);
-            _macroBuildPresetBar.ProfileChanging += (_, _) => _buildMacrosPanel.Commit();
-            _macroBuildPresetBar.ProfileChanged += (_, _) => LoadBuildMacrosIntoUi();
+            _macroProfileBar.Bind(_settings.Macros);
+            _macroProfileBar.ProfileChanging += (_, _) => _macrosPanel.Commit();
+            _macroProfileBar.ProfileChanged += (_, _) => LoadSelectedProfileIntoUi();
 
-            _buildMacrosPanel = new MacrosPanel
+            _macrosPanel = new MacrosPanel
             {
                 Anchor = AnchorStyles.Top | AnchorStyles.Bottom | AnchorStyles.Left | AnchorStyles.Right,
             };
-            _globalMacrosPanel.Changed += (_, _) => ApplyMacrosRuntime();
-            _buildMacrosPanel.Changed += (_, _) => ApplyMacrosRuntime();
+            _macrosPanel.Changed += (_, _) => ApplyMacrosRuntime();
+            _macrosPanel.CaptureArmed += (_, _) => ClearCoordinateRecording();
 
             tabPage_Macros.Controls.Add(label_MacrosEnableKey);
             tabPage_Macros.Controls.Add(textBox_MacrosEnableKey);
             tabPage_Macros.Controls.Add(checkBox_MacrosFeatureEnabled);
-            tabPage_Macros.Controls.Add(label_MacrosGlobalSection);
-            tabPage_Macros.Controls.Add(_globalMacrosPanel);
-            tabPage_Macros.Controls.Add(_macrosSectionSeparator);
-            tabPage_Macros.Controls.Add(label_MacrosBuildSection);
-            tabPage_Macros.Controls.Add(_macroBuildPresetBar);
-            tabPage_Macros.Controls.Add(_buildMacrosPanel);
+            tabPage_Macros.Controls.Add(label_MacrosHelp);
+            tabPage_Macros.Controls.Add(_macroProfileBar);
+            tabPage_Macros.Controls.Add(_macrosPanel);
 
             SetupMacrosHints();
             LoadMacrosTabIntoUi();
@@ -135,19 +109,19 @@ namespace PoE
                 "Hotkey to enable or disable the entire macro feature.");
 
             toolTip_Macros.SetToolTip(
+                label_MacrosHelp,
+                "Explain macro modes, JE/JNE pixel checks, and coordinate tools.");
+
+            toolTip_Macros.SetToolTip(
                 checkBox_MacrosFeatureEnabled,
                 "Shows whether macros are currently enabled. Click to toggle, or use the feature hotkey.");
 
             toolTip_Macros.SetToolTip(
-                label_MacrosGlobalSection,
-                "Macros in this section are always armed. Recommended for always-on utilities such as mouse side-button spam.");
+                _macroProfileBar,
+                "Global is always active at runtime. Pick another profile to also run its macros alongside Global.");
 
             toolTip_Macros.SetToolTip(
-                label_MacrosBuildSection,
-                "One build profile is active at a time. Switch profiles for different characters or builds.");
-
-            toolTip_Macros.SetToolTip(
-                _buildMacrosPanel,
+                _macrosPanel,
                 "Fire sequence: one action per line or separated by +, e.g.\n"
                 + "LButton Down + LButton Up\n"
                 + "or Ctrl Down + A Down + A Up + Ctrl Up");
@@ -184,28 +158,23 @@ namespace PoE
             MacroSettingsHelper.EnsureInitialized(_settings.Macros);
             _macrosEnableKeyBinder?.LoadFromStored(_settings.Macros.EnableKey);
             RefreshMacrosFeatureCheckbox();
-
-            _globalMacrosPanel.Bind(_settings.Macros.GlobalProfile);
-            _macroBuildPresetBar.RefreshProfiles();
-            LoadBuildMacrosIntoUi();
+            _macroProfileBar.RefreshProfiles();
+            LoadSelectedProfileIntoUi();
         }
 
-        private void LoadBuildMacrosIntoUi()
+        private void LoadSelectedProfileIntoUi()
         {
-            var profile = MacroSettingsHelper.GetActiveBuildProfile(_settings.Macros);
+            var profile = _macroProfileBar.GetSelectedProfile();
             if (profile is not null)
-                _buildMacrosPanel.Bind(profile);
+                _macrosPanel.Bind(profile, _settings.Macros);
         }
 
         private void ApplyMacrosRuntime()
         {
             MacroSettingsHelper.EnsureInitialized(_settings.Macros);
+            _macrosPanel.Commit();
 
-            var runtime = MacroRuntimeSettingsBuilder.Build(
-                _settings.Macros,
-                _globalMacrosPanel.GetRuntimeTriggers(),
-                _buildMacrosPanel.GetRuntimeTriggers());
-
+            var runtime = MacroRuntimeSettingsBuilder.Build(_settings.Macros);
             _macroEngine.ApplySettings(runtime);
             _macroHotkeyBinder.BindAll(_settings);
         }
@@ -215,8 +184,7 @@ namespace PoE
             if (!_macrosTabUiReady)
                 return true;
 
-            _globalMacrosPanel.Commit();
-            _buildMacrosPanel.Commit();
+            _macrosPanel.Commit();
             MacroSettingsHelper.EnsureInitialized(_settings.Macros);
 
             var conflicts = MacroKeyConflictChecker.FindConflicts(_settings);
@@ -252,10 +220,8 @@ namespace PoE
                     trigger.Active = false;
             }
 
-            _globalMacrosPanel.Commit();
-            _buildMacrosPanel.Commit();
-            _globalMacrosPanel.RefreshActiveStates();
-            _buildMacrosPanel.RefreshActiveStates();
+            _macrosPanel.Commit();
+            _macrosPanel.RefreshActiveStates();
             ApplyMacrosRuntime();
             return false;
         }
@@ -300,8 +266,7 @@ namespace PoE
 
             _settings.Macros.FeatureEnabled = _macroEngine.FeatureEnabled;
             RefreshMacrosFeatureCheckbox();
-            _globalMacrosPanel.RefreshActiveStates();
-            _buildMacrosPanel.RefreshActiveStates();
+            _macrosPanel.SyncActiveFromEngine(_macroEngine);
         }
     }
 }

@@ -70,10 +70,7 @@ namespace PoE.dlls.Macros
                     AddMacroKey(usages, trigger.TriggerKey, $"{scope}: trigger", profile, trigger);
 
                 if (!string.IsNullOrWhiteSpace(trigger.ToggleKey))
-                {
-                    string role = trigger.Behavior == MacroBehavior.Repeat ? "start/stop" : "toggle active";
-                    AddMacroKey(usages, trigger.ToggleKey, $"{scope}: {role}", profile, trigger);
-                }
+                    AddMacroKey(usages, trigger.ToggleKey, $"{scope}: toggle active", profile, trigger);
             }
 
             return usages;

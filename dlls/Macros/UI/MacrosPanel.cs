@@ -1,4 +1,4 @@
-using PoE.dlls.KeyBindings;
+using PoE.dlls.InteropServices;
 using PoE.dlls.Macros;
 using PoE.dlls.Settings.Macros;
 using PoE.dlls.Style;
@@ -7,56 +7,80 @@ namespace PoE.dlls.Macros.UI
 {
     public sealed class MacrosPanel : UserControl
     {
-        private const int RowHeight = 72;
+        private const int CompactRowHeight = 72;
+        private const int ExpandedRowHeight = 110;
         private const int HeaderHeight = 28;
         private const int AddBarHeight = 36;
         private const int ColumnGap = 6;
+        private const int RemoveReserve = 22;
+        private const int MinFireWidth = 72;
 
         private const int ActiveX = 0;
         private const int ActiveWidth = 24;
         private const int TriggerX = ActiveX + ActiveWidth + ColumnGap;
         private const int TriggerWidth = 68;
         private const int FireX = TriggerX + TriggerWidth + ColumnGap;
-        private const int FireWidth = 220;
-        private const int BehaviorX = FireX + FireWidth + ColumnGap;
-        private const int BehaviorWidth = 88;
-        private const int KeyDelayX = BehaviorX + BehaviorWidth + ColumnGap;
-        private const int KeyDelayWidth = 52;
-        private const int CycleDelayX = KeyDelayX + KeyDelayWidth + ColumnGap;
-        private const int CycleDelayWidth = 52;
-        private const int ToggleX = CycleDelayX + CycleDelayWidth + ColumnGap;
-        private const int ToggleWidth = 68;
+        private const int BehaviorWidth = 82;
+        private const int KeyDelayWidth = 48;
+        private const int CycleDelayWidth = 48;
+        private const int LockWidth = 48;
+        private const int ToggleWidth = 62;
 
         private static readonly Font UiFont = new("Segoe UI", 12F, FontStyle.Regular, GraphicsUnit.Point);
-        private static readonly string[] BehaviorNames = Enum.GetNames<MacroBehavior>();
 
         private readonly Panel _scrollPanel;
         private readonly Panel _rowsHost;
         private readonly Button _addButton;
         private readonly List<MacroRowControl> _rows = [];
+        private readonly Label _headerActive;
+        private readonly Label _headerTrigger;
+        private readonly Label _headerFire;
+        private readonly Label _headerBehavior;
+        private readonly Label _headerKey;
+        private readonly Label _headerCycle;
+        private readonly Label _headerLock;
+        private readonly Label _headerToggle;
 
         private MacroProfile? _profile;
+        private MacroSettings? _macroSettings;
+        private MacroRowControl? _captureRow;
         private bool _suppressEvents;
+        private int _lastLayoutWidth = -1;
+        private bool _uiReady;
+        private readonly System.Windows.Forms.Timer _widthLayoutTimer;
 
         public MacrosPanel()
         {
+            SuspendLayout();
             BackColor = StaticColors.BackGround;
-            Font = UiFont;
 
-            var header = new Panel
+            _widthLayoutTimer = new System.Windows.Forms.Timer { Interval = 64 };
+            _widthLayoutTimer.Tick += (_, _) =>
             {
-                Dock = DockStyle.Top,
-                Height = HeaderHeight,
-                BackColor = StaticColors.BackGround,
+                _widthLayoutTimer.Stop();
+                TryLayoutForWidthChange(force: true);
             };
+            Resize += (_, _) => ScheduleWidthLayout();
 
-            header.Controls.Add(CreateHeaderLabel("On", ActiveX, ActiveWidth));
-            header.Controls.Add(CreateHeaderLabel("Trigger", TriggerX, TriggerWidth));
-            header.Controls.Add(CreateHeaderLabel("Fire sequence", FireX, FireWidth));
-            header.Controls.Add(CreateHeaderLabel("Mode", BehaviorX, BehaviorWidth));
-            header.Controls.Add(CreateHeaderLabel("Key ms", KeyDelayX, KeyDelayWidth));
-            header.Controls.Add(CreateHeaderLabel("Cycle ms", CycleDelayX, CycleDelayWidth));
-            header.Controls.Add(CreateHeaderLabel("Toggle", ToggleX, ToggleWidth));
+            var header = new Panel { Dock = DockStyle.Top, Height = HeaderHeight, BackColor = StaticColors.BackGround };
+            _headerActive = CreateHeaderLabel("On");
+            _headerTrigger = CreateHeaderLabel("Trigger");
+            _headerFire = CreateHeaderLabel("Fire sequence");
+            _headerBehavior = CreateHeaderLabel("Mode");
+            _headerKey = CreateHeaderLabel("Key ms");
+            _headerCycle = CreateHeaderLabel("Cycle ms");
+            _headerLock = CreateHeaderLabel("Lock ms");
+            _headerToggle = CreateHeaderLabel("Toggle");
+            header.Controls.AddRange([
+                _headerActive,
+                _headerTrigger,
+                _headerFire,
+                _headerBehavior,
+                _headerKey,
+                _headerCycle,
+                _headerLock,
+                _headerToggle,
+            ]);
 
             _addButton = new Button
             {
@@ -87,22 +111,41 @@ namespace PoE.dlls.Macros.UI
                 AutoScroll = true,
                 BackColor = StaticColors.BackGround,
             };
+            _scrollPanel.HorizontalScroll.Enabled = false;
+            _scrollPanel.HorizontalScroll.Visible = false;
             _scrollPanel.Controls.Add(_rowsHost);
-            _scrollPanel.Resize += (_, _) => LayoutRows();
 
             Controls.Add(_scrollPanel);
             Controls.Add(_addButton);
             Controls.Add(header);
+
+            Font = UiFont;
+            _uiReady = true;
+            ResumeLayout(false);
+        }
+
+        public void EnsureLayout() => LayoutRows();
+
+        private void ScheduleWidthLayout()
+        {
+            if (!_uiReady)
+                return;
+
+            _widthLayoutTimer.Stop();
+            _widthLayoutTimer.Start();
         }
 
         public event EventHandler? Changed;
+        public event EventHandler? CaptureArmed;
 
-        public void Bind(MacroProfile profile)
+        public void Bind(MacroProfile profile, MacroSettings macroSettings)
         {
+            DisarmCapture();
             Commit();
             ClearRows();
 
             _profile = profile;
+            _macroSettings = macroSettings;
             _suppressEvents = true;
             try
             {
@@ -115,6 +158,8 @@ namespace PoE.dlls.Macros.UI
             }
 
             LayoutRows();
+            if (IsHandleCreated)
+                BeginInvoke(LayoutRows);
         }
 
         public void Commit()
@@ -128,11 +173,45 @@ namespace PoE.dlls.Macros.UI
         public IReadOnlyList<MacroTrigger> GetRuntimeTriggers() =>
             _rows.Select(r => r.ToRuntimeTrigger()).ToList();
 
-        public void RefreshActiveStates()
+        public void RefreshActiveStates() =>
+            SyncActiveFromEngine(null);
+
+        public void SyncActiveFromEngine(MacroEngine? engine)
         {
             foreach (var row in _rows)
-                row.RefreshActiveCheckbox();
+            {
+                if (engine is null)
+                {
+                    row.RefreshActiveCheckbox();
+                    continue;
+                }
+
+                var resolved = engine.FindTrigger(row.TriggerId);
+                if (resolved is not null)
+                    row.SetActive(resolved.Active);
+            }
         }
+
+        public bool TryApplyCapture(Coordinates coordinates)
+        {
+            if (_captureRow is null || _macroSettings is null)
+                return false;
+
+            if (!_captureRow.TryApplyCapture(coordinates, _macroSettings))
+                return false;
+
+            _captureRow = null;
+            NotifyChanged();
+            return true;
+        }
+
+        public void DisarmCapture()
+        {
+            _captureRow?.ClearCaptureUi();
+            _captureRow = null;
+        }
+
+        public bool HasCaptureArmed => _captureRow is not null;
 
         private void ClearRows()
         {
@@ -148,7 +227,7 @@ namespace PoE.dlls.Macros.UI
 
         private void AddRow(MacroTrigger trigger)
         {
-            if (_profile is null)
+            if (_profile is null || _macroSettings is null)
                 return;
 
             CreateRowControl(trigger);
@@ -159,9 +238,21 @@ namespace PoE.dlls.Macros.UI
 
         private void CreateRowControl(MacroTrigger trigger)
         {
-            var row = new MacroRowControl(trigger);
+            var row = new MacroRowControl(trigger, _macroSettings);
             row.RemoveRequested += (_, _) => RemoveRow(row);
             row.Changed += (_, _) => NotifyChanged();
+            row.RowHeightChanged += (_, _) => LayoutRows();
+            row.CaptureArmed += (_, _) =>
+            {
+                foreach (var other in _rows)
+                {
+                    if (!ReferenceEquals(other, row))
+                        other.ClearCaptureUi();
+                }
+
+                _captureRow = row;
+                CaptureArmed?.Invoke(this, EventArgs.Empty);
+            };
 
             _rows.Add(row);
             _rowsHost.Controls.Add(row);
@@ -169,6 +260,9 @@ namespace PoE.dlls.Macros.UI
 
         private void RemoveRow(MacroRowControl row)
         {
+            if (_captureRow == row)
+                _captureRow = null;
+
             int index = _rows.IndexOf(row);
             if (index < 0)
                 return;
@@ -182,18 +276,88 @@ namespace PoE.dlls.Macros.UI
 
         private void LayoutRows()
         {
-            int width = Math.Max(640, _scrollPanel.ClientSize.Width);
-            int y = 0;
+            int width = GetLayoutWidth();
+            if (width <= 0)
+                return;
 
-            foreach (var row in _rows)
+            _lastLayoutWidth = width;
+            LayoutRowsCore(width);
+        }
+
+        private void TryLayoutForWidthChange(bool force = false)
+        {
+            int width = GetLayoutWidth();
+            if (width <= 0)
+                return;
+
+            if (!force && width == _lastLayoutWidth)
+                return;
+
+            _lastLayoutWidth = width;
+            LayoutRowsCore(width);
+        }
+
+        private void LayoutRowsCore(int width)
+        {
+            SuspendLayout();
+            _rowsHost.SuspendLayout();
+            try
             {
-                row.Location = new Point(0, y);
-                row.SetWidth(width);
-                y += RowHeight;
-            }
+                LayoutHeader(width);
 
-            _rowsHost.Width = width;
-            _rowsHost.Height = Math.Max(RowHeight, y);
+                int y = 0;
+                foreach (var row in _rows)
+                {
+                    if (row.Location.Y != y)
+                        row.Location = new Point(0, y);
+
+                    row.SetWidth(width);
+                    y += row.Height + 4;
+                }
+
+                _rowsHost.Location = new Point(0, 0);
+                if (_rowsHost.Width != width)
+                    _rowsHost.Width = width;
+
+                int hostHeight = Math.Max(CompactRowHeight, y);
+                if (_rowsHost.Height != hostHeight)
+                    _rowsHost.Height = hostHeight;
+            }
+            finally
+            {
+                _rowsHost.ResumeLayout(false);
+                ResumeLayout(false);
+            }
+        }
+
+        private void LayoutHeader(int width)
+        {
+            int removeX = Math.Max(FireX + MinFireWidth + BehaviorWidth, width - RemoveReserve);
+            int x = removeX - ColumnGap;
+
+            x = PlaceHeader(_headerToggle, x, ToggleWidth);
+            x = PlaceHeader(_headerLock, x, LockWidth);
+            x = PlaceHeader(_headerCycle, x, CycleDelayWidth);
+            x = PlaceHeader(_headerKey, x, KeyDelayWidth);
+            x = PlaceHeader(_headerBehavior, x, BehaviorWidth);
+
+            int fireWidth = Math.Max(MinFireWidth, x - ColumnGap - FireX);
+            _headerFire.Location = new Point(FireX, 4);
+            _headerFire.Width = fireWidth;
+
+            _headerTrigger.Location = new Point(TriggerX, 4);
+            _headerTrigger.Width = TriggerWidth;
+
+            _headerActive.Location = new Point(ActiveX, 4);
+            _headerActive.Width = ActiveWidth;
+        }
+
+        private static int PlaceHeader(Label label, int rightEdge, int fieldWidth)
+        {
+            rightEdge -= fieldWidth;
+            label.Location = new Point(rightEdge, 4);
+            label.Width = fieldWidth;
+            return rightEdge - ColumnGap;
         }
 
         private void NotifyChanged()
@@ -205,266 +369,31 @@ namespace PoE.dlls.Macros.UI
             Changed?.Invoke(this, EventArgs.Empty);
         }
 
-        private static Label CreateHeaderLabel(string text, int x, int width) =>
+        private static Label CreateHeaderLabel(string text) =>
             new()
             {
-                Location = new Point(x, 4),
-                Size = new Size(width, 20),
                 Text = text,
                 ForeColor = StaticColors.ForeGround,
                 BackColor = StaticColors.BackGround,
                 Font = UiFont,
             };
 
-        private sealed class MacroRowControl : Panel
+        private static int GetLayoutWidth(Panel? scrollPanel, Control host)
         {
-            private MacroTrigger _trigger;
-            private readonly CheckBox _active;
-            private readonly FlatTextBox _triggerKey;
-            private readonly TextBox _fireSequence;
-            private readonly FlatComboBox _behavior;
-            private readonly FlatTextBox _keyDelay;
-            private readonly FlatTextBox _cycleDelay;
-            private readonly FlatTextBox _toggleKey;
-            private readonly Label _remove;
-            private readonly MacroKeyFieldBinder _triggerKeyBinder;
-            private readonly MacroKeyFieldBinder _toggleKeyBinder;
-            private readonly System.Windows.Forms.Timer _fireValidateDebounce;
+            if (scrollPanel is not null && scrollPanel.ClientSize.Width > 0)
+                return scrollPanel.ClientSize.Width;
 
-            public event EventHandler? RemoveRequested;
-            public event EventHandler? Changed;
+            return host.ClientSize.Width;
+        }
 
-            public MacroRowControl(MacroTrigger trigger)
-            {
-                _trigger = trigger;
-                BackColor = StaticColors.BackGround;
-                Height = RowHeight;
+        private int GetLayoutWidth() => GetLayoutWidth(_scrollPanel, this);
 
-                _active = new CheckBox
-                {
-                    Location = new Point(ActiveX + 4, 28),
-                    AutoSize = true,
-                    Checked = trigger.Active,
-                    ForeColor = StaticColors.ForeGround,
-                    BackColor = StaticColors.BackGround,
-                };
-                _active.CheckedChanged += (_, _) =>
-                {
-                    _trigger.Active = _active.Checked;
-                    Changed?.Invoke(this, EventArgs.Empty);
-                };
+        protected override void Dispose(bool disposing)
+        {
+            if (disposing)
+                _widthLayoutTimer.Dispose();
 
-                _triggerKey = CreateKeyBox(new Point(TriggerX, 20), new Size(TriggerWidth, 30));
-                _triggerKeyBinder = new MacroKeyFieldBinder(
-                    _triggerKey,
-                    value => _trigger.TriggerKey = value,
-                    (_, _) => Changed?.Invoke(this, EventArgs.Empty));
-                _triggerKeyBinder.LoadFromStored(trigger.TriggerKey);
-
-                _fireSequence = new TextBox
-                {
-                    Location = new Point(FireX, 8),
-                    Size = new Size(FireWidth, RowHeight - 12),
-                    Multiline = true,
-                    ScrollBars = ScrollBars.Vertical,
-                    BorderStyle = BorderStyle.FixedSingle,
-                    BackColor = StaticColors.BackGround,
-                    ForeColor = StaticColors.ForeGround,
-                    Font = UiFont,
-                    Text = trigger.FireSequence,
-                    AcceptsReturn = true,
-                };
-
-                _fireValidateDebounce = new System.Windows.Forms.Timer { Interval = 300 };
-                _fireValidateDebounce.Tick += (_, _) =>
-                {
-                    _fireValidateDebounce.Stop();
-                    ValidateFireSequence();
-                };
-
-                _fireSequence.TextChanged += (_, _) =>
-                {
-                    _trigger.FireSequence = _fireSequence.Text;
-                    _fireValidateDebounce.Stop();
-                    _fireValidateDebounce.Start();
-                    Changed?.Invoke(this, EventArgs.Empty);
-                };
-                ValidateFireSequence();
-
-                _behavior = new FlatComboBox
-                {
-                    Location = new Point(BehaviorX, 20),
-                    Size = new Size(BehaviorWidth, 30),
-                    Font = UiFont,
-                };
-                _behavior.Items.AddRange(BehaviorNames);
-                _behavior.SelectedItem = trigger.Behavior.ToString();
-                _behavior.SelectedIndexChanged += (_, _) =>
-                {
-                    if (_behavior.SelectedItem is string name)
-                        _trigger.Behavior = Enum.Parse<MacroBehavior>(name);
-                    ApplyBehaviorVisibility();
-                    Changed?.Invoke(this, EventArgs.Empty);
-                };
-
-                _keyDelay = CreateNumericBox(new Point(KeyDelayX, 20), new Size(KeyDelayWidth, 30), trigger.KeyDelayMs, value =>
-                {
-                    _trigger.KeyDelayMs = value;
-                    Changed?.Invoke(this, EventArgs.Empty);
-                });
-
-                _cycleDelay = CreateNumericBox(new Point(CycleDelayX, 20), new Size(CycleDelayWidth, 30), trigger.CycleDelayMs, value =>
-                {
-                    _trigger.CycleDelayMs = value;
-                    Changed?.Invoke(this, EventArgs.Empty);
-                });
-
-                _toggleKey = CreateKeyBox(new Point(ToggleX, 20), new Size(ToggleWidth, 30));
-                _toggleKeyBinder = new MacroKeyFieldBinder(
-                    _toggleKey,
-                    value => _trigger.ToggleKey = value,
-                    (_, _) => Changed?.Invoke(this, EventArgs.Empty));
-                _toggleKeyBinder.LoadFromStored(trigger.ToggleKey);
-
-                _remove = new Label
-                {
-                    AutoSize = true,
-                    Text = "×",
-                    Font = new Font("Segoe UI", 14F, FontStyle.Regular, GraphicsUnit.Point),
-                    ForeColor = StaticColors.ForeGround,
-                    BackColor = Color.Transparent,
-                    Location = new Point(0, 24),
-                    Cursor = Cursors.Hand,
-                    TabStop = false,
-                };
-                _remove.Click += (_, _) => RemoveRequested?.Invoke(this, EventArgs.Empty);
-
-                Controls.Add(_active);
-                Controls.Add(_triggerKey);
-                Controls.Add(_fireSequence);
-                Controls.Add(_behavior);
-                Controls.Add(_keyDelay);
-                Controls.Add(_cycleDelay);
-                Controls.Add(_toggleKey);
-                Controls.Add(_remove);
-
-                ApplyBehaviorVisibility();
-            }
-
-            public void RefreshActiveCheckbox() => _active.Checked = _trigger.Active;
-
-            public MacroTrigger ToPersistedTrigger() => new()
-            {
-                Id = _trigger.Id,
-                Active = _active.Checked,
-                TriggerKey = _trigger.TriggerKey,
-                FireSequence = _fireSequence.Text,
-                Behavior = _trigger.Behavior,
-                KeyDelayMs = _trigger.KeyDelayMs,
-                CycleDelayMs = _trigger.CycleDelayMs,
-                ToggleKey = _trigger.ToggleKey,
-            };
-
-            public MacroTrigger ToRuntimeTrigger()
-            {
-                bool keysReady = KeysAllowRuntime();
-
-                return new MacroTrigger
-                {
-                    Id = _trigger.Id,
-                    Active = _active.Checked && keysReady,
-                    TriggerKey = _triggerKeyBinder.AllowsRuntime ? _trigger.TriggerKey : string.Empty,
-                    FireSequence = _fireSequence.Text,
-                    Behavior = _trigger.Behavior,
-                    KeyDelayMs = _trigger.KeyDelayMs,
-                    CycleDelayMs = _trigger.CycleDelayMs,
-                    ToggleKey = _toggleKeyBinder.AllowsRuntime ? _trigger.ToggleKey : string.Empty,
-                };
-            }
-
-            private bool KeysAllowRuntime() =>
-                _trigger.Behavior switch
-                {
-                    MacroBehavior.Repeat => _toggleKeyBinder.AllowsRuntime,
-                    _ => _triggerKeyBinder.AllowsRuntime,
-                };
-
-            public void SetWidth(int width)
-            {
-                Width = width;
-                _remove.Location = new Point(width - _remove.Width - 4, 24);
-                _remove.BringToFront();
-            }
-
-            private void ApplyBehaviorVisibility()
-            {
-                bool isRepeat = _trigger.Behavior == MacroBehavior.Repeat;
-                bool isSingle = _trigger.Behavior == MacroBehavior.Single;
-
-                _triggerKey.Visible = !isRepeat;
-                _cycleDelay.Visible = !isSingle;
-            }
-
-            private void ValidateFireSequence()
-            {
-                string text = _fireSequence.Text;
-                if (string.IsNullOrWhiteSpace(text))
-                {
-                    _fireSequence.ForeColor = Color.Red;
-                    return;
-                }
-
-                _fireSequence.ForeColor = MacroFireSequence.IsValid(text)
-                    ? StaticColors.ForeGround
-                    : Color.Red;
-            }
-
-            private static FlatTextBox CreateKeyBox(Point location, Size size) =>
-                new()
-                {
-                    Location = location,
-                    Size = size,
-                    Font = UiFont,
-                    TextAlign = HorizontalAlignment.Center,
-                };
-
-            protected override void Dispose(bool disposing)
-            {
-                if (disposing)
-                {
-                    _triggerKeyBinder.Dispose();
-                    _toggleKeyBinder.Dispose();
-                    _fireValidateDebounce.Dispose();
-                }
-
-                base.Dispose(disposing);
-            }
-
-            private static FlatTextBox CreateNumericBox(Point location, Size size, int value, Action<int> setter)
-            {
-                var box = new FlatTextBox
-                {
-                    Location = location,
-                    Size = size,
-                    Font = UiFont,
-                    TextAlign = HorizontalAlignment.Center,
-                };
-                box._textBox.Text = value.ToString();
-                box._textBox.KeyUp += (_, _) =>
-                {
-                    if (int.TryParse(box._textBox.Text, out int parsed) && parsed >= 0)
-                    {
-                        setter(parsed);
-                        box._textBox.ForeColor = StaticColors.ForeGround;
-                    }
-                    else
-                    {
-                        box._textBox.ForeColor = Color.Red;
-                    }
-                };
-
-                return box;
-            }
+            base.Dispose(disposing);
         }
     }
 }

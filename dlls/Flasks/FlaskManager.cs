@@ -35,16 +35,16 @@ namespace PoE.dlls.Flasks
             flasks.Clear();
         }
 
-        public void RegisterFlask(FlaskType type, int numer, string key)
+        public void RegisterFlask(FlaskType type, int numer, string key, FlaskRegistration? saved = null)
         {
             FlaskLog.Registered(numer, type, key);
 
             switch (type)
             {
-                case FlaskType.HP: flasks.Add(new HP(_inputHost, key, numer, Timing)); break;
-                case FlaskType.MP: flasks.Add(new MP(_inputHost, key, numer, Timing)); break;
-                case FlaskType.Utility: flasks.Add(new Utility(_inputHost, key, numer, Timing)); break;
-                case FlaskType.Tincture: flasks.Add(new Tincture(_inputHost, key, numer, Timing)); break;
+                case FlaskType.HP: flasks.Add(new HP(_inputHost, key, numer, Timing, saved)); break;
+                case FlaskType.MP: flasks.Add(new MP(_inputHost, key, numer, Timing, saved)); break;
+                case FlaskType.Utility: flasks.Add(new Utility(_inputHost, key, numer, Timing, saved)); break;
+                case FlaskType.Tincture: flasks.Add(new Tincture(_inputHost, key, numer, Timing, saved)); break;
                 default: throw new NotSupportedException("Unsupported flask type.");
             }
         }

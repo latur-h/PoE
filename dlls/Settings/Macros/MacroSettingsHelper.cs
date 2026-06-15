@@ -23,10 +23,29 @@ namespace PoE.dlls.Settings.Macros
                 settings.GlobalProfile.Triggers.Add(CreateDefaultClickerTrigger());
         }
 
-        public static MacroProfile? GetActiveBuildProfile(MacroSettings settings) =>
-            settings.BuildProfiles.FirstOrDefault(p =>
-                string.Equals(p.Name, settings.ActiveBuildProfileName, StringComparison.OrdinalIgnoreCase))
-            ?? settings.BuildProfiles.FirstOrDefault();
+        public static MacroProfile? GetActiveBuildProfile(MacroSettings settings)
+        {
+            if (!IsAdditionalBuildProfileActive(settings))
+                return null;
+
+            return settings.BuildProfiles.FirstOrDefault(p =>
+                string.Equals(p.Name, settings.ActiveBuildProfileName, StringComparison.OrdinalIgnoreCase));
+        }
+
+        public static bool IsAdditionalBuildProfileActive(MacroSettings settings) =>
+            !string.IsNullOrWhiteSpace(settings.ActiveBuildProfileName)
+            && !string.Equals(settings.ActiveBuildProfileName, MacroProfile.GlobalName, StringComparison.OrdinalIgnoreCase)
+            && settings.BuildProfiles.Any(p =>
+                string.Equals(p.Name, settings.ActiveBuildProfileName, StringComparison.OrdinalIgnoreCase));
+
+        public static MacroProfile? GetProfileByName(MacroSettings settings, string name)
+        {
+            if (string.Equals(name, MacroProfile.GlobalName, StringComparison.OrdinalIgnoreCase))
+                return settings.GlobalProfile;
+
+            return settings.BuildProfiles.FirstOrDefault(p =>
+                string.Equals(p.Name, name, StringComparison.OrdinalIgnoreCase));
+        }
 
         public static IEnumerable<MacroTrigger> EnumerateAllTriggers(MacroSettings settings)
         {
@@ -96,7 +115,7 @@ namespace PoE.dlls.Settings.Macros
             {
                 profile.Triggers ??= [];
                 profile.Name = string.IsNullOrWhiteSpace(profile.Name)
-                    ? MacroProfile.DefaultBuildName
+                    ? SuggestNewBuildProfileName(settings.BuildProfiles)
                     : profile.Name.Trim();
             }
 
@@ -114,28 +133,21 @@ namespace PoE.dlls.Settings.Macros
             }
 
             settings.BuildProfiles = unique.Values
-                .OrderBy(p => string.Equals(p.Name, MacroProfile.DefaultBuildName, StringComparison.OrdinalIgnoreCase) ? 0 : 1)
-                .ThenBy(p => p.Name, StringComparer.OrdinalIgnoreCase)
+                .OrderBy(p => p.Name, StringComparer.OrdinalIgnoreCase)
                 .ToList();
-
-            if (settings.BuildProfiles.Count == 0)
-            {
-                settings.BuildProfiles.Add(new MacroProfile
-                {
-                    Name = MacroProfile.DefaultBuildName,
-                    Triggers = [],
-                });
-            }
 
             if (settings.BuildProfiles.Count > MaxBuildProfiles)
                 settings.BuildProfiles = settings.BuildProfiles.Take(MaxBuildProfiles).ToList();
 
-            if (string.IsNullOrWhiteSpace(settings.ActiveBuildProfileName) ||
-                !settings.BuildProfiles.Any(p =>
-                    string.Equals(p.Name, settings.ActiveBuildProfileName, StringComparison.OrdinalIgnoreCase)))
+            if (string.IsNullOrWhiteSpace(settings.ActiveBuildProfileName)
+                || string.Equals(settings.ActiveBuildProfileName, MacroProfile.GlobalName, StringComparison.OrdinalIgnoreCase))
             {
-                settings.ActiveBuildProfileName = settings.BuildProfiles.First(p =>
-                    string.Equals(p.Name, MacroProfile.DefaultBuildName, StringComparison.OrdinalIgnoreCase)).Name;
+                settings.ActiveBuildProfileName = MacroProfile.GlobalName;
+            }
+            else if (!settings.BuildProfiles.Any(p =>
+                string.Equals(p.Name, settings.ActiveBuildProfileName, StringComparison.OrdinalIgnoreCase)))
+            {
+                settings.ActiveBuildProfileName = MacroProfile.GlobalName;
             }
             else
             {

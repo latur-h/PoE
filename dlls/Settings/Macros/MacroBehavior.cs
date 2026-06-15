@@ -5,5 +5,7 @@ namespace PoE.dlls.Settings.Macros
         Single,
         Repeat,
         Loop,
+        JE,
+        JNE,
     }
 }

@@ -43,19 +43,14 @@ namespace PoE.dlls.Macros
 
                 string id = ToggleHotkeyPrefix + trigger.Id;
                 Guid triggerId = trigger.Id;
-                MacroBehavior behavior = trigger.Behavior;
 
                 _hotkeys.Register(id, () =>
                 {
                     var resolved = _engine.FindTrigger(triggerId);
-                    if (resolved is null || !resolved.Active)
+                    if (resolved is null)
                         return Task.CompletedTask;
 
-                    if (behavior == MacroBehavior.Repeat)
-                        _engine.ToggleRepeat(triggerId);
-                    else
-                        _engine.ToggleTriggerActive(resolved);
-
+                    _engine.ToggleTriggerActive(resolved);
                     return Task.CompletedTask;
                 }, trigger.ToggleKey);
 

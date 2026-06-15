@@ -12,5 +12,11 @@ namespace PoE.dlls.Settings
         public string Key { get; set; } = string.Empty;
         public string FlaskType { get; set; } = string.Empty;
         public int Percent { get; set; } = 0;
+
+        public bool IsRegistered { get; set; }
+
+        public int RegisteredTopArgb { get; set; }
+
+        public int RegisteredBottomArgb { get; set; }
     }
 }

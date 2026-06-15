@@ -1,4 +1,5 @@
 ﻿using PoE.dlls.Automation;
+using PoE.dlls.Flasks;
 using PoE.dlls.InteropServices;
 using Poss.Win.Automation.Input;
 
@@ -12,7 +13,7 @@ namespace PoE.dlls.Flasks.Base
         private readonly InputSimulatorHost _inputHost;
         private readonly FlaskTiming _timing;
 
-        public MP(InputSimulatorHost inputHost, string key, int percent, FlaskTiming timing)
+        public MP(InputSimulatorHost inputHost, string key, int percent, FlaskTiming timing, FlaskRegistration? saved = null)
         {
             _inputHost = inputHost;
             _timing = timing;
@@ -20,7 +21,7 @@ namespace PoE.dlls.Flasks.Base
             ResolutionType resolution = InteropHelper.GetScreenResolution();
             var (x, y) = GetCoordinates(resolution, percent);
 
-            Color pixel = InteropHelper.GetColorAt(x, y);
+            Color pixel = saved is not null ? saved.TopColor : InteropHelper.GetColorAt(x, y);
 
             Flask = new Flask(FlaskType.MP, x, y, pixel, key);
         }

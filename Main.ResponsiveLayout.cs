@@ -27,12 +27,18 @@ namespace PoE
             tabPage_Orbs.Resize += (_, _) => LayoutOrbsTab();
             tabPage_Macros.Resize += (_, _) => LayoutMacrosTab();
             tabPage_Settings.Resize += (_, _) => LayoutSettingsTab();
+            tabControl_Main.SelectedIndexChanged += (_, _) =>
+            {
+                if (tabControl_Main.SelectedTab == tabPage_Macros)
+                    LayoutMacrosTab();
+            };
             Resize += (_, _) =>
             {
                 LayoutMainTab();
                 LayoutGambleTab();
                 LayoutOrbsTab();
-                LayoutMacrosTab();
+                if (tabControl_Main.SelectedTab == tabPage_Macros)
+                    LayoutMacrosTab();
                 LayoutSettingsTab();
             };
         }
@@ -182,11 +188,7 @@ namespace PoE
 
             const int margin = 7;
             const int topBarHeight = 40;
-            const int globalHeaderHeight = 24;
-            const int globalPanelHeight = 150;
-            const int sectionGap = 10;
-            const int buildHeaderHeight = 24;
-            const int presetBarHeight = 34;
+            const int profileBarHeight = 34;
 
             int width = tabPage_Macros.ClientSize.Width;
             int height = tabPage_Macros.ClientSize.Height;
@@ -199,31 +201,19 @@ namespace PoE
             label_MacrosEnableKey.Location = new Point(margin, y + 6);
             textBox_MacrosEnableKey.Location = new Point(132, y + 2);
             checkBox_MacrosFeatureEnabled.Location = new Point(230, y + 8);
+            label_MacrosHelp.Location = new Point(318, y + 6);
             y += topBarHeight;
 
-            label_MacrosGlobalSection.Location = new Point(margin, y);
-            y += globalHeaderHeight;
+            _macroProfileBar.Location = new Point(margin, y);
+            _macroProfileBar.Size = new Size(innerWidth, profileBarHeight);
+            y += profileBarHeight + 6;
 
-            _globalMacrosPanel.Location = new Point(margin, y);
-            _globalMacrosPanel.Size = new Size(innerWidth, globalPanelHeight);
-            y += globalPanelHeight + sectionGap;
-
-            if (_macrosSectionSeparator is not null)
-            {
-                _macrosSectionSeparator.Location = new Point(margin, y);
-                _macrosSectionSeparator.Size = new Size(innerWidth, 1);
-                y += 1 + sectionGap;
-            }
-
-            label_MacrosBuildSection.Location = new Point(margin, y);
-            y += buildHeaderHeight;
-
-            _macroBuildPresetBar.Location = new Point(margin, y);
-            _macroBuildPresetBar.Size = new Size(innerWidth, presetBarHeight);
-            y += presetBarHeight + 4;
-
-            _buildMacrosPanel.Location = new Point(margin, y);
-            _buildMacrosPanel.Size = new Size(innerWidth, Math.Max(120, height - y - margin));
+            var panelLocation = new Point(margin, y);
+            var panelSize = new Size(innerWidth, Math.Max(160, height - y - margin));
+            if (_macrosPanel.Location != panelLocation)
+                _macrosPanel.Location = panelLocation;
+            if (_macrosPanel.Size != panelSize)
+                _macrosPanel.Size = panelSize;
         }
 
         private void LayoutSettingsTab()

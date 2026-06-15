@@ -1,4 +1,5 @@
 using PoE.dlls.Automation;
+using PoE.dlls.InteropServices;
 using PoE.dlls.KeyBindings;
 using PoE.dlls.Settings.Macros;
 
@@ -6,7 +7,7 @@ namespace PoE.dlls.Macros
 {
     /// <summary>
     /// Polls trigger keys and fires macro sequences.
-    /// Loop/Repeat use a dedicated poll loop instead of <see cref="Poss.Win.Automation.GlobalHotKeys.GlobalHotKeyManager"/>
+    /// Loop/Repeat/JE/JNE use a dedicated poll loop instead of <see cref="Poss.Win.Automation.GlobalHotKeys.GlobalHotKeyManager"/>
     /// for held-key repeat to avoid nested hook handlers, coalesced input, and deadlocks.
     /// </summary>
     public sealed class MacroEngine
@@ -19,7 +20,8 @@ namespace PoE.dlls.Macros
         private CancellationTokenSource? _pollCts;
         private readonly Dictionary<Guid, bool> _triggerWasDown = new();
         private readonly Dictionary<Guid, long> _lastCycleFireTicks = new();
-        private readonly HashSet<Guid> _repeatRunning = new();
+        private readonly Dictionary<Guid, long> _lockUntilTicks = new();
+        private readonly HashSet<Guid> _cycleInProgress = new();
 
         public MacroEngine(InputSimulatorHost inputHost)
         {
@@ -40,11 +42,7 @@ namespace PoE.dlls.Macros
         public void ApplySettings(MacroSettings settings)
         {
             lock (_stateLock)
-            {
                 _settings = settings;
-                if (!_settings.FeatureEnabled)
-                    _repeatRunning.Clear();
-            }
         }
 
         public void Start()
@@ -66,11 +64,7 @@ namespace PoE.dlls.Macros
         public void ToggleFeatureEnabled()
         {
             lock (_stateLock)
-            {
                 _settings.FeatureEnabled = !_settings.FeatureEnabled;
-                if (!_settings.FeatureEnabled)
-                    _repeatRunning.Clear();
-            }
 
             SettingsChanged?.Invoke();
         }
@@ -78,45 +72,15 @@ namespace PoE.dlls.Macros
         public void SetFeatureEnabled(bool enabled)
         {
             lock (_stateLock)
-            {
                 _settings.FeatureEnabled = enabled;
-                if (!enabled)
-                    _repeatRunning.Clear();
-            }
 
             SettingsChanged?.Invoke();
-        }
-
-        public void ToggleRepeat(Guid triggerId)
-        {
-            lock (_stateLock)
-            {
-                if (!_settings.FeatureEnabled)
-                    return;
-
-                if (_repeatRunning.Contains(triggerId))
-                    _repeatRunning.Remove(triggerId);
-                else
-                    _repeatRunning.Add(triggerId);
-            }
         }
 
         public void ToggleTriggerActive(MacroTrigger trigger)
         {
             trigger.Active = !trigger.Active;
-
-            lock (_stateLock)
-            {
-                _repeatRunning.Remove(trigger.Id);
-            }
-
             SettingsChanged?.Invoke();
-        }
-
-        public void StopRepeat(Guid triggerId)
-        {
-            lock (_stateLock)
-                _repeatRunning.Remove(triggerId);
         }
 
         public MacroTrigger? FindTrigger(Guid triggerId)
@@ -183,6 +147,9 @@ namespace PoE.dlls.Macros
             {
                 cancellationToken.ThrowIfCancellationRequested();
 
+                if (_cycleInProgress.Contains(trigger.Id))
+                    continue;
+
                 switch (trigger.Behavior)
                 {
                     case MacroBehavior.Single:
@@ -193,6 +160,10 @@ namespace PoE.dlls.Macros
                         break;
                     case MacroBehavior.Repeat:
                         await ProcessRepeatAsync(trigger, cancellationToken).ConfigureAwait(false);
+                        break;
+                    case MacroBehavior.JE:
+                    case MacroBehavior.JNE:
+                        await ProcessPixelJumpAsync(trigger, cancellationToken).ConfigureAwait(false);
                         break;
                 }
             }
@@ -224,11 +195,20 @@ namespace PoE.dlls.Macros
 
             return trigger.Behavior switch
             {
-                MacroBehavior.Repeat => KeyBindingHelper.TryResolveStored(trigger.ToggleKey, out _, out _),
+                MacroBehavior.Repeat => true,
+                MacroBehavior.JE or MacroBehavior.JNE => IsPixelTriggerValid(trigger),
                 MacroBehavior.Single or MacroBehavior.Loop =>
                     KeyBindingHelper.TryResolveStored(trigger.TriggerKey, out _, out _),
                 _ => false,
             };
+        }
+
+        private static bool IsPixelTriggerValid(MacroTrigger trigger)
+        {
+            if (trigger.PixelX < 0 || trigger.PixelY < 0)
+                return false;
+
+            return MacroColorHelper.TryParseHex(trigger.ExpectedColor, out _);
         }
 
         private async Task ProcessSingleAsync(MacroTrigger trigger, CancellationToken cancellationToken)
@@ -243,11 +223,7 @@ namespace PoE.dlls.Macros
             if (!isDown || wasDown)
                 return;
 
-            await MacroFireSequence.ExecuteAsync(
-                _inputHost.Simulator,
-                trigger.FireSequence,
-                trigger.KeyDelayMs,
-                cancellationToken).ConfigureAwait(false);
+            await RunFireCycleAsync(trigger, cancellationToken).ConfigureAwait(false);
         }
 
         private async Task ProcessLoopAsync(MacroTrigger trigger, CancellationToken cancellationToken)
@@ -264,52 +240,95 @@ namespace PoE.dlls.Macros
             if (!ShouldFireCycle(trigger.Id, trigger.CycleDelayMs))
                 return;
 
-            await MacroFireSequence.ExecuteAsync(
-                _inputHost.Simulator,
-                trigger.FireSequence,
-                trigger.KeyDelayMs,
-                cancellationToken).ConfigureAwait(false);
+            await RunFireCycleAsync(trigger, cancellationToken).ConfigureAwait(false);
         }
 
         private async Task ProcessRepeatAsync(MacroTrigger trigger, CancellationToken cancellationToken)
         {
-            bool isRunning;
-            lock (_stateLock)
-                isRunning = _repeatRunning.Contains(trigger.Id);
+            if (!ShouldFireCycle(trigger.Id, trigger.CycleDelayMs))
+                return;
 
-            if (!isRunning)
+            await RunFireCycleAsync(trigger, cancellationToken).ConfigureAwait(false);
+        }
+
+        private async Task ProcessPixelJumpAsync(MacroTrigger trigger, CancellationToken cancellationToken)
+        {
+            if (!_inputHost.Simulator.IsActiveWindow())
+                return;
+
+            if (!MacroColorHelper.TryParseHex(trigger.ExpectedColor, out Color expected))
+                return;
+
+            Color sampled = InteropHelper.GetColorAt(trigger.PixelX, trigger.PixelY);
+            bool matches = MacroColorHelper.MatchesStrict(sampled, expected);
+            bool condition = trigger.Behavior == MacroBehavior.JE ? matches : !matches;
+
+            if (!condition)
+                return;
+
+            if (IsLocked(trigger.Id))
                 return;
 
             if (!ShouldFireCycle(trigger.Id, trigger.CycleDelayMs))
                 return;
 
-            await MacroFireSequence.ExecuteAsync(
-                _inputHost.Simulator,
-                trigger.FireSequence,
-                trigger.KeyDelayMs,
-                cancellationToken).ConfigureAwait(false);
+            await RunFireCycleAsync(trigger, cancellationToken, trigger.LockMs).ConfigureAwait(false);
         }
 
-        private static bool ShouldFireCycle(Guid triggerId, int cycleDelayMs)
+        private async Task RunFireCycleAsync(
+            MacroTrigger trigger,
+            CancellationToken cancellationToken,
+            int lockMs = 0)
+        {
+            _cycleInProgress.Add(trigger.Id);
+            try
+            {
+                await MacroFireSequence.ExecuteAsync(
+                    _inputHost.Simulator,
+                    trigger.FireSequence,
+                    trigger.KeyDelayMs,
+                    cancellationToken).ConfigureAwait(false);
+
+                if (lockMs > 0)
+                    _lockUntilTicks[trigger.Id] = Environment.TickCount64 + lockMs;
+            }
+            finally
+            {
+                _cycleInProgress.Remove(trigger.Id);
+            }
+        }
+
+        private bool IsLocked(Guid triggerId)
+        {
+            if (!_lockUntilTicks.TryGetValue(triggerId, out long until))
+                return false;
+
+            if (Environment.TickCount64 >= until)
+            {
+                _lockUntilTicks.Remove(triggerId);
+                return false;
+            }
+
+            return true;
+        }
+
+        private bool ShouldFireCycle(Guid triggerId, int cycleDelayMs)
         {
             long now = Environment.TickCount64;
             if (cycleDelayMs < 0)
                 cycleDelayMs = 0;
 
-            // Uses a static map keyed by trigger id; safe because poll loop is single-threaded.
-            if (!CycleFireTicks.TryGetValue(triggerId, out long last))
+            if (!_lastCycleFireTicks.TryGetValue(triggerId, out long last))
             {
-                CycleFireTicks[triggerId] = now;
+                _lastCycleFireTicks[triggerId] = now;
                 return true;
             }
 
             if (now - last < cycleDelayMs)
                 return false;
 
-            CycleFireTicks[triggerId] = now;
+            _lastCycleFireTicks[triggerId] = now;
             return true;
         }
-
-        private static readonly Dictionary<Guid, long> CycleFireTicks = new();
     }
 }

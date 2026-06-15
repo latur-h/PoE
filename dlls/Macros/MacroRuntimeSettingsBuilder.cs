@@ -4,33 +4,36 @@ namespace PoE.dlls.Macros
 {
     internal static class MacroRuntimeSettingsBuilder
     {
-        public static MacroSettings Build(
-            MacroSettings source,
-            IReadOnlyList<MacroTrigger> globalRuntimeTriggers,
-            IReadOnlyList<MacroTrigger> buildRuntimeTriggers)
+        public static MacroSettings Build(MacroSettings source)
         {
-            var runtime = new MacroSettings
+            bool buildActive = MacroSettingsHelper.IsAdditionalBuildProfileActive(source);
+            string activeName = source.ActiveBuildProfileName;
+
+            return new MacroSettings
             {
                 EnableKey = source.EnableKey,
                 FeatureEnabled = source.FeatureEnabled,
                 ActiveBuildProfileName = source.ActiveBuildProfileName,
+                RememberedColors = source.RememberedColors?.ToList() ?? [],
                 GlobalProfile = new MacroProfile
                 {
                     Name = MacroProfile.GlobalName,
-                    Triggers = globalRuntimeTriggers.Select(CloneTrigger).ToList(),
+                    Triggers = source.GlobalProfile.Triggers
+                        .Select(MacroTriggerRuntimeHelper.ToRuntimeTrigger)
+                        .Select(CloneTrigger)
+                        .ToList(),
                 },
                 BuildProfiles = source.BuildProfiles
                     .Select(profile => new MacroProfile
                     {
                         Name = profile.Name,
-                        Triggers = string.Equals(profile.Name, source.ActiveBuildProfileName, StringComparison.OrdinalIgnoreCase)
-                            ? buildRuntimeTriggers.Select(CloneTrigger).ToList()
+                        Triggers = buildActive
+                            && string.Equals(profile.Name, activeName, StringComparison.OrdinalIgnoreCase)
+                            ? profile.Triggers.Select(MacroTriggerRuntimeHelper.ToRuntimeTrigger).Select(CloneTrigger).ToList()
                             : profile.Triggers.Select(CloneTrigger).ToList(),
                     })
                     .ToList(),
             };
-
-            return runtime;
         }
 
         private static MacroTrigger CloneTrigger(MacroTrigger trigger) => new()
@@ -43,6 +46,10 @@ namespace PoE.dlls.Macros
             KeyDelayMs = trigger.KeyDelayMs,
             CycleDelayMs = trigger.CycleDelayMs,
             ToggleKey = trigger.ToggleKey,
+            PixelX = trigger.PixelX,
+            PixelY = trigger.PixelY,
+            ExpectedColor = trigger.ExpectedColor,
+            LockMs = trigger.LockMs,
         };
     }
 }

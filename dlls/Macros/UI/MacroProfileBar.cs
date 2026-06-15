@@ -3,19 +3,20 @@ using PoE.dlls.Style;
 
 namespace PoE.dlls.Macros.UI
 {
-    public sealed class MacroBuildPresetBar : UserControl
+    public sealed class MacroProfileBar : UserControl
     {
         private static readonly Font UiFont = new("Segoe UI", 12F, FontStyle.Regular, GraphicsUnit.Point);
 
         private readonly Label _label;
         private readonly FlatComboBox _combo;
+        private readonly Label _runtimeHint;
         private readonly Button _addButton;
         private readonly Button _removeButton;
 
         private MacroSettings? _macros;
         private bool _suppressEvents;
 
-        public MacroBuildPresetBar()
+        public MacroProfileBar()
         {
             BackColor = StaticColors.BackGround;
             Height = 34;
@@ -24,7 +25,7 @@ namespace PoE.dlls.Macros.UI
             {
                 AutoSize = true,
                 Location = new Point(0, 6),
-                Text = "Build profile",
+                Text = "Profile",
                 ForeColor = StaticColors.ForeGround,
                 BackColor = StaticColors.BackGround,
                 Font = UiFont,
@@ -32,52 +33,88 @@ namespace PoE.dlls.Macros.UI
 
             _combo = new FlatComboBox
             {
-                Location = new Point(108, 2),
-                Size = new Size(200, 30),
+                Location = new Point(68, 2),
+                Size = new Size(180, 30),
                 Font = UiFont,
+                DropDownStyle = ComboBoxStyle.DropDownList,
             };
             _combo.SelectedIndexChanged += (_, _) => OnSelectionChanged();
 
-            _addButton = CreateIconButton("+", 316);
+            _runtimeHint = new Label
+            {
+                AutoSize = true,
+                Location = new Point(256, 8),
+                ForeColor = StaticColors.ForeGround,
+                BackColor = StaticColors.BackGround,
+                Font = new Font("Segoe UI", 10F),
+            };
+
+            _addButton = CreateIconButton("+", 0);
             _addButton.Click += (_, _) => AddProfile();
 
-            _removeButton = CreateIconButton("−", 352);
+            _removeButton = CreateIconButton("−", 0);
             _removeButton.Click += (_, _) => RemoveProfile();
 
             Controls.Add(_label);
             Controls.Add(_combo);
+            Controls.Add(_runtimeHint);
             Controls.Add(_addButton);
             Controls.Add(_removeButton);
+
+            Resize += (_, _) => LayoutControls();
         }
 
         public event EventHandler? ProfileChanging;
         public event EventHandler<MacroProfile>? ProfileRemoved;
         public event EventHandler? ProfileChanged;
 
+        public string SelectedProfileName { get; private set; } = MacroProfile.GlobalName;
+
         public void Bind(MacroSettings macros) => _macros = macros;
+
+        public MacroProfile? GetSelectedProfile()
+        {
+            if (_macros is null)
+                return null;
+
+            return MacroSettingsHelper.GetProfileByName(_macros, SelectedProfileName);
+        }
 
         public void RefreshProfiles()
         {
             if (_macros is null)
                 return;
 
+            SelectedProfileName = ResolveSelectedProfileName(_macros);
+
             _suppressEvents = true;
             _combo.BeginUpdate();
             try
             {
                 _combo.Items.Clear();
+                _combo.Items.Add(MacroProfile.GlobalName);
                 foreach (MacroProfile profile in _macros.BuildProfiles)
                     _combo.Items.Add(profile.Name);
 
-                _combo.SelectedItem = _macros.ActiveBuildProfileName;
+                _combo.SelectedItem = SelectedProfileName;
             }
             finally
             {
                 _combo.EndUpdate();
             }
 
+            UpdateRuntimeHint();
             UpdateRemoveButtonState();
+            LayoutControls();
             _suppressEvents = false;
+        }
+
+        private static string ResolveSelectedProfileName(MacroSettings macros)
+        {
+            if (MacroSettingsHelper.IsAdditionalBuildProfileActive(macros))
+                return macros.ActiveBuildProfileName;
+
+            return MacroProfile.GlobalName;
         }
 
         private void OnSelectionChanged()
@@ -85,11 +122,17 @@ namespace PoE.dlls.Macros.UI
             if (_suppressEvents || _macros is null || _combo.SelectedItem is not string name)
                 return;
 
-            if (string.Equals(_macros.ActiveBuildProfileName, name, StringComparison.OrdinalIgnoreCase))
+            if (string.Equals(SelectedProfileName, name, StringComparison.OrdinalIgnoreCase))
                 return;
 
             ProfileChanging?.Invoke(this, EventArgs.Empty);
-            _macros.ActiveBuildProfileName = name;
+
+            SelectedProfileName = name;
+            _macros.ActiveBuildProfileName = string.Equals(name, MacroProfile.GlobalName, StringComparison.OrdinalIgnoreCase)
+                ? MacroProfile.GlobalName
+                : name;
+
+            UpdateRuntimeHint();
             UpdateRemoveButtonState();
             ProfileChanged?.Invoke(this, EventArgs.Empty);
         }
@@ -116,47 +159,66 @@ namespace PoE.dlls.Macros.UI
 
             _macros.BuildProfiles.Add(profile);
             _macros.ActiveBuildProfileName = profile.Name;
+            SelectedProfileName = profile.Name;
             RefreshProfiles();
             ProfileChanged?.Invoke(this, EventArgs.Empty);
         }
 
         private void RemoveProfile()
         {
-            if (_macros is null || _macros.BuildProfiles.Count <= 1)
+            if (_macros is null || !CanRemoveSelectedProfile())
                 return;
 
-            var active = _macros.BuildProfiles.FirstOrDefault(p =>
-                string.Equals(p.Name, _macros.ActiveBuildProfileName, StringComparison.OrdinalIgnoreCase));
-
-            if (active is null ||
-                string.Equals(active.Name, MacroProfile.DefaultBuildName, StringComparison.OrdinalIgnoreCase))
+            var profile = MacroSettingsHelper.GetProfileByName(_macros, SelectedProfileName);
+            if (profile is null || ReferenceEquals(profile, _macros.GlobalProfile))
                 return;
 
             ProfileChanging?.Invoke(this, EventArgs.Empty);
-            _macros.BuildProfiles.Remove(active);
-            ProfileRemoved?.Invoke(this, active);
+            _macros.BuildProfiles.Remove(profile);
+            ProfileRemoved?.Invoke(this, profile);
 
-            if (_macros.BuildProfiles.All(p =>
-                    !string.Equals(p.Name, _macros.ActiveBuildProfileName, StringComparison.OrdinalIgnoreCase)))
-            {
-                _macros.ActiveBuildProfileName = _macros.BuildProfiles.First(p =>
-                    string.Equals(p.Name, MacroProfile.DefaultBuildName, StringComparison.OrdinalIgnoreCase)).Name;
-            }
-
+            _macros.ActiveBuildProfileName = MacroProfile.GlobalName;
+            SelectedProfileName = MacroProfile.GlobalName;
             RefreshProfiles();
             ProfileChanged?.Invoke(this, EventArgs.Empty);
         }
 
-        private void UpdateRemoveButtonState()
+        private void UpdateRuntimeHint()
         {
             if (_macros is null)
+            {
+                _runtimeHint.Text = string.Empty;
                 return;
+            }
 
-            bool canRemove = _macros.BuildProfiles.Count > 1
-                && !string.Equals(_macros.ActiveBuildProfileName, MacroProfile.DefaultBuildName, StringComparison.OrdinalIgnoreCase);
+            _runtimeHint.Text = MacroSettingsHelper.IsAdditionalBuildProfileActive(_macros)
+                ? $"Runtime: Global + { _macros.ActiveBuildProfileName }"
+                : "Runtime: Global only";
+        }
 
+        private void UpdateRemoveButtonState()
+        {
+            bool canRemove = CanRemoveSelectedProfile();
             _removeButton.Enabled = canRemove;
             _removeButton.ForeColor = canRemove ? StaticColors.ForeGround : Color.Gray;
+        }
+
+        private bool CanRemoveSelectedProfile()
+        {
+            if (_macros is null)
+                return false;
+
+            return !string.Equals(SelectedProfileName, MacroProfile.GlobalName, StringComparison.OrdinalIgnoreCase);
+        }
+
+        private void LayoutControls()
+        {
+            int width = Math.Max(360, ClientSize.Width);
+            _addButton.Location = new Point(width - 68, 2);
+            _removeButton.Location = new Point(width - 34, 2);
+
+            int hintRight = _addButton.Left - 8;
+            _runtimeHint.MaximumSize = new Size(Math.Max(120, hintRight - _runtimeHint.Left), 0);
         }
 
         private static Button CreateIconButton(string text, int x) =>

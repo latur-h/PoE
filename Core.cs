@@ -1,8 +1,10 @@
 using PoE.dlls.Automation;
+using PoE.dlls.Flasks;
 using PoE.dlls.Flasks.Base;
 using PoE.dlls.Gamba;
 using PoE.dlls.Gamble;
 using PoE.dlls.Macros;
+using PoE.dlls.Settings;
 using PoE.dlls.Settings.Macros;
 using PoE.dlls.InteropServices;
 using PoE.dlls.Logger;
@@ -28,6 +30,7 @@ namespace PoE
 
             MacroSettingsHelper.EnsureInitialized(_settings.Macros);
             MacroHotkeyBinder.RegisterEnableHotkey(_hotkeys, _macroEngine, _settings.Macros.EnableKey);
+            RestoreRegisteredFlasks();
             ApplyMacrosRuntime();
             _macroEngine.Start();
 
@@ -40,74 +43,61 @@ namespace PoE
             Invoke(() =>
             {
                 _flaskManager.Flush();
-
-                if (_settings.Flasks["1"].Active)
-                {
-                    FlaskType type = Enum.Parse<FlaskType>(_settings.Flasks["1"].FlaskType);
-                    int number = 1;
-
-                    if (type == FlaskType.HP || type == FlaskType.MP)
-                        number = _settings.Flasks["1"].Percent;
-
-                    string key = _settings.Flasks["1"].Key;
-
-                    _flaskManager.RegisterFlask(type, number, key);
-                }
-
-                if (_settings.Flasks["2"].Active)
-                {
-                    FlaskType type = Enum.Parse<FlaskType>(_settings.Flasks["2"].FlaskType);
-                    int number = 2;
-
-                    if (type == FlaskType.HP || type == FlaskType.MP)
-                        number = _settings.Flasks["2"].Percent;
-
-                    string key = _settings.Flasks["2"].Key;
-
-                    _flaskManager.RegisterFlask(type, number, key);
-                }
-
-                if (_settings.Flasks["3"].Active)
-                {
-                    FlaskType type = Enum.Parse<FlaskType>(_settings.Flasks["3"].FlaskType);
-                    int number = 3;
-
-                    if (type == FlaskType.HP || type == FlaskType.MP)
-                        number = _settings.Flasks["3"].Percent;
-
-                    string key = _settings.Flasks["3"].Key;
-
-                    _flaskManager.RegisterFlask(type, number, key);
-                }
-
-                if (_settings.Flasks["4"].Active)
-                {
-                    FlaskType type = Enum.Parse<FlaskType>(_settings.Flasks["4"].FlaskType);
-                    int number = 4;
-
-                    if (type == FlaskType.HP || type == FlaskType.MP)
-                        number = _settings.Flasks["4"].Percent;
-
-                    string key = _settings.Flasks["4"].Key;
-
-                    _flaskManager.RegisterFlask(type, number, key);
-                }
-
-                if (_settings.Flasks["5"].Active)
-                {
-                    FlaskType type = Enum.Parse<FlaskType>(_settings.Flasks["5"].FlaskType);
-                    int number = 5;
-
-                    if (type == FlaskType.HP || type == FlaskType.MP)
-                        number = _settings.Flasks["5"].Percent;
-
-                    string key = _settings.Flasks["5"].Key;
-
-                    _flaskManager.RegisterFlask(type, number, key);
-                }
+                RegisterFlaskSlot("1", captureColors: true);
+                RegisterFlaskSlot("2", captureColors: true);
+                RegisterFlaskSlot("3", captureColors: true);
+                RegisterFlaskSlot("4", captureColors: true);
+                RegisterFlaskSlot("5", captureColors: true);
             });
 
             return Task.CompletedTask;
+        }
+
+        private void RestoreRegisteredFlasks()
+        {
+            _flaskManager.Flush();
+
+            if (!_settings.Flasks.Values.Any(f => f.IsRegistered))
+                return;
+
+            RegisterFlaskSlot("1", captureColors: false);
+            RegisterFlaskSlot("2", captureColors: false);
+            RegisterFlaskSlot("3", captureColors: false);
+            RegisterFlaskSlot("4", captureColors: false);
+            RegisterFlaskSlot("5", captureColors: false);
+        }
+
+        private void RegisterFlaskSlot(string slotKey, bool captureColors)
+        {
+            UIFlask ui = _settings.Flasks[slotKey];
+            if (!ui.Active)
+                return;
+
+            FlaskType type = Enum.Parse<FlaskType>(ui.FlaskType);
+            int number = int.Parse(slotKey);
+
+            if (type is FlaskType.HP or FlaskType.MP)
+                number = ui.Percent;
+
+            FlaskRegistration? saved = null;
+
+            if (captureColors)
+            {
+                saved = FlaskRegistrationSampler.Sample(type, number);
+                ui.IsRegistered = true;
+                ui.RegisteredTopArgb = saved.TopArgb;
+                ui.RegisteredBottomArgb = saved.BottomArgb;
+            }
+            else if (ui.IsRegistered)
+            {
+                saved = new FlaskRegistration
+                {
+                    TopArgb = ui.RegisteredTopArgb,
+                    BottomArgb = ui.RegisteredBottomArgb,
+                };
+            }
+
+            _flaskManager.RegisterFlask(type, number, ui.Key, saved);
         }
         private Task DrinkFlasks() => _flaskManager.DrinkFlasks();
         private Task StopDrinking()
@@ -119,9 +109,31 @@ namespace PoE
         #region Gambler
         private Task GamblerGetCoordinates()
         {
-            Invoke(() => TryApplyRecordedCoordinate());
+            Invoke(() =>
+            {
+                if (TryApplyMacroCoordinateCapture())
+                    return;
+
+                TryApplyRecordedCoordinate();
+            });
+
             return Task.CompletedTask;
         }
+
+        private bool TryApplyMacroCoordinateCapture()
+        {
+            var coordinates = InteropHelper.GetMousePos();
+
+            if (_macrosPanel.TryApplyCapture(coordinates))
+            {
+                ClearCoordinateRecording();
+                return true;
+            }
+
+            return false;
+        }
+
+        private void DisarmMacroCoordinateCapture() => _macrosPanel.DisarmCapture();
 
         private async Task GamblerStart()
         {

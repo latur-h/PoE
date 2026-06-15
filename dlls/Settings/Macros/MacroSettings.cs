@@ -8,8 +8,11 @@ namespace PoE.dlls.Settings.Macros
 
         public MacroProfile GlobalProfile { get; set; } = new() { Name = MacroProfile.GlobalName };
 
-        public string ActiveBuildProfileName { get; set; } = MacroProfile.DefaultBuildName;
+        public string ActiveBuildProfileName { get; set; } = MacroProfile.GlobalName;
 
         public List<MacroProfile> BuildProfiles { get; set; } = [];
+
+        /// <summary>Saved #RRGGBB colors from prior eyedropper picks.</summary>
+        public List<string> RememberedColors { get; set; } = [];
     }
 }

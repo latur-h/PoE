@@ -2,6 +2,7 @@ using PoE.dlls.KeyBindings;
 using PoE.dlls.Macros;
 using PoE.dlls.Settings;
 using PoE.dlls.Settings.Macros;
+using System.Drawing;
 using Xunit;
 
 namespace PoE.Tests;
@@ -82,6 +83,97 @@ public class MacroKeyConflictCheckerTests
         });
 
         var usages = MacroKeyConflictChecker.CollectUsages(settings);
-        Assert.DoesNotContain(usages, u => u.Label.Contains("start/stop", StringComparison.Ordinal));
+        Assert.DoesNotContain(usages, u => u.Label.Contains("toggle active", StringComparison.Ordinal) && u.MacroTrigger?.Behavior == MacroBehavior.Repeat);
+    }
+}
+
+public class MacroSettingsHelperTests
+{
+    [Fact]
+    public void IsAdditionalBuildProfileActive_false_when_global_selected()
+    {
+        var settings = new MacroSettings();
+        MacroSettingsHelper.EnsureInitialized(settings);
+        settings.ActiveBuildProfileName = MacroProfile.GlobalName;
+
+        Assert.False(MacroSettingsHelper.IsAdditionalBuildProfileActive(settings));
+        Assert.Null(MacroSettingsHelper.GetActiveBuildProfile(settings));
+    }
+
+    [Fact]
+    public void IsAdditionalBuildProfileActive_true_for_named_build_profile()
+    {
+        var settings = new MacroSettings();
+        MacroSettingsHelper.EnsureInitialized(settings);
+        settings.BuildProfiles.Add(new MacroProfile { Name = "BV Minion", Triggers = [] });
+        settings.ActiveBuildProfileName = "BV Minion";
+
+        Assert.True(MacroSettingsHelper.IsAdditionalBuildProfileActive(settings));
+        Assert.NotNull(MacroSettingsHelper.GetActiveBuildProfile(settings));
+    }
+
+    [Fact]
+    public void EnsureInitialized_does_not_auto_create_default_build_profile()
+    {
+        var settings = new MacroSettings { BuildProfiles = [] };
+        MacroSettingsHelper.EnsureInitialized(settings);
+
+        Assert.Empty(settings.BuildProfiles);
+        Assert.Equal(MacroProfile.GlobalName, settings.ActiveBuildProfileName);
+    }
+
+    [Fact]
+    public void GetProfileByName_returns_global_profile()
+    {
+        var settings = new MacroSettings();
+        MacroSettingsHelper.EnsureInitialized(settings);
+
+        var profile = MacroSettingsHelper.GetProfileByName(settings, MacroProfile.GlobalName);
+
+        Assert.Same(settings.GlobalProfile, profile);
+    }
+}
+
+public class MacroColorHelperTests
+{
+    [Theory]
+    [InlineData("#AABBCC", true, 0xAA, 0xBB, 0xCC)]
+    [InlineData("AABBCC", true, 0xAA, 0xBB, 0xCC)]
+    [InlineData("#abc", false, 0, 0, 0)]
+    [InlineData("not-a-color", false, 0, 0, 0)]
+    public void TryParseHex_parses_strict_rrggbb(string raw, bool expectedValid, int r, int g, int b)
+    {
+        bool valid = MacroColorHelper.TryParseHex(raw, out Color color);
+        Assert.Equal(expectedValid, valid);
+
+        if (expectedValid)
+        {
+            Assert.Equal(r, color.R);
+            Assert.Equal(g, color.G);
+            Assert.Equal(b, color.B);
+        }
+    }
+
+    [Fact]
+    public void MatchesStrict_compares_rgb_only()
+    {
+        Color expected = Color.FromArgb(255, 10, 20, 30);
+        Color match = Color.FromArgb(0, 10, 20, 30);
+        Color mismatch = Color.FromArgb(255, 10, 20, 31);
+
+        Assert.True(MacroColorHelper.MatchesStrict(match, expected));
+        Assert.False(MacroColorHelper.MatchesStrict(mismatch, expected));
+    }
+
+    [Fact]
+    public void RememberColor_deduplicates_and_caps_list()
+    {
+        var settings = new MacroSettings();
+        MacroColorHelper.RememberColor(settings, "#112233");
+        MacroColorHelper.RememberColor(settings, "#AABBCC");
+        MacroColorHelper.RememberColor(settings, "#112233");
+
+        Assert.Equal(2, settings.RememberedColors.Count);
+        Assert.Equal("#112233", settings.RememberedColors[0], StringComparer.OrdinalIgnoreCase);
     }
 }

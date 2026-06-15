@@ -164,6 +164,7 @@ namespace PoE
             if (_activeCoordinateSlot is not null)
                 StopCoordinateRecording(_activeCoordinateSlot);
 
+            DisarmMacroCoordinateCapture();
             _activeCoordinateSlot = slot;
             slot.Record.ForeColor = Color.Red;
             slot.Record.Text = "...";

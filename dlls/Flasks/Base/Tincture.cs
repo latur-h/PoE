@@ -1,4 +1,5 @@
 ﻿using PoE.dlls.Automation;
+using PoE.dlls.Flasks;
 using PoE.dlls.InteropServices;
 using Poss.Win.Automation.Input;
 
@@ -12,7 +13,7 @@ namespace PoE.dlls.Flasks.Base
         private readonly InputSimulatorHost _inputHost;
         private readonly FlaskTiming _timing;
 
-        public Tincture(InputSimulatorHost inputHost, string key, int number, FlaskTiming timing)
+        public Tincture(InputSimulatorHost inputHost, string key, int number, FlaskTiming timing, FlaskRegistration? saved = null)
         {
             _inputHost = inputHost;
             _timing = timing;
@@ -22,8 +23,12 @@ namespace PoE.dlls.Flasks.Base
 
             number--;
 
-            Color top = InteropHelper.GetColorAt(coordinates.x + coordinates.offset * number, coordinates.y);
-            Color bottom = ColorTranslator.FromHtml("#F9D799");
+            Color top = saved is not null
+                ? saved.TopColor
+                : InteropHelper.GetColorAt(coordinates.x + coordinates.offset * number, coordinates.y);
+            Color bottom = saved is not null && saved.BottomArgb != Color.Empty.ToArgb()
+                ? saved.BottomColor
+                : ColorTranslator.FromHtml("#F9D799");
 
             Flask = new Flask(FlaskType.Tincture, coordinates.x + coordinates.offset * number, coordinates.y, coordinates.x_bottom + coordinates.offset * number, coordinates.y_bottom, top, bottom, key);
         }
