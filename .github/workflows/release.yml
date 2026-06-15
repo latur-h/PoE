@@ -1,0 +1,52 @@
+name: Release
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'deploy/publish.txt'
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: windows-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Read version
+        id: ver
+        shell: pwsh
+        run: |
+          $raw = (Get-Content deploy/publish.txt -Raw).Trim()
+          if ($raw -match 'version\s*=\s*(.+)') { $v = $Matches[1].Trim() }
+          else { $v = $raw }
+          if ($v -notmatch '^\d+\.\d+\.\d+') { throw "Invalid version in deploy/publish.txt: $v" }
+          "version=$v" | Out-File -FilePath $env:GITHUB_OUTPUT -Append
+
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '10.0.x'
+
+      - name: Publish (ReleaseProfile)
+        run: >
+          dotnet publish PoE.csproj
+          -p:PublishProfile=ReleaseProfile
+          -p:Version=${{ steps.ver.outputs.version }}
+
+      - name: Zip publish output
+        shell: pwsh
+        run: |
+          $version = '${{ steps.ver.outputs.version }}'
+          $out = 'bin/Release/net10.0-windows/publish/win-x64'
+          Compress-Archive -Path "$out/*" -DestinationPath "PoE-$version-win-x64.zip"
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: v${{ steps.ver.outputs.version }}
+          name: v${{ steps.ver.outputs.version }}
+          generate_release_notes: true
+          files: PoE-${{ steps.ver.outputs.version }}-win-x64.zip
