@@ -104,18 +104,19 @@ namespace PoE.dlls.GameData
                 command.Parameters.AddWithValue("$offset", offset);
 
                 command.CommandText = $"""
-                    SELECT mod_name, mod_content
+                    SELECT MIN(mod_name) AS mod_name, mod_content
                     FROM mod_suggestions
                     WHERE (
                         (mod_content <> '' {contentWordChecks})
                         OR (mod_content = '' {nameWordChecks})
                     )
+                    GROUP BY CASE WHEN mod_content <> '' THEN mod_content ELSE mod_name END
                     ORDER BY
                         CASE WHEN mod_content <> '' THEN 0 ELSE 1 END,
                         CASE WHEN mod_content <> '' AND instr(lower(mod_content), lower($phrase)) > 0 THEN 0 ELSE 1 END,
-                        CASE WHEN mod_content <> '' THEN instr(lower(mod_content), lower($w0)) ELSE instr(lower(mod_name), lower($w0)) END,
+                        CASE WHEN mod_content <> '' THEN instr(lower(mod_content), lower($w0)) ELSE instr(lower(MIN(mod_name)), lower($w0)) END,
                         length(mod_content),
-                        mod_name,
+                        MIN(mod_name),
                         mod_content
                     LIMIT $limit OFFSET $offset;
                     """;

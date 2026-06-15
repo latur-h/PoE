@@ -273,7 +273,7 @@ namespace PoE.dlls.GameData
                 foreach (ModSuggestionItem item in suggestions)
                 {
                     _items.Add(item);
-                    _list.Items.Add(item.DisplayText);
+                    _list.Items.Add(item.GetDisplayText(_lastTerm));
                 }
 
                 _list.EndUpdate();
