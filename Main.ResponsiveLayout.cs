@@ -25,6 +25,32 @@ namespace PoE
             };
         }
 
+        private const int DefaultWindowWidth = 944;
+        private const int DefaultWindowHeight = 451;
+        private const int MinClientWidth = 640;
+        private const int MinClientHeight = 420;
+
+        private void ApplySavedWindowSize()
+        {
+            int width = _settings.WindowWidth > 0 ? _settings.WindowWidth : DefaultWindowWidth;
+            int height = _settings.WindowHeight > 0 ? _settings.WindowHeight : DefaultWindowHeight;
+
+            var area = Screen.FromControl(this).WorkingArea;
+            width = Math.Clamp(width, MinClientWidth, area.Width);
+            height = Math.Clamp(height, MinClientHeight, area.Height);
+
+            ClientSize = new Size(width, height);
+        }
+
+        private void SaveWindowSize()
+        {
+            if (WindowState != FormWindowState.Normal)
+                return;
+
+            _settings.WindowWidth = ClientSize.Width;
+            _settings.WindowHeight = ClientSize.Height;
+        }
+
         private static bool TryParseCoordinateText(string text, out Coordinates coordinates)
         {
             coordinates = default;
@@ -95,6 +121,9 @@ namespace PoE
 
         private void LayoutGambleTab()
         {
+            if (gamblePresetBar is null || gambleRulesPanel is null)
+                return;
+
             const int margin = 7;
             const int rowHeight = 30;
             const int labelGap = 8;

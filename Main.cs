@@ -298,6 +298,8 @@ namespace PoE
 
             SetupSettingsHints();
 
+            ApplySavedWindowSize();
+
             LayoutMainTab();
             LayoutGambleTab();
             LayoutOrbsTab();
@@ -514,6 +516,7 @@ namespace PoE
         {
             _hotkeys.Stop();
             gambleRulesPanel.Commit();
+            SaveWindowSize();
 
             _userSettings.SaveSettings();
         }

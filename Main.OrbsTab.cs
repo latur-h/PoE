@@ -209,6 +209,9 @@ namespace PoE
 
         private void LayoutOrbsTab()
         {
+            if (groupBox_OrbsItems is null || groupBox_OrbsOrbs is null)
+                return;
+
             const int margin = 7;
             int width = tabPage_Orbs.ClientSize.Width;
             int height = tabPage_Orbs.ClientSize.Height;

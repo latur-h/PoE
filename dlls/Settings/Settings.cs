@@ -12,6 +12,8 @@ namespace PoE.dlls.Settings
         public Dictionary<string, UIFlask> Flasks = [];
         public UIFlaskControls FlaskControls { get; set; } = new();
         public UIModifiers Modifiers { get; set; }
+        public int WindowWidth { get; set; }
+        public int WindowHeight { get; set; }
 
         public Settings()
         {
