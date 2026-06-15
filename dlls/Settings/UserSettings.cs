@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using Newtonsoft.Json;
+using PoE.dlls.Logger;
 using PoE.dlls.Settings.Mods;
 
 namespace PoE.dlls.Settings
@@ -49,7 +50,7 @@ namespace PoE.dlls.Settings
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"Error loading settings: {ex.Message}");
+                AppLog.System(LogSeverity.Error, $"Error loading settings: {ex.Message}");
 
                 try
                 {
@@ -57,7 +58,7 @@ namespace PoE.dlls.Settings
                 }
                 catch
                 {
-                    Console.WriteLine($"Error backing up settings file: {ex.Message}");
+                    AppLog.System(LogSeverity.Error, $"Error backing up settings file: {ex.Message}");
                 }
             }
 
@@ -75,7 +76,7 @@ namespace PoE.dlls.Settings
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"Error saving settings: {ex.Message}");
+                AppLog.System(LogSeverity.Error, $"Error saving settings: {ex.Message}");
             }
         }
     }

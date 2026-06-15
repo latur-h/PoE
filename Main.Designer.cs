@@ -108,9 +108,8 @@ namespace PoE
             textBox_GamblerStopKey = new FlatTextBox();
             textBox_GamblerStartKey = new FlatTextBox();
             textBox_GamblerGetCoordinatesKey = new FlatTextBox();
-            toolTip_Settings = new ToolTip(components);
             tabPage_Logs = new TabPage();
-            textBox_Logs = new TextBox();
+            toolTip_Settings = new ToolTip(components);
             tabControl_Main.SuspendLayout();
             tabPage_Main.SuspendLayout();
             groupBox_Flask5.SuspendLayout();
@@ -638,42 +637,6 @@ namespace PoE
             textBox_ItemXY.TabIndex = 38;
             textBox_ItemXY.TextAlign = HorizontalAlignment.Center;
             // 
-            // 
-            // 
-            // 
-            // 
-            // 
-            // 
-            // 
-            // 
-            // 
-            // 
-            // 
-            // 
-            // 
-            // 
-            // 
-            // 
-            // 
-            // 
-            // 
-            // 
-            // 
-            // 
-            // 
-            // 
-            // 
-            // 
-            // 
-            // 
-            // 
-            // 
-            // 
-            // 
-            // 
-            // 
-            // 
-            // 
             // comboBox_GambleType
             // 
             comboBox_GambleType.DrawMode = DrawMode.OwnerDrawFixed;
@@ -1006,24 +969,12 @@ namespace PoE
             // 
             // tabPage_Logs
             // 
-            tabPage_Logs.Controls.Add(textBox_Logs);
             tabPage_Logs.Location = new Point(4, 36);
             tabPage_Logs.Name = "tabPage_Logs";
             tabPage_Logs.Size = new Size(617, 397);
             tabPage_Logs.TabIndex = 2;
             tabPage_Logs.Text = "Logs";
             tabPage_Logs.UseVisualStyleBackColor = true;
-            // 
-            // textBox_Logs
-            // 
-            textBox_Logs.Dock = DockStyle.Fill;
-            textBox_Logs.Font = new Font("Segoe UI", 12F, FontStyle.Regular, GraphicsUnit.Point, 0);
-            textBox_Logs.Location = new Point(0, 0);
-            textBox_Logs.Multiline = true;
-            textBox_Logs.Name = "textBox_Logs";
-            textBox_Logs.ReadOnly = true;
-            textBox_Logs.Size = new Size(617, 397);
-            textBox_Logs.TabIndex = 0;
             // 
             // Main
             // 
@@ -1102,7 +1053,6 @@ namespace PoE
         private CheckBox checkBox_Flask4;
         private CheckBox checkBox_Flask3;
         private Label label_Active;
-        private TextBox textBox_Logs;
         private TabPage tabPage_Gamble;
         private FlatComboBox comboBox_GambleType;
         private Label label_BaseXY;

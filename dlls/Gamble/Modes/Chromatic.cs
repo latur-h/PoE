@@ -1,4 +1,5 @@
 ﻿using PoE.dlls.InteropServices;
+using PoE.dlls.Logger;
 using Poss.Win.Automation.Input;
 using System.Text.RegularExpressions;
 
@@ -50,7 +51,7 @@ namespace PoE.dlls.Gamble.Modes
 
             if (CheckItem())
             {
-                Console.WriteLine("[Gambler] [Success] Item matches the rules");
+                GamblerLog.Success();
                 return;
             }
 
@@ -82,11 +83,11 @@ namespace PoE.dlls.Gamble.Modes
 
             if (_token.IsCancellationRequested)
             {
-                Console.WriteLine("[Gambler] [Cancelled] Gambling was cancelled");
+                GamblerLog.Cancelled();
                 return;
             }
 
-            Console.WriteLine("[Gambler] [Success] Item matches the rules");
+            GamblerLog.Success();
         }
         private async Task Copy()
         {
@@ -108,7 +109,7 @@ namespace PoE.dlls.Gamble.Modes
             string itemContent = _main.Invoke(() => Clipboard.GetText(TextDataFormat.Text));
             if (string.IsNullOrEmpty(itemContent))
             {
-                Console.WriteLine("[Gambler] [Warning] Failed to get item content from clipboard. Try to increase the delay between actions if error is persist.");
+                GamblerLog.ClipboardEmptyWarning();
                 _cts.Cancel();
                 return false;
             }
@@ -122,7 +123,7 @@ namespace PoE.dlls.Gamble.Modes
             {
                 if (count >= maxAttempts)
                 {
-                    Console.WriteLine("[Gambler] [Failed] Maximum attempts reached. Cancelling.");
+                    GamblerLog.MaxAttemptsReached();
                     _cts.Cancel();
                     return false;
                 }

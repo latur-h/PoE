@@ -1,4 +1,5 @@
 ﻿using PoE.dlls.Flasks.Base;
+using PoE.dlls.Logger;
 using PoE.dlls.Settings;
 using Poss.Win.Automation.Input;
 
@@ -35,7 +36,7 @@ namespace PoE.dlls.Flasks
 
         public void RegisterFlask(FlaskType type, int numer, string key)
         {
-            Console.WriteLine($"Registering flask | Number: {numer}; Type: {type}; Key: {key}");
+            FlaskLog.Registered(numer, type, key);
 
             switch (type)
             {
@@ -51,7 +52,7 @@ namespace PoE.dlls.Flasks
         {
             if (cts is not null && !token.IsCancellationRequested) return;
 
-            Console.WriteLine("Starting drinking...");
+            FlaskLog.DrinkStarted();
 
             cts = new CancellationTokenSource();
             token = cts.Token;
@@ -70,7 +71,7 @@ namespace PoE.dlls.Flasks
                 await Task.WhenAll(tasks);
             }
 
-            Console.WriteLine("Drinking stopped.");
+            FlaskLog.DrinkStopped();
             cts.Dispose();
             cts = null;
         }
@@ -79,7 +80,7 @@ namespace PoE.dlls.Flasks
         {
             if (cts is null || token.IsCancellationRequested) return;
 
-            Console.WriteLine("Requested stop drinking...");
+            FlaskLog.StopRequested();
             cts.Cancel();
         }
     }

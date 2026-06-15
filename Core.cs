@@ -2,6 +2,7 @@ using PoE.dlls.Flasks.Base;
 using PoE.dlls.Gamba;
 using PoE.dlls.Gamble;
 using PoE.dlls.InteropServices;
+using PoE.dlls.Logger;
 using PoE.dlls.Settings.Mods;
 
 namespace PoE
@@ -132,9 +133,9 @@ namespace PoE
 
             if (cts is not null && !token.IsCancellationRequested) return;
 
-            Console.WriteLine("Clicker run...");
+            AppLog.System(LogSeverity.Info, "Clicker run...");
 
-            Console.WriteLine(token.IsCancellationRequested);
+            AppLog.System(LogSeverity.Debug, token.IsCancellationRequested.ToString());
 
             while (!token.IsCancellationRequested)
             {
@@ -144,7 +145,7 @@ namespace PoE
                 await Task.Delay(20);
             }
 
-            Console.WriteLine("Clicker stop...");
+            AppLog.System(LogSeverity.Info, "Clicker stop...");
 
             cts?.Dispose();
             cts = null;

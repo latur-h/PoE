@@ -1,25 +1,23 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using System.Text;
 
 namespace PoE.dlls.Logger
 {
-    public class ConsoleLogger : TextWriter
+    public sealed class ConsoleLogger : TextWriter
     {
-        private readonly TextBoxLogger _logger;
+        private readonly LogBuffer _buffer;
+
         public override Encoding Encoding => Encoding.UTF8;
 
-        public ConsoleLogger(TextBoxLogger logger)
-        {
-            _logger = logger;
-        }
+        public ConsoleLogger(LogBuffer buffer) => _buffer = buffer;
 
         public override void WriteLine(string? value)
         {
-            if (!string.IsNullOrEmpty(value))
-                _logger.Info(value);
+            if (string.IsNullOrWhiteSpace(value))
+                return;
+
+            var entry = ConsoleLogParser.Parse(value);
+            if (entry is not null)
+                _buffer.Add(entry);
         }
     }
 }

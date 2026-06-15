@@ -2,6 +2,7 @@
 using PoE.dlls.Gamble;
 using PoE.dlls.Gamble.Modes;
 using PoE.dlls.InteropServices;
+using PoE.dlls.Logger;
 
 namespace PoE.dlls.Gamba
 {
@@ -14,7 +15,7 @@ namespace PoE.dlls.Gamba
 
         public Gambler(Main _main, InputSimulator simulator, TimeSpan delay, double speed, GambleType type, Coordinates itemXY, Coordinates baseXY, Coordinates secondXY, List<Rule> rules)
         {
-            Console.WriteLine($"[Gambler] Initialize 'Gambler'...");
+            GamblerLog.Info("Initialize 'Gambler'...");
 
             _cts = new CancellationTokenSource();
             _token = _cts.Token;
@@ -33,14 +34,14 @@ namespace PoE.dlls.Gamba
                 _ => throw new ArgumentOutOfRangeException(nameof(type), type, null)
             };
 
-            Console.WriteLine($"[Gambler] Gambler initialized with type: {type}, delay: {delay.TotalMilliseconds}");
+            GamblerLog.Info($"Gambler initialized with type: {type}, delay: {delay.TotalMilliseconds}");
         }
 
         public async Task StartGambling()
         {
             if (_cts is null || _token.IsCancellationRequested) return;
 
-            Console.WriteLine("[Gambler] Starting gambling...");
+            GamblerLog.Info("Starting gambling...");
 
             await gamba.Gamble();
 
@@ -51,7 +52,7 @@ namespace PoE.dlls.Gamba
         {
             if (_cts is not null && !_token.IsCancellationRequested)
             {
-                Console.WriteLine("[Gambler] Stop gambling is requested");
+                GamblerLog.Info("Stop gambling is requested");
                 _cts.Cancel();
             }
         }

@@ -6,6 +6,7 @@ using PoE.dlls.InteropServices;
 using PoE.dlls.Gamble.UI;
 using PoE.dlls.KeyBindings;
 using PoE.dlls.Logger;
+using PoE.dlls.Logger.UI;
 using PoE.dlls.Settings;
 using PoE.dlls.Settings.Mods;
 using PoE.dlls.Style;
@@ -24,7 +25,6 @@ namespace PoE
         private GambleRulesPanel gambleRulesPanel = null!;
         private ToolTip toolTip_Gamble = null!;
         private Settings _settings = null!;
-        private TextBoxLogger _logger = null!;
 
         public Main(InputSimulator input, GlobalHotKeyManager hotkeys, FlaskManager flaskManager, UserSettings userSettings)
         {
@@ -38,15 +38,11 @@ namespace PoE
 
         private void Main_Load(object sender, EventArgs e)
         {
-            textBox_Logs.BackColor = StaticColors.BackGround;
-            textBox_Logs.ForeColor = StaticColors.ForeGround;
-            textBox_Logs.BorderStyle = BorderStyle.None;
-            textBox_Logs.Cursor = Cursors.Arrow;
-            textBox_Logs.ScrollBars = ScrollBars.Vertical;
+            var logsPanel = new LogsPanel(AppLog.Buffer) { Dock = DockStyle.Fill };
+            tabPage_Logs.Controls.Add(logsPanel);
 
-            _logger = new TextBoxLogger(textBox_Logs);
-            Console.SetOut(new ConsoleLogger(_logger));
-            Console.SetError(new ConsoleLogger(_logger));
+            Console.SetOut(new ConsoleLogger(AppLog.Buffer));
+            Console.SetError(new ConsoleLogger(AppLog.Buffer));
 
             _settings = _userSettings.LoadSettings();
 

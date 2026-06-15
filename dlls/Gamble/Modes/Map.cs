@@ -1,4 +1,5 @@
 ﻿using Poss.Win.Automation.Input;
+using PoE.dlls.Logger;
 using PoE.dlls.Gamble.Modifiers;
 using PoE.dlls.InteropServices;
 using System.Text.RegularExpressions;
@@ -93,7 +94,7 @@ namespace PoE.dlls.Gamble.Modes
 
             if (_token.IsCancellationRequested)
             {
-                Console.WriteLine("[Gambler] [Cancelled] Gambling was cancelled");
+                GamblerLog.Cancelled();
 
                 if (_isShiftHeld)
                     simulator.Send("Shift Up");
@@ -104,7 +105,7 @@ namespace PoE.dlls.Gamble.Modes
             if (_isShiftHeld)
                 simulator.Send("Shift Up");
 
-            Console.WriteLine($"[Gambler] [Success] Item matches the rules");
+            GamblerLog.Success();
         }
         private async Task Copy()
         {
@@ -126,7 +127,7 @@ namespace PoE.dlls.Gamble.Modes
             string itemContent = _main.Invoke(() => Clipboard.GetText(TextDataFormat.Text));
             if (string.IsNullOrEmpty(itemContent))
             {
-                Console.WriteLine("[Gambler] [Warning] Failed to get item content from clipboard. Try to increase the delay between actions if error is persist.");
+                GamblerLog.ClipboardEmptyWarning();
                 _cts.Cancel();
                 return false;
             }
@@ -140,7 +141,7 @@ namespace PoE.dlls.Gamble.Modes
             {
                 if (count >= maxAttempts)
                 {
-                    Console.WriteLine("[Gambler] [Failed] Maximum attempts reached. Cancelling.");
+                    GamblerLog.MaxAttemptsReached();
                     _cts.Cancel();
                     return false;
                 }
@@ -150,7 +151,7 @@ namespace PoE.dlls.Gamble.Modes
 
             if (!Regex.IsMatch(itemContent, @"item\sclass:\s(?>maps|expedition logbooks)", RegexOptions.IgnoreCase | RegexOptions.Singleline))
             {
-                Console.WriteLine("[Gambler] [Warning] Item is not a map.");
+                GamblerLog.Warn("Item is not a map.");
                 _cts.Cancel();
                 return false;
             }
@@ -184,7 +185,7 @@ namespace PoE.dlls.Gamble.Modes
                         if (packSize.IsMatch(itemContent))
                             _mapPackSize = int.Parse(packSize.Match(itemContent).Groups["number"].Value);
 
-                        Console.WriteLine($"Q{_mapQuantity}vs{_q};R{_mapRarity}vs{_r};PS{_mapPackSize}vs{_ps}");
+                        GamblerLog.Debug($"Q{_mapQuantity}vs{_q};R{_mapRarity}vs{_r};PS{_mapPackSize}vs{_ps}");
 
                         if (_mapQuantity < _q)
                             return false;
@@ -212,7 +213,7 @@ namespace PoE.dlls.Gamble.Modes
 
             List<Modifier> modifiers = [];
 
-            Console.WriteLine($"----------------------------");
+            GamblerLog.DebugSeparator();
             foreach (var mod in mods.Cast<Match>())
             {
                 ModifierType type = Enum.Parse<ModifierType>(getType.Match(mod.Value).Groups["Type"].Value.Trim());
@@ -229,7 +230,7 @@ namespace PoE.dlls.Gamble.Modes
                 content = strip.Replace(content, string.Empty).Trim();
 
                 if (!Regex.IsMatch(content, @"fractured", RegexOptions.IgnoreCase))
-                    Console.WriteLine($"Type={type}, Tier={tier}, Name={name}, Content={content}");
+                    GamblerLog.DebugMod(type, tier, name, content);
 
                 Modifier parsedMod = new(type, tier, name, content);
                 modifiers.Add(parsedMod);

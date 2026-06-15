@@ -1,4 +1,5 @@
 ﻿using Poss.Win.Automation.Input;
+using PoE.dlls.Logger;
 using PoE.dlls.Gamble.Modifiers;
 using PoE.dlls.InteropServices;
 using System.Text.RegularExpressions;
@@ -81,14 +82,14 @@ namespace PoE.dlls.Gamble.Modes
 
             if (_token.IsCancellationRequested)
             {
-                Console.WriteLine("[Gambler] [Cancelled] Gambling was cancelled");
+                GamblerLog.Cancelled();
                 return;
             }
 
             if (response == Response.Success)
-                Console.WriteLine("[Gambler] [Success] Item matches the rules");
+                GamblerLog.Success();
             else
-                Console.WriteLine("[Gambler] [Failed] Failed to check item!");
+                GamblerLog.Error("Failed to check item!");
         }
         private async Task FirstMove()
         {
@@ -143,7 +144,7 @@ namespace PoE.dlls.Gamble.Modes
             string itemContent = _main.Invoke(() => Clipboard.GetText(TextDataFormat.Text));
             if (string.IsNullOrEmpty(itemContent))
             {
-                Console.WriteLine("[Gambler] [Failed] Clipboard is empty or item content is not available.");
+                GamblerLog.Error("Clipboard is empty or item content is not available.");
                 _cts.Cancel();
                 return Response.Failure;
             }
@@ -157,7 +158,7 @@ namespace PoE.dlls.Gamble.Modes
             {
                 if (count >= maxAttempts)
                 {
-                    Console.WriteLine("[Gambler] [Failed] Maximum attempts reached. Cancelling.");
+                    GamblerLog.MaxAttemptsReached();
                     _cts.Cancel();
                     return Response.Failure;
                 }
@@ -177,7 +178,7 @@ namespace PoE.dlls.Gamble.Modes
 
             List<Modifier> modifiers = [];
 
-            Console.WriteLine($"----------------------------");
+            GamblerLog.DebugSeparator();
             foreach (var mod in mods.Cast<Match>())
             {
                 ModifierType type = Enum.Parse<ModifierType>(getType.Match(mod.Value).Groups["Type"].Value.Trim());
@@ -194,7 +195,7 @@ namespace PoE.dlls.Gamble.Modes
                 content = strip.Replace(content, string.Empty).Trim();
 
                 if (!Regex.IsMatch(content, @"fractured", RegexOptions.IgnoreCase) && type != ModifierType.Implicit)
-                    Console.WriteLine($"Type={type}, Tier={tier}, Name={name}, Content={content}");
+                    GamblerLog.DebugMod(type, tier, name, content);
 
                 Modifier parsedMod = new(type, tier, name, content);
                 modifiers.Add(parsedMod);
