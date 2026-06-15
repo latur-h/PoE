@@ -1,7 +1,8 @@
 # Map gamble mode
 
 **Source:** `dlls/Gamble/Modes/Map.cs`  
-**UI settings:** `UIMap` (Item, Base = alchemy, Second = scouring)
+**Shared rules:** `dlls/Gamble/Modes/MapRulesEvaluator.cs`  
+**UI settings:** per-mode store (Item, Base = alchemy, Second = scouring)
 
 Map rolling is optimized for **rejecting bad prefixes/suffixes** via exclude regex, not for hunting many specific mods. Stat thresholds (`q…r…ps…`) are optional. **Include** rules are rare (e.g. forcing a specific mod like magic pack size for god-roll maps) because each include row increases matching work and tightens success logic.
 
@@ -51,6 +52,64 @@ All three are **minimums** (map value must be ≥ target). Console logs: `Q61vs8
 
 Works with `(augmented)` suffix on stats. If a line is missing, that stat is treated as **0**.
 
+### Stat format B: `More … (augmented)` matching
+
+Use when the map **header** (above the first `--------`) contains lines like:
+
+```text
+More Maps: +35% (augmented)
+More Currency: +47% (augmented)
+```
+
+#### Rule Content syntax
+
+One stat row (priority between `-1` and `1`, usually `0`). Content is semicolon-separated segments:
+
+```text
+Label:minimum;
+```
+
+| Rule segment | Matches map line | Notes |
+|--------------|------------------|-------|
+| `Maps:35;` | `More Maps: +35% (augmented)` | Label = `Maps` |
+| `Currency:40;` | `More Currency: +47% (augmented)` | Label = `Currency` |
+| `Scarabs:30;` | `More Scarabs: +35% (augmented)` | Label = `Scarabs` |
+
+**Important:** In the rule, use only the **short label** — the text **after** the word `More ` on the map. **Do not** write `More` in the rule.
+
+| Rule | Result |
+|------|--------|
+| `Currency:40;` | Correct |
+| `More Currency:40;` | **Wrong** — label becomes `More Currency`, map label is `Currency` |
+
+#### Comparison
+
+For each segment: **map value ≥ rule minimum** (greater than or equal).  
+Example: `Currency:40` passes when the map shows `+47%`; fails at `+39%`.  
+Debug log: `40vs47`.
+
+**Every segment** in the Content string must find a matching `More {label}:` line and pass.  
+You may use **multiple stat rows**; **all** rows must pass.
+
+#### What is not matched by format B
+
+| Clipboard text | Use instead |
+|----------------|-------------|
+| `Item Quantity: +87% (augmented)` (no `More`) | Format A: `q80r60ps25` |
+| `44(40-49)% more Monster Life` in `{ Prefix … }` blocks | Mod exclude/include rules, not stat rows |
+| Lines without `(augmented)` in the More pattern | Not read as More stats |
+
+#### Example preset row
+
+```text
+Priority: 0
+Content:  Maps:35;Currency:40;
+```
+
+Passes a map with `More Maps: +35%` and `More Currency: +47%`. Fails if the map has `More Scarabs` but no `More Currency` line when `Currency:40` is required.
+
+You can combine format A and B in **separate rows**; both must pass.
+
 ### Exclude (primary workflow)
 
 **Content** is a regex tested against each modifier **name** (e.g. `Splitting`, `of Toughness`).
@@ -98,16 +157,12 @@ Clipboard must contain `Item Class: Maps` or `Item Class: Expedition Logbooks`. 
 1. Read clipboard; empty → cancel token, `false`.
 2. Hash guard (3 identical copies → cancel).
 3. `item\sclass:\s(?>maps|expedition logbooks)` on full text.
-4. **Percent rules**: `rules` where `-1 < Priority < 1` and Content matches `q\d+r\d+ps\d+`:
-   - Parse thresholds from rule Content.
-   - Extract map values via `quantity:`, `rarity:`, `pack size:` substrings with `+NN%`.
-   - Compare with `<` (fail if map stat lower).
-5. Parse modifiers with shared regex pipeline (`getModifiers`, `getType`, `getName`, `getTier`, `getContent`, strip `(d-d)`).
-6. If `mods.Count == 0` → `false`.
-7. For each parsed mod:
-   - **Include** (`Priority >= 1`): `Regex.IsMatch(mod.Name, rule.Content)` → `includeCount++` per hit.
-   - **Exclude** (`Priority <= -1`): any match → immediate `false`.
-8. `return include.Count == includeCount`.
+4. **Percent rules**: all rules where `-1 < Priority < 1` and non-empty Content — **each row** is evaluated:
+   - **`q\d+r\d+ps\d+`**: compact quantity / rarity / pack size minimums (same as before).
+   - **`Label:NN;` segments**: More augmented lines (`more\s{type}:\s+NN% (augmented)` on clipboard).
+5. Parse modifiers via `MapRulesEvaluator.ParseModifiers` (internal pipeline).
+6. Include/exclude on **`mod.Name`** — same as before.
+7. `return result.RulesPassed`.
 
 ### Important implementation details
 

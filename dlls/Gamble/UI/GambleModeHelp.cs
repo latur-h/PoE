@@ -8,6 +8,22 @@ namespace PoE.dlls.Gamble.UI
 
     public static class GambleModeHelp
     {
+        private static GambleModeHelpSection MoreStatRulesSection() => Section("More stat matching (format B)",
+            "Use when the map header has lines like:\r\n" +
+            "More Currency: +47% (augmented)\r\n\r\n" +
+            "Rule Content — semicolon segments, short label + minimum only:\r\n" +
+            "Label:minimum;\r\n\r\n" +
+            "• Write the label after the word More on the map — do not prefix More in the rule.\r\n" +
+            "  Currency:40;  →  checks More Currency: +NN% (augmented)\r\n" +
+            "  Maps:35;      →  checks More Maps: +NN% (augmented)\r\n" +
+            "  Scarabs:30;   →  checks More Scarabs: +NN% (augmented)\r\n\r\n" +
+            "• Comparison: map % must be greater than or equal to your minimum (47 passes for Currency:40).\r\n" +
+            "• Every segment in the row must pass. Multiple stat rows (priority between -1 and 1) must all pass.\r\n\r\n" +
+            "Does not match:\r\n" +
+            "• More Currency:40 in the rule (wrong — use Currency:40)\r\n" +
+            "• Plain Item Quantity: +87% without More (use format A: q80r60ps25)\r\n" +
+            "• Mod lines such as 44% more Monster Life in prefix/suffix blocks");
+
         public static GambleModeHelpContent For(GambleType type) => type switch
         {
             GambleType.Alt => Alt,
@@ -17,6 +33,7 @@ namespace PoE.dlls.Gamble.UI
             GambleType.Essence => Essence,
             GambleType.Map => Map,
             GambleType.MapT17 => MapT17,
+            GambleType.MapExalt => MapExalt,
             GambleType.Harvest => Harvest,
             GambleType.Eldritch => Eldritch,
             _ => Alt,
@@ -160,9 +177,10 @@ namespace PoE.dlls.Gamble.UI
                 "• 1 or higher — Include: mod name must match\r\n" +
                 "-1 or lower — Exclude: if any mod name matches, roll is rejected\r\n\r\n" +
                 "Type and Tier columns are ignored for map mod rules."),
-            Section("Stat row (Content)",
-                "Format: q80r60ps25 — minimum Item Quantity %, Item Rarity %, and Monster Pack Size %.\r\n" +
-                "Map values must be equal or higher. Missing stat lines count as 0."),
+            Section("Stat format A (compact)",
+                "q80r60ps25 — minimum Item Quantity %, Item Rarity %, and Monster Pack Size % from lines like Item Quantity: +87% (augmented).\r\n" +
+                "Missing lines count as 0. Separate stat rows allowed; all must pass."),
+            MoreStatRulesSection(),
             Section("Exclude (main workflow)",
                 "Content is regex on mod names (e.g. Splitting, of Toughness).\r\n" +
                 "One row can block many mods: reflect|cannot regenerate|twinned\r\n" +
@@ -186,14 +204,35 @@ namespace PoE.dlls.Gamble.UI
                 "• Base — Chaos orb"),
             Section("Mod rules",
                 "Same as Map mode: exclude on mod names (priority ≤ -1), optional include (priority ≥ 1). Type and Tier are ignored."),
-            Section("Stat format A",
-                "q80r60ps25 — same minimum quantity / rarity / pack size as Map mode."),
-            Section("Stat format B (T17 More lines)",
-                "Content example:\r\n" +
-                "Item Quantity:80;Item Rarity:60;Monster Pack Size:25;\r\n\r\n" +
-                "Each segment is matched against More … (augmented) lines on the map. Map value must meet or exceed each minimum."),
+            Section("Stat format A (compact)",
+                "q80r60ps25 — same quantity / rarity / pack size minimums as Map mode."),
+            MoreStatRulesSection(),
             Section("Success",
                 "All stat rules pass, mod include/exclude logic passes, and the map has modifier blocks present."),
+        ]);
+
+        private static GambleModeHelpContent MapExalt => new("Map Exalt — Six-mod map rolling",
+        [
+            Section("Target",
+                "Rare maps rolled to six mods using Exalts, with the same exclude/include/stat rules as Map mode."),
+            Section("In game",
+                "1. Copy the map and evaluate.\r\n" +
+                "2. If not rare: Scouring + Alchemy (same as Map mode).\r\n" +
+                "3. If rare and fewer than 6 mods: Exalt slam on the map, then copy and re-check.\r\n" +
+                "4. If an exclude rule matches or the map has 6 mods but rules fail: Scouring + Alchemy and restart.\r\n" +
+                "5. Stop when the map is rare, has 6 mods, and all rules pass."),
+            Section("Coordinates",
+                "• Item — map\r\n" +
+                "• Alchemy — Alchemy orb\r\n" +
+                "• Scouring — Scouring orb (inventory slot; Alt+click uses scour on item)\r\n" +
+                "• Exalt — Exalted orb"),
+            Section("Rules",
+                "Same as Map mode: stat rows (priority between -1 and 1), exclude (priority ≤ -1), optional include (priority ≥ 1). Type and Tier are ignored for map mod rows."),
+            Section("Stat format A (compact)",
+                "q80r60ps25 — minimum Item Quantity / Rarity / Pack Size from normal map stat lines."),
+            MoreStatRulesSection(),
+            Section("Success",
+                "Map is rare, has exactly 6 mods, stats pass, no exclude hit, and include logic passes (if used)."),
         ]);
 
         private static GambleModeHelpContent Harvest => new("Harvest — Harvest crafting",

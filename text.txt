@@ -1,0 +1,68 @@
+Item Class: Maps
+Rarity: Rare
+Godless Abyss
+Nightmare Map
+--------
+Item Quantity: +87% (augmented)
+Item Rarity: +156% (augmented)
+Monster Pack Size: +31% (augmented)
+More Maps: +35% (augmented)
+More Currency: +47% (augmented)
+--------
+Item Level: 83
+--------
+Monster Level: 83
+--------
+{ Prefix Modifier "Stalwart" (Tier: 1) }
+Monsters have +50% Chance to Block Attack Damage
+{ Prefix Modifier "Labyrinth's" (Tier: 1) }
+Area contains Labyrinth Hazards
+{ Prefix Modifier "Punishing" — Damage, Physical }
+Monsters reflect 18% of Physical Damage
+{ Suffix Modifier "of Impotence" (Tier: 1) }
+Players have 27(30-25)% less Area of Effect
+{ Suffix Modifier "of Exposure" — Elemental, Resistance }
+Players have -9(-12--9)% to all maximum Resistances
+{ Suffix Modifier "of Power" (Tier: 1) }
+Monsters have +1 to Maximum Power Charges
+Monsters gain a Power Charge on Hit
+--------
+Travel to a Map of this tier or lower by using this in a personal Map Device. Maps can only be used once. 
+--------
+Modifiable only with Chaos Orbs, Vaal Orbs, Delirium Orbs and Chisels
+
+Item Class: Maps
+Rarity: Rare
+Fetid Intent
+Nightmare Map
+--------
+Item Quantity: +75% (augmented)
+Item Rarity: +46% (augmented)
+Monster Pack Size: +29% (augmented)
+More Maps: +35% (augmented)
+More Scarabs: +35% (augmented)
+--------
+Item Level: 84
+--------
+Monster Level: 83
+--------
+{ Prefix Modifier "Protected" (Tier: 1) }
++50% Monster Physical Damage Reduction
++35% Monster Chaos Resistance
++55% Monster Elemental Resistances
+{ Prefix Modifier "Fecund" — Life }
+44(40-49)% more Monster Life
+{ Prefix Modifier "Unwavering" — Life }
+29(25-30)% more Monster Life
+Monsters cannot be Stunned — Unscalable Value
+{ Suffix Modifier "of Transience" (Tier: 1) }
+Buffs on Players expire 100% faster
+{ Suffix Modifier "of Vulnerability" — Caster, Curse }
+Players are Cursed with Vulnerability
+(Vulnerability is a Hex which increases Physical Damage taken by 15% and causes Hits to have +25% chance to inflict Bleeding on the target. It lasts 8 seconds)
+{ Suffix Modifier "of Power" }
+Monsters gain a Power Charge on Hit
+--------
+Travel to a Map of this tier or lower by using this in a personal Map Device. Maps can only be used once. 
+--------
+Modifiable only with Chaos Orbs, Vaal Orbs, Delirium Orbs and Chisels

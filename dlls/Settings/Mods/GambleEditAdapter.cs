@@ -41,6 +41,12 @@ namespace PoE.dlls.Settings.Mods
             set => _store.Second = value;
         }
 
+        public Coordinates Third
+        {
+            get => _store.Third;
+            set => _store.Third = value;
+        }
+
         public decimal Priority1 { get => Read(0).Priority; set => Write(0).Priority = value; }
         public decimal Priority2 { get => Read(1).Priority; set => Write(1).Priority = value; }
         public decimal Priority3 { get => Read(2).Priority; set => Write(2).Priority = value; }

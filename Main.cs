@@ -238,24 +238,30 @@ namespace PoE
             label_FlaskUtilityCooldown.ForeColor = StaticColors.ForeGround;
             label_FlaskTinctureCooldown.ForeColor = StaticColors.ForeGround;
 
-            comboBox_GambleType.Items.AddRange(Enum.GetNames<GambleType>());
+            SetupResponsiveLayout();
+
+            comboBox_GambleType.Items.AddRange(GambleTypeNames.All.Select(GambleTypeNames.DisplayName).ToArray());
             comboBox_GambleType.SelectedIndex = 0;
 
             InitializeGamblePresetBar();
             InitializeGambleRulesPanel();
+            InitializeGambleThirdCoordinate();
             SetupGambleModeHelp();
 
             comboBox_GambleType.SelectedIndexChanged += (s, e) =>
             {
                 gambleRulesPanel.Commit();
 
-                GambleType gambleType = Enum.Parse<GambleType>(comboBox_GambleType.SelectedItem?.ToString() ?? string.Empty);
-                _settings.Modifiers.GambleType = gambleType;
+                int index = comboBox_GambleType.SelectedIndex;
+                if (index < 0 || index >= GambleTypeNames.All.Length)
+                    return;
+
+                _settings.Modifiers.GambleType = GambleTypeNames.All[index];
                 _settings.Modifiers.RefreshEditAdapter();
                 LoadGambleModeIntoUi();
             };
 
-            comboBox_GambleType.SelectedItem = _settings.Modifiers.GambleType.ToString();
+            comboBox_GambleType.SelectedIndex = GambleTypeNames.IndexOf(_settings.Modifiers.GambleType);
             _settings.Modifiers.RefreshEditAdapter();
             LoadGambleModeIntoUi();
             textBox_GamblerDelay._textBox.Text = _settings.Modifiers.Delay.ToString();
@@ -383,6 +389,8 @@ namespace PoE
                     button_Record2.PerformClick();
                 if (_getCoordinatesSecond)
                     button_Record3.PerformClick();
+                if (_getCoordinatesThird)
+                    button_Record4.PerformClick();
 
                 if (_getCoordinatesItem)
                 {
@@ -405,6 +413,8 @@ namespace PoE
                     button_Record1.PerformClick();
                 if (_getCoordinatesSecond)
                     button_Record3.PerformClick();
+                if (_getCoordinatesThird)
+                    button_Record4.PerformClick();
 
                 if (_getCoordinatesBase)
                 {
@@ -427,6 +437,8 @@ namespace PoE
                     button_Record1.PerformClick();
                 if (_getCoordinatesBase)
                     button_Record2.PerformClick();
+                if (_getCoordinatesThird)
+                    button_Record4.PerformClick();
 
                 if (_getCoordinatesSecond)
                 {
@@ -448,23 +460,29 @@ namespace PoE
 
             SetupSettingsHints();
 
+            LayoutMainTab();
+            LayoutGambleTab();
+            LayoutSettingsTab();
+
             _ = Init();
         }
 
         private void LoadGambleModeIntoUi()
         {
-            var mode = _settings.Modifiers.Mode;
-
-            textBox_ItemXY._textBox.Text = $"{mode.Item.X}, {mode.Item.Y}";
-            textBox_BaseXY._textBox.Text = $"{mode.Base.X}, {mode.Base.Y}";
-            textBox_SecondXY._textBox.Text = $"{mode.Second.X}, {mode.Second.Y}";
+            var store = _settings.Modifiers.GetModeStore(_settings.Modifiers.GambleType);
+            textBox_ItemXY._textBox.Text = $"{store.Item.X}, {store.Item.Y}";
+            textBox_BaseXY._textBox.Text = $"{store.Base.X}, {store.Base.Y}";
+            textBox_SecondXY._textBox.Text = $"{store.Second.X}, {store.Second.Y}";
+            textBox_ThirdXY._textBox.Text = $"{store.Third.X}, {store.Third.Y}";
 
             gamblePresetBar.RefreshPresets();
-            var store = _settings.Modifiers.GetModeStore(_settings.Modifiers.GambleType);
             gambleRulesPanel.PurgeViewsExcept(store.Presets);
             gambleRulesPanel.Bind(_settings.Modifiers.GetActivePreset());
 
             UpdateGambleSecondCoordinateVisibility();
+            UpdateGambleThirdCoordinateVisibility();
+            UpdateGambleCoordinateLabels();
+            LayoutGambleTab();
         }
 
         private void InitializeGamblePresetBar()
@@ -517,6 +535,22 @@ namespace PoE
             label_SecondXY.Visible = showSecond;
             textBox_SecondXY.Visible = showSecond;
             button_Record3.Visible = showSecond;
+        }
+
+        private void UpdateGambleThirdCoordinateVisibility()
+        {
+            bool showThird = GambleModeLayout.UsesThird(_settings.Modifiers.GambleType);
+            label_ThirdXY.Visible = showThird;
+            textBox_ThirdXY.Visible = showThird;
+            button_Record4.Visible = showThird;
+        }
+
+        private void UpdateGambleCoordinateLabels()
+        {
+            var type = _settings.Modifiers.GambleType;
+            label_BaseXY.Text = GambleModeLayout.BaseCoordinateLabel(type);
+            label_SecondXY.Text = GambleModeLayout.SecondCoordinateLabel(type);
+            label_ThirdXY.Text = GambleModeLayout.ThirdCoordinateLabel(type);
         }
 
         private void SetupSettingsHints()

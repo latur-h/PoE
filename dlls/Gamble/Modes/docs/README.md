@@ -11,8 +11,9 @@ Each gamble type lives in its own module under `dlls/Gamble/Modes/` and implemen
 | [Chaos](Chaos/README.md) | Item, Chaos | Shift+click chaos | Mod **content** | Required ≥1, optional fractional |
 | [Chromatic](Chromatic/README.md) | Item, Chromatic | Shift+click chromatic | Socket colours | First non-empty Content |
 | [Essence](Essence/README.md) | Item, Essence | Shift+click essence | Mod **content** | Required ≥1, optional fractional |
-| [Map](Map/README.md) | Item, Alchemy, Scour | Alt+scour + alt+alch cycle | Mod **name** (exclude-first) | Stats `0`, include ≥1, exclude ≤-1 |
-| [MapT17](MapT17/README.md) | Item, Chaos | Shift+click chaos | Mod **name** + More% rules | Same as Map + T17 `More` lines |
+| [Map](Map/README.md) | Item, Alchemy, Scour | Alt+scour + alch cycle | Mod **name** (exclude-first) | Stats (compact + More), include ≥1, exclude ≤-1 |
+| [MapT17](MapT17/README.md) | Item, Chaos | Shift+click chaos | Mod **name** + More% rules | Same stat model as Map |
+| [MapExalt](MapExalt/README.md) | Item, Alchemy, Scour, Exalt | Scour+alch + Exalt to 6 mods | Mod **name** + More% rules | Same as Map; success at 6 mods |
 | [Harvest](Harvest/README.md) | Item, Harvest button | Reforge UI click | Mod **content** | Required ≥1, optional fractional |
 | [Eldritch](Eldritch/README.md) | Item, Eldritch orb | Shift+click orb | **Implicit** content only | Required ≥1, optional fractional |
 

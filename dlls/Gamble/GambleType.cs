@@ -15,6 +15,7 @@ namespace PoE.dlls.Gamble
         Essence,
         Map,
         MapT17,
+        MapExalt,
         Harvest,
         Eldritch
     }

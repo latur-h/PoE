@@ -13,7 +13,7 @@ namespace PoE.dlls.Gamba
         private CancellationTokenSource? _cts;
         private CancellationToken _token;
 
-        public Gambler(Main _main, InputSimulator simulator, TimeSpan delay, double speed, GambleType type, Coordinates itemXY, Coordinates baseXY, Coordinates secondXY, List<Rule> rules)
+        public Gambler(Main _main, InputSimulator simulator, TimeSpan delay, double speed, GambleType type, Coordinates itemXY, Coordinates baseXY, Coordinates secondXY, Coordinates thirdXY, List<Rule> rules)
         {
             GamblerLog.Info("Initialize 'Gambler'...");
 
@@ -29,6 +29,7 @@ namespace PoE.dlls.Gamba
                 GambleType.Essence => new Essence(_main, simulator, _cts, delay, speed, itemXY, baseXY, rules),
                 GambleType.Map => new Map(_main, simulator, _cts, delay, speed, itemXY, baseXY, secondXY, rules),
                 GambleType.MapT17 => new MapT17(_main, simulator, _cts, delay, speed, itemXY, baseXY, rules),
+                GambleType.MapExalt => new MapExalt(_main, simulator, _cts, delay, speed, itemXY, baseXY, secondXY, thirdXY, rules),
                 GambleType.Harvest => new Harvest(_main, simulator, _cts, delay, speed, itemXY, baseXY, rules),
                 GambleType.Eldritch => new Eldritch(_main, simulator, _cts, delay, speed, itemXY, baseXY, rules),
                 _ => throw new ArgumentOutOfRangeException(nameof(type), type, null)

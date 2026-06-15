@@ -164,6 +164,7 @@ namespace PoE
         private bool _getCoordinatesItem = false;
         private bool _getCoordinatesBase = false;
         private bool _getCoordinatesSecond = false;
+        private bool _getCoordinatesThird = false;
 
         private Task GamblerGetCoordinates()
         {
@@ -216,6 +217,22 @@ namespace PoE
 
                 return Task.CompletedTask;
             }
+            else if (_getCoordinatesThird)
+            {
+                var coordinates = InteropHelper.GetMousePos();
+                _settings.Modifiers.GetModeStore(_settings.Modifiers.GambleType).Third = coordinates;
+
+                Invoke(() =>
+                {
+                    textBox_ThirdXY._textBox.Text = $"{_settings.Modifiers.GetModeStore(_settings.Modifiers.GambleType).Third.X}, {_settings.Modifiers.GetModeStore(_settings.Modifiers.GambleType).Third.Y}";
+                    button_Record4.Text = "Rec";
+                    button_Record4.ForeColor = Color.Black;
+                });
+
+                _getCoordinatesThird = false;
+
+                return Task.CompletedTask;
+            }
 
             return Task.CompletedTask;
         }
@@ -237,7 +254,7 @@ namespace PoE
                 return;
 
             Gambler = new Gambler(this, _input, TimeSpan.FromMilliseconds(_settings.Modifiers.Delay), _settings.Modifiers.Speed,
-                _settings.Modifiers.GambleType, store.Item, store.Base, store.Second, rules);
+                _settings.Modifiers.GambleType, store.Item, store.Base, store.Second, store.Third, rules);
 
             await Gambler.StartGambling();
 

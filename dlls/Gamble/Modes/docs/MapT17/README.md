@@ -1,7 +1,8 @@
 # MapT17 gamble mode
 
 **Source:** `dlls/Gamble/Modes/MapT17.cs`  
-**UI settings:** `UIMapT17` (Item, Base = chaos orb)
+**Shared rules:** `dlls/Gamble/Modes/MapRulesEvaluator.cs`  
+**UI settings:** per-mode store (Item, Base = chaos orb)
 
 Tier 17 / elevated map crafting using **chaos** rerolls. Mod rules mirror **Map** (name-based include/exclude). Adds a second stat rule format for `More … (augmented)` lines on the clipboard.
 
@@ -42,21 +43,17 @@ Exclude blacklist + optional include for god rolls applies the same way as [Map]
 
 Same as Map mode: minimum quantity, rarity, pack size from normal map stat lines (`Item Quantity`, etc.).
 
-### Stat format B: T17 `More` thresholds
+### Stat format B: `More … (augmented)` matching
 
-**Content** example:
+Same rules as [Map](Map/README.md#stat-format-b-more--augmented-matching). Summary:
 
-```text
-Item Quantity:80;Item Rarity:60;Monster Pack Size:25;
-```
+**Rule:** `Label:minimum;` segments — short label only (e.g. `Currency:40;`, `Maps:35;`), **not** `More Currency:40`.
 
-Each segment is `Label:MinimumNumber;` matched against clipboard lines like:
+**Map line:** `More {label}: +NN% (augmented)` in the header block.
 
-```text
-More Item Quantity: +80% (augmented)
-```
+**Compare:** map value **≥** minimum; every segment must pass; multiple stat rows all must pass.
 
-Every segment in the rule must find a matching `More {label}:` line on the map with map value **≥** rule minimum. Console prints `80vs82` style comparisons per matched pair.
+**Not matched:** plain `Item Quantity:` lines (use `q80r60ps25`), or `% more Monster Life` in mod blocks.
 
 ### Success
 
@@ -70,19 +67,17 @@ Every segment in the rule must find a matching `More {label}:` line on the map w
 
 ### `CheckItem()` flow
 
-1. Clipboard + hash guard (same as other modes).
-2. **No** `Item Class: Maps` check (unlike Map).
-3. Percent bucket: rules with `-1 < Priority < 1`:
-   - **`q\d+r\d+ps\d+`**: identical parsing/comparison to `Map.cs`.
-   - **`.*?:\d+(;|$)`**: `moreRuleRegex` parses rule Content; `moreMapRegex` = `more\s(?'type'.*?):\s\+(?'number'\d+)%\s\(augmented\)` on clipboard. For each rule segment, find map line with same `type` (case-insensitive); success only if `moreRuleMatches.Count == matchCount` where `matchCount` increments when `ruleMin < mapValue` (strictly less — map must meet or exceed rule threshold via that comparison branch).
-4. Modifier parse + include/exclude on **`mod.Name`** only (content match is commented out in source).
-5. `include.Count == includeCount`; `mods.Count == 0` → fail.
+1. Clipboard + hash guard via `MapCheckHelper.TryEvaluateClipboard`.
+2. **`Item Class: Maps`** check (via shared `MapRulesEvaluator`).
+3. All stat rows with `-1 < Priority < 1` evaluated by `MapRulesEvaluator.CheckStats` (compact + More formats).
+4. Modifier parse + include/exclude on **`mod.Name`** only.
+5. `return result.RulesPassed`.
 
 ### Differences from Map
 
 | Feature | Map | MapT17 |
 |---------|-----|--------|
 | Reroll | Scour + alch | Chaos |
-| Item class check | Yes | No |
-| `More … (augmented)` stats | No | Yes |
+| Item class check | Yes | Yes (shared evaluator) |
+| `More … (augmented)` stats | Yes | Yes |
 | Third coordinate | Scour | — |

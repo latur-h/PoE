@@ -121,7 +121,6 @@ namespace PoE
             tabPage_Settings.SuspendLayout();
             groupBox_FlaskSettings.SuspendLayout();
             groupBox_GambleSettings.SuspendLayout();
-            tabPage_Logs.SuspendLayout();
             SuspendLayout();
             // 
             // tabControl_Main
@@ -135,9 +134,10 @@ namespace PoE
             tabControl_Main.Location = new Point(1, 12);
             tabControl_Main.Name = "tabControl_Main";
             tabControl_Main.SelectedIndex = 0;
-            tabControl_Main.Size = new Size(625, 437);
+            tabControl_Main.Size = new Size(740, 437);
             tabControl_Main.SizeMode = TabSizeMode.Fixed;
             tabControl_Main.TabIndex = 6;
+            tabControl_Main.Dock = DockStyle.Fill;
             // 
             // tabPage_Main
             // 
@@ -168,7 +168,7 @@ namespace PoE
             tabPage_Main.Location = new Point(4, 36);
             tabPage_Main.Name = "tabPage_Main";
             tabPage_Main.Padding = new Padding(3);
-            tabPage_Main.Size = new Size(617, 397);
+            tabPage_Main.Size = new Size(732, 397);
             tabPage_Main.TabIndex = 0;
             tabPage_Main.Text = "Main";
             tabPage_Main.UseVisualStyleBackColor = true;
@@ -200,7 +200,7 @@ namespace PoE
             textBox_Flask1.Anchor = AnchorStyles.None;
             textBox_Flask1.BackColor = Color.Transparent;
             textBox_Flask1.Font = new Font("Segoe UI", 12F, FontStyle.Regular, GraphicsUnit.Point, 0);
-            textBox_Flask1.Location = new Point(92, 55);
+            textBox_Flask1.Location = new Point(102, 55);
             textBox_Flask1.Margin = new Padding(0);
             textBox_Flask1.Name = "textBox_Flask1";
             textBox_Flask1.Size = new Size(85, 30);
@@ -535,7 +535,7 @@ namespace PoE
             tabPage_Gamble.Controls.Add(comboBox_GambleType);
             tabPage_Gamble.Location = new Point(4, 36);
             tabPage_Gamble.Name = "tabPage_Gamble";
-            tabPage_Gamble.Size = new Size(617, 397);
+            tabPage_Gamble.Size = new Size(713, 397);
             tabPage_Gamble.TabIndex = 3;
             tabPage_Gamble.Text = "Gamble";
             tabPage_Gamble.UseVisualStyleBackColor = true;
@@ -656,7 +656,7 @@ namespace PoE
             tabPage_Settings.Location = new Point(4, 36);
             tabPage_Settings.Name = "tabPage_Settings";
             tabPage_Settings.Padding = new Padding(3);
-            tabPage_Settings.Size = new Size(617, 397);
+            tabPage_Settings.Size = new Size(713, 397);
             tabPage_Settings.TabIndex = 1;
             tabPage_Settings.Text = "Settings";
             tabPage_Settings.UseVisualStyleBackColor = true;
@@ -971,7 +971,7 @@ namespace PoE
             // 
             tabPage_Logs.Location = new Point(4, 36);
             tabPage_Logs.Name = "tabPage_Logs";
-            tabPage_Logs.Size = new Size(617, 397);
+            tabPage_Logs.Size = new Size(713, 397);
             tabPage_Logs.TabIndex = 2;
             tabPage_Logs.Text = "Logs";
             tabPage_Logs.UseVisualStyleBackColor = true;
@@ -980,10 +980,9 @@ namespace PoE
             // 
             AutoScaleDimensions = new SizeF(7F, 15F);
             AutoScaleMode = AutoScaleMode.Font;
-            ClientSize = new Size(624, 451);
+            ClientSize = new Size(744, 451);
             Controls.Add(tabControl_Main);
-            MaximumSize = new Size(640, 490);
-            MinimumSize = new Size(640, 490);
+            MinimumSize = new Size(640, 420);
             Name = "Main";
             Text = "PoE";
             FormClosing += Main_FormClosing;
@@ -1008,8 +1007,6 @@ namespace PoE
             groupBox_FlaskSettings.PerformLayout();
             groupBox_GambleSettings.ResumeLayout(false);
             groupBox_GambleSettings.PerformLayout();
-            tabPage_Logs.ResumeLayout(false);
-            tabPage_Logs.PerformLayout();
             ResumeLayout(false);
         }
 
