@@ -1,6 +1,7 @@
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using PoE.dlls.Flasks;
+using PoE.dlls.GameData;
 using PoE.dlls.Settings;
 using Poss.Win.Automation.GlobalHotKeys;
 using Poss.Win.Automation.Input;
@@ -32,6 +33,11 @@ namespace PoE
 
                     // User settings
                     services.AddSingleton<UserSettings>();
+
+                    // Game data cache
+                    services.AddSingleton<ModCacheDatabase>();
+                    services.AddSingleton<GameDataRefreshService>();
+                    services.AddSingleton<ModSuggestionService>();
 
                     // Main form
                     services.AddTransient<Main>();

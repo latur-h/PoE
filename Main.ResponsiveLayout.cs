@@ -172,11 +172,18 @@ namespace PoE
                 return;
 
             int innerWidth = width - margin * 2;
+            const int gameDataHeight = 132;
+
             groupBox_GambleSettings.Location = new Point(margin, margin);
             groupBox_GambleSettings.Size = new Size(innerWidth, 158);
 
+            groupBox_GameData.Size = new Size(innerWidth, gameDataHeight);
+            groupBox_GameData.Location = new Point(margin, height - margin - gameDataHeight);
+            LayoutGameDataSettingsGroup();
+            groupBox_GameData.BringToFront();
+
             groupBox_FlaskSettings.Location = new Point(margin, groupBox_GambleSettings.Bottom + margin);
-            groupBox_FlaskSettings.Size = new Size(innerWidth, Math.Max(120, height - groupBox_FlaskSettings.Top - margin));
+            groupBox_FlaskSettings.Size = new Size(innerWidth, Math.Max(120, groupBox_GameData.Top - groupBox_FlaskSettings.Top - margin));
         }
     }
 }

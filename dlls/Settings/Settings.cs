@@ -1,4 +1,5 @@
-﻿using PoE.dlls.Settings.Mods;
+﻿using PoE.dlls.GameData;
+using PoE.dlls.Settings.Mods;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -12,6 +13,7 @@ namespace PoE.dlls.Settings
         public Dictionary<string, UIFlask> Flasks = [];
         public UIFlaskControls FlaskControls { get; set; } = new();
         public UIModifiers Modifiers { get; set; }
+        public GameDataSettings GameData { get; set; } = new();
         public int WindowWidth { get; set; }
         public int WindowHeight { get; set; }
 

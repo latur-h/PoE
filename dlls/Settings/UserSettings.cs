@@ -46,6 +46,7 @@ namespace PoE.dlls.Settings
                     Settings = JsonConvert.DeserializeObject<Settings>(json) ?? new Settings();
 
                 Settings.FlaskControls ??= new UIFlaskControls();
+                Settings.GameData ??= new PoE.dlls.GameData.GameDataSettings();
                 GambleSettingsMigration.EnsureMigrated(Settings.Modifiers);
             }
             catch (Exception ex)

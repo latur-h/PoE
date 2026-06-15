@@ -1,4 +1,5 @@
 using PoE.dlls.Gamble.Modifiers;
+using PoE.dlls.GameData;
 using PoE.dlls.Settings.Mods;
 using PoE.dlls.Style;
 
@@ -30,9 +31,11 @@ namespace PoE.dlls.Gamble.UI
         private bool _suppressEvents;
         private bool _inLayout;
         private bool _relayoutScheduled;
+        private readonly ModSuggestionService? _modSuggestions;
 
-        public GambleRulesPanel()
+        public GambleRulesPanel(ModSuggestionService? modSuggestions = null)
         {
+            _modSuggestions = modSuggestions;
             BackColor = StaticColors.BackGround;
             Font = UiFont;
 
@@ -188,7 +191,7 @@ namespace PoE.dlls.Gamble.UI
 
         private GambleRuleRowControl CreateRowControl(Panel host, GambleRuleRow rule, List<GambleRuleRowControl> rows)
         {
-            var row = new GambleRuleRowControl(rule);
+            var row = new GambleRuleRowControl(rule, _modSuggestions);
             row.RemoveRequested += (_, _) => RemoveRow(row);
             row.Changed += (_, _) =>
             {
@@ -337,7 +340,7 @@ namespace PoE.dlls.Gamble.UI
             public event EventHandler? RemoveRequested;
             public event EventHandler? Changed;
 
-            public GambleRuleRowControl(GambleRuleRow rule)
+            public GambleRuleRowControl(GambleRuleRow rule, ModSuggestionService? modSuggestions)
             {
                 _rule = rule;
                 BackColor = StaticColors.BackGround;
@@ -383,6 +386,9 @@ namespace PoE.dlls.Gamble.UI
                     _rule.Content = _content._textBox.Text;
                     Changed?.Invoke(this, EventArgs.Empty);
                 };
+
+                if (modSuggestions is not null)
+                    ModSuggestionAutocomplete.Attach(_content._textBox, modSuggestions);
 
                 _remove = new Label
                 {

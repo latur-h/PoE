@@ -1,0 +1,64 @@
+Third-Party Software Notices
+============================
+
+This project includes or depends on the following third-party components.
+
+
+Bundled binaries (libs/)
+------------------------
+
+LibDat2 (LibDat2.dll)
+  Part of LibGGPK3 by aianlinb
+  License: GNU Affero General Public License v3.0 (AGPL-3.0)
+  Source: https://github.com/aianlinb/LibGGPK3
+  Bundled in this repository under libs/LibDat2.dll
+
+oo2core.dll
+  Epic Games Oodle compression library (proprietary)
+  Bundled for decompressing Path of Exile Content.ggpk / bundle files
+  Not open source; redistributed as commonly done by PoE file tools
+  Source of bundled copy: LibGGPK3 release (https://github.com/aianlinb/LibGGPK3)
+
+
+NuGet dependencies
+------------------
+
+LibGGPK3.LibBundledGGPK3 (2.7.5)
+  License: AGPL-3.0
+  https://github.com/aianlinb/LibGGPK3
+  Transitive: LibGGPK3, LibBundle3
+
+Microsoft.Data.Sqlite (10.0.9)
+  License: MIT
+  https://github.com/dotnet/efcore
+
+Microsoft.Extensions.Hosting (10.0.0)
+  License: MIT
+  https://github.com/dotnet/runtime
+
+Newtonsoft.Json (13.0.4)
+  License: MIT
+  https://github.com/JamesNK/Newtonsoft.Json
+
+Poss.Win.Automation.Core (1.0.5)
+Poss.Win.Automation.GlobalHotKeys (1.0.5)
+Poss.Win.Automation.Input (1.0.5)
+  License: MIT (see package metadata on NuGet)
+  https://www.nuget.org/packages/Poss.Win.Automation.Core
+
+
+External data (downloaded at runtime, not shipped)
+--------------------------------------------------
+
+PoE dat schema (schema.min.json)
+  Source: https://github.com/poe-tool-dev/dat-schema
+  Used to parse Path of Exile game data tables
+
+
+License compatibility
+---------------------
+
+This project is licensed under AGPL-3.0 (see LICENSE). Using or
+distributing this software with LibDat2/LibGGPK3 requires compliance
+with AGPL-3.0, including making corresponding source available to
+recipients of binaries.

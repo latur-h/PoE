@@ -2,6 +2,7 @@ using PoE.dlls.Flasks;
 using PoE.dlls.Flasks.Base;
 using PoE.dlls.Gamble;
 using PoE.dlls.Gamble.Modifiers;
+using PoE.dlls.GameData;
 using PoE.dlls.InteropServices;
 using PoE.dlls.Gamble.UI;
 using PoE.dlls.KeyBindings;
@@ -21,18 +22,31 @@ namespace PoE
         private readonly GlobalHotKeyManager _hotkeys;
         private readonly FlaskManager _flaskManager;
         private readonly UserSettings _userSettings;
+        private readonly GameDataRefreshService _gameDataRefresh;
+        private readonly ModSuggestionService _modSuggestions;
+        private readonly ModCacheDatabase _modCacheDatabase;
         private GamblePresetBar gamblePresetBar = null!;
         private GambleRulesPanel gambleRulesPanel = null!;
         private Label? _gambleTypeHelpIcon;
         private ToolTip toolTip_Gamble = null!;
         private Settings _settings = null!;
 
-        public Main(InputSimulator input, GlobalHotKeyManager hotkeys, FlaskManager flaskManager, UserSettings userSettings)
+        public Main(
+            InputSimulator input,
+            GlobalHotKeyManager hotkeys,
+            FlaskManager flaskManager,
+            UserSettings userSettings,
+            GameDataRefreshService gameDataRefresh,
+            ModSuggestionService modSuggestions,
+            ModCacheDatabase modCacheDatabase)
         {
             _input = input;
             _hotkeys = hotkeys;
             _flaskManager = flaskManager;
             _userSettings = userSettings;
+            _gameDataRefresh = gameDataRefresh;
+            _modSuggestions = modSuggestions;
+            _modCacheDatabase = modCacheDatabase;
 
             InitializeComponent();
         }
@@ -223,6 +237,7 @@ namespace PoE
 
             InitializeGamblePresetBar();
             InitializeGambleRulesPanel();
+            InitializeGameDataSettingsUi();
             InitializeOrbsTab();
             SetupGambleModeHelp();
 
@@ -339,7 +354,7 @@ namespace PoE
 
         private void InitializeGambleRulesPanel()
         {
-            gambleRulesPanel = new GambleRulesPanel
+            gambleRulesPanel = new GambleRulesPanel(_modSuggestions)
             {
                 Location = new Point(7, 74),
                 Size = new Size(603, 294),

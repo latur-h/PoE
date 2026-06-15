@@ -1,30 +1,63 @@
-<Project Sdk="Microsoft.NET.Sdk">
-
-  <PropertyGroup>
-    <OutputType>WinExe</OutputType>
-    <TargetFramework>net10.0-windows</TargetFramework>
-    <Nullable>enable</Nullable>
-    <UseWindowsForms>true</UseWindowsForms>
-    <ImplicitUsings>enable</ImplicitUsings>
-  </PropertyGroup>
-
-  <ItemGroup>
-    <Compile Remove="tests/**" />
-    <Compile Remove="PoE.Tests/**" />
-    <EmbeddedResource Remove="tests/**" />
-    <EmbeddedResource Remove="PoE.Tests/**" />
-    <None Remove="tests/**" />
-    <None Remove="PoE.Tests/**" />
-    <Content Remove="tests/**" />
-    <Content Remove="PoE.Tests/**" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <PackageReference Include="Microsoft.Extensions.Hosting" Version="10.0.0" />
-    <PackageReference Include="Newtonsoft.Json" Version="13.0.4" />
-    <PackageReference Include="Poss.Win.Automation.Core" Version="1.0.5" />
-    <PackageReference Include="Poss.Win.Automation.GlobalHotKeys" Version="1.0.5" />
-    <PackageReference Include="Poss.Win.Automation.Input" Version="1.0.5" />
-  </ItemGroup>
-
-</Project>
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>WinExe</OutputType>
+    <TargetFramework>net10.0-windows</TargetFramework>
+    <Nullable>enable</Nullable>
+    <UseWindowsForms>true</UseWindowsForms>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <ApplicationIcon Condition="Exists('app.ico')">app.ico</ApplicationIcon>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Compile Remove="tests/**" />
+    <Compile Remove="PoE.Tests/**" />
+    <Compile Remove="tools/**" />
+    <EmbeddedResource Remove="tests/**" />
+    <EmbeddedResource Remove="PoE.Tests/**" />
+    <None Remove="tests/**" />
+    <None Remove="PoE.Tests/**" />
+    <Content Remove="tests/**" />
+    <Content Remove="PoE.Tests/**" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Reference Include="LibDat2">
+      <HintPath>libs\LibDat2.dll</HintPath>
+      <Private>true</Private>
+    </Reference>
+  </ItemGroup>
+
+  <ItemGroup>
+    <Content Include="libs\LibDat2.dll">
+      <Link>LibDat2.dll</Link>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      <CopyToPublishDirectory>Always</CopyToPublishDirectory>
+    </Content>
+    <Content Include="libs\oo2core.dll">
+      <Link>oo2core.dll</Link>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      <CopyToPublishDirectory>Always</CopyToPublishDirectory>
+    </Content>
+    <Content Include="LICENSE">
+      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+      <CopyToPublishDirectory>Always</CopyToPublishDirectory>
+    </Content>
+    <Content Include="THIRD_PARTY_NOTICES.txt">
+      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+      <CopyToPublishDirectory>Always</CopyToPublishDirectory>
+    </Content>
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="LibGGPK3.LibBundledGGPK3" Version="2.7.5" />
+    <PackageReference Include="Microsoft.Data.Sqlite" Version="10.0.9" />
+    <PackageReference Include="Microsoft.Extensions.Hosting" Version="10.0.0" />
+    <PackageReference Include="Newtonsoft.Json" Version="13.0.4" />
+    <PackageReference Include="Poss.Win.Automation.Core" Version="1.0.5" />
+    <PackageReference Include="Poss.Win.Automation.GlobalHotKeys" Version="1.0.5" />
+    <PackageReference Include="Poss.Win.Automation.Input" Version="1.0.5" />
+  </ItemGroup>
+
+</Project>
+
