@@ -161,87 +161,17 @@ namespace PoE
         }
         #endregion
         #region Gambler
-        private bool _getCoordinatesItem = false;
-        private bool _getCoordinatesBase = false;
-        private bool _getCoordinatesSecond = false;
-        private bool _getCoordinatesThird = false;
-
         private Task GamblerGetCoordinates()
         {
-            if (_getCoordinatesItem)
-            {
-                var coordinates = InteropHelper.GetMousePos();
-                _settings.Modifiers.Mode.Item = coordinates;
-
-                Invoke(() =>
-                {
-                    textBox_ItemXY._textBox.Text = $"{_settings.Modifiers.Mode.Item.X}, {_settings.Modifiers.Mode.Item.Y}";
-
-                    button_Record1.Text = "Rec";
-                    button_Record1.ForeColor = Color.Black;
-                });
-
-                _getCoordinatesItem = false;
-
-                return Task.CompletedTask;
-            }
-            else if (_getCoordinatesBase)
-            {
-                var coordinates = InteropHelper.GetMousePos();
-                _settings.Modifiers.Mode.Base = coordinates;
-
-                Invoke(() =>
-                {
-                    textBox_BaseXY._textBox.Text = $"{_settings.Modifiers.Mode.Base.X}, {_settings.Modifiers.Mode.Base.Y}";
-                    button_Record2.Text = "Rec";
-                    button_Record2.ForeColor = Color.Black;
-                });
-
-                _getCoordinatesBase = false;
-
-                return Task.CompletedTask;
-            }
-            else if (_getCoordinatesSecond)
-            {
-                var coordinates = InteropHelper.GetMousePos();
-                _settings.Modifiers.Mode.Second = coordinates;
-
-                Invoke(() =>
-                {
-                    textBox_SecondXY._textBox.Text = $"{_settings.Modifiers.Mode.Second.X}, {_settings.Modifiers.Mode.Second.Y}";
-                    button_Record3.Text = "Rec";
-                    button_Record3.ForeColor = Color.Black;
-                });
-
-                _getCoordinatesSecond = false;
-
-                return Task.CompletedTask;
-            }
-            else if (_getCoordinatesThird)
-            {
-                var coordinates = InteropHelper.GetMousePos();
-                _settings.Modifiers.GetModeStore(_settings.Modifiers.GambleType).Third = coordinates;
-
-                Invoke(() =>
-                {
-                    textBox_ThirdXY._textBox.Text = $"{_settings.Modifiers.GetModeStore(_settings.Modifiers.GambleType).Third.X}, {_settings.Modifiers.GetModeStore(_settings.Modifiers.GambleType).Third.Y}";
-                    button_Record4.Text = "Rec";
-                    button_Record4.ForeColor = Color.Black;
-                });
-
-                _getCoordinatesThird = false;
-
-                return Task.CompletedTask;
-            }
-
+            Invoke(() => TryApplyRecordedCoordinate());
             return Task.CompletedTask;
         }
+
         private async Task GamblerStart()
         {
             if (Gambler is not null && Gambler.IsRunning())
                 return;
 
-            var store = _settings.Modifiers.GetModeStore(_settings.Modifiers.GambleType);
             var preset = _settings.Modifiers.GetActivePreset();
 
             List<Rule> rules = preset.Rules
@@ -253,8 +183,13 @@ namespace PoE
             if (rules.Count == 0)
                 return;
 
+            var coords = GambleCoordinateResolver.Resolve(
+                _settings.Modifiers.GambleType,
+                _settings.Modifiers.Items,
+                _settings.Modifiers.Orbs);
+
             Gambler = new Gambler(this, _input, TimeSpan.FromMilliseconds(_settings.Modifiers.Delay), _settings.Modifiers.Speed,
-                _settings.Modifiers.GambleType, store.Item, store.Base, store.Second, store.Third, rules);
+                _settings.Modifiers.GambleType, coords.Item, coords.Base, coords.Second, coords.Third, rules);
 
             await Gambler.StartGambling();
 

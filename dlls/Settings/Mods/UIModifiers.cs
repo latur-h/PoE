@@ -16,6 +16,9 @@ namespace PoE.dlls.Settings.Mods
 
         public Dictionary<GambleType, GambleModeStore> ModeStores { get; set; } = [];
 
+        public GambleItemCoordinates Items { get; set; } = new();
+        public GambleOrbCoordinates Orbs { get; set; } = new();
+
         [JsonIgnore]
         private GambleEditAdapter? _editAdapter;
 

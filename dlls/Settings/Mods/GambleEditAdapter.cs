@@ -4,9 +4,6 @@ using PoE.dlls.InteropServices;
 
 namespace PoE.dlls.Settings.Mods
 {
-    /// <summary>
-    /// Bridges the legacy 8-row gamble UI to the active preset rule list and per-mode coordinates.
-    /// </summary>
     internal sealed class GambleEditAdapter : IUIMods
     {
         private static readonly GambleRuleRow EmptySlot = new();
@@ -25,26 +22,29 @@ namespace PoE.dlls.Settings.Mods
 
         public Coordinates Item
         {
-            get => _store.Item;
-            set => _store.Item = value;
+            get => GambleCoordinateResolver.GetItem(_modifiers.GambleType, _modifiers.Items);
+            set => GambleCoordinateResolver.SetItem(_modifiers.GambleType, _modifiers.Items, value);
         }
 
         public Coordinates Base
         {
-            get => _store.Base;
-            set => _store.Base = value;
+            get => ResolveOrb(GambleCoordinateResolver.PrimaryOrb(_modifiers.GambleType));
+            set => SetOrb(GambleCoordinateResolver.PrimaryOrb(_modifiers.GambleType), value);
         }
 
         public Coordinates Second
         {
-            get => _store.Second;
-            set => _store.Second = value;
+            get => ResolveOrb(GambleCoordinateResolver.SecondaryOrb(_modifiers.GambleType));
+            set => SetOrb(GambleCoordinateResolver.SecondaryOrb(_modifiers.GambleType), value);
         }
 
-        public Coordinates Third
+        private Coordinates ResolveOrb(GambleOrbType? type) =>
+            type is null ? new Coordinates(0, 0) : _modifiers.Orbs.Get(type.Value);
+
+        private void SetOrb(GambleOrbType? type, Coordinates value)
         {
-            get => _store.Third;
-            set => _store.Third = value;
+            if (type is not null)
+                _modifiers.Orbs.Set(type.Value, value);
         }
 
         public decimal Priority1 { get => Read(0).Priority; set => Write(0).Priority = value; }

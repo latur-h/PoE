@@ -49,6 +49,7 @@ namespace PoE
             BackColor = StaticColors.BackGround;
             tabPage_Main.BackColor = StaticColors.BackGround;
             tabPage_Gamble.BackColor = StaticColors.BackGround;
+            tabPage_Orbs.BackColor = StaticColors.BackGround;
             tabPage_Settings.BackColor = StaticColors.BackGround;
             tabPage_Logs.BackColor = StaticColors.BackGround;
 
@@ -56,6 +57,13 @@ namespace PoE
             groupBox_GambleSettings.ForeColor = StaticColors.ForeGround;
             groupBox_FlaskSettings.BackColor = StaticColors.BackGround;
             groupBox_FlaskSettings.ForeColor = StaticColors.ForeGround;
+
+            foreach (var groupBox in new[] { groupBox_Flask1, groupBox_Flask2, groupBox_Flask3, groupBox_Flask4, groupBox_Flask5 })
+            {
+                groupBox.BackColor = StaticColors.BackGround;
+                groupBox.ForeColor = StaticColors.ForeGround;
+                groupBox.CenterTitle = true;
+            }
 
             checkBox_Flask1.ForeColor = StaticColors.ForeGround;
             checkBox_Flask2.ForeColor = StaticColors.ForeGround;
@@ -115,13 +123,7 @@ namespace PoE
             comboBox_Flask1.SelectedIndex = 0;
             comboBox_Flask1.SelectedIndexChanged += (s, e) =>
             {
-                if (comboBox_Flask1.SelectedItem?.ToString() == FlaskType.Utility.ToString() || comboBox_Flask1.SelectedItem?.ToString() == FlaskType.Tincture.ToString())
-                    groupBox_Flask1.Hide();
-                else
-                    groupBox_Flask1.Show();
-
-                LabelPercent();
-
+                ApplyFlaskPercentVisibility();
                 _settings.Flasks["1"].FlaskType = comboBox_Flask1.SelectedItem?.ToString() ?? string.Empty;
             };
 
@@ -129,13 +131,7 @@ namespace PoE
             comboBox_Flask2.SelectedIndex = 0;
             comboBox_Flask2.SelectedIndexChanged += (s, e) =>
             {
-                if (comboBox_Flask2.SelectedItem?.ToString() == FlaskType.Utility.ToString() || comboBox_Flask2.SelectedItem?.ToString() == FlaskType.Tincture.ToString())
-                    groupBox_Flask2.Hide();
-                else
-                    groupBox_Flask2.Show();
-
-                LabelPercent();
-
+                ApplyFlaskPercentVisibility();
                 _settings.Flasks["2"].FlaskType = comboBox_Flask2.SelectedItem?.ToString() ?? string.Empty;
             };
 
@@ -143,13 +139,7 @@ namespace PoE
             comboBox_Flask3.SelectedIndex = 0;
             comboBox_Flask3.SelectedIndexChanged += (s, e) =>
             {
-                if (comboBox_Flask3.SelectedItem?.ToString() == FlaskType.Utility.ToString() || comboBox_Flask3.SelectedItem?.ToString() == FlaskType.Tincture.ToString())
-                    groupBox_Flask3.Hide();
-                else
-                    groupBox_Flask3.Show();
-
-                LabelPercent();
-
+                ApplyFlaskPercentVisibility();
                 _settings.Flasks["3"].FlaskType = comboBox_Flask3.SelectedItem?.ToString() ?? string.Empty;
             };
 
@@ -157,13 +147,7 @@ namespace PoE
             comboBox_Flask4.SelectedIndex = 0;
             comboBox_Flask4.SelectedIndexChanged += (s, e) =>
             {
-                if (comboBox_Flask4.SelectedItem?.ToString() == FlaskType.Utility.ToString() || comboBox_Flask4.SelectedItem?.ToString() == FlaskType.Tincture.ToString())
-                    groupBox_Flask4.Hide();
-                else
-                    groupBox_Flask4.Show();
-
-                LabelPercent();
-
+                ApplyFlaskPercentVisibility();
                 _settings.Flasks["4"].FlaskType = comboBox_Flask4.SelectedItem?.ToString() ?? string.Empty;
             };
 
@@ -171,13 +155,7 @@ namespace PoE
             comboBox_Flask5.SelectedIndex = 0;
             comboBox_Flask5.SelectedIndexChanged += (s, e) =>
             {
-                if (comboBox_Flask5.SelectedItem?.ToString() == FlaskType.Utility.ToString() || comboBox_Flask5.SelectedItem?.ToString() == FlaskType.Tincture.ToString())
-                    groupBox_Flask5.Hide();
-                else
-                    groupBox_Flask5.Show();
-
-                LabelPercent();
-
+                ApplyFlaskPercentVisibility();
                 _settings.Flasks["5"].FlaskType = comboBox_Flask5.SelectedItem?.ToString() ?? string.Empty;
             };
 
@@ -220,6 +198,8 @@ namespace PoE
             label_Flask4_Slider.Text = $"{slider_Flask4.Value}";
             label_Flask5_Slider.Text = $"{slider_Flask5.Value}";
 
+            ApplyFlaskPercentVisibility();
+
             label_GambleType.ForeColor = StaticColors.ForeGround;
             label_ItemXY.ForeColor = StaticColors.ForeGround;
             label_BaseXY.ForeColor = StaticColors.ForeGround;
@@ -245,7 +225,8 @@ namespace PoE
 
             InitializeGamblePresetBar();
             InitializeGambleRulesPanel();
-            InitializeGambleThirdCoordinate();
+            DetachLegacyGambleCoordinateControls();
+            InitializeOrbsTab();
             SetupGambleModeHelp();
 
             comboBox_GambleType.SelectedIndexChanged += (s, e) =>
@@ -271,73 +252,6 @@ namespace PoE
             textBox_FlaskHpMpCooldown._textBox.Text = _settings.FlaskControls.HpMpCooldown.ToString();
             textBox_FlaskUtilityCooldown._textBox.Text = _settings.FlaskControls.UtilityCooldown.ToString();
             textBox_FlaskTinctureCooldown._textBox.Text = _settings.FlaskControls.TinctureCooldown.ToString();
-
-            textBox_ItemXY._textBox.KeyUp += (s, e) =>
-            {
-                if (textBox_ItemXY._textBox.Text.Contains(','))
-                {
-                    string[] coords = textBox_ItemXY._textBox.Text.Split(',');
-                    if (coords.Length == 2 && int.TryParse(coords[0], out int x) && int.TryParse(coords[1], out int y))
-                    {
-                        Coordinates coordinates = new Coordinates(x, y);
-                        _settings.Modifiers.Mode.Item = coordinates;
-
-                        textBox_ItemXY._textBox.ForeColor = StaticColors.ForeGround;
-                    }
-                    else
-                    {
-                        textBox_ItemXY._textBox.ForeColor = Color.Red;
-                    }
-                }
-                else
-                {
-                    textBox_ItemXY._textBox.ForeColor = Color.Red;
-                }
-            };
-            textBox_BaseXY._textBox.KeyUp += (s, e) =>
-            {
-                if (textBox_BaseXY._textBox.Text.Contains(','))
-                {
-                    string[] coords = textBox_BaseXY._textBox.Text.Split(',');
-                    if (coords.Length == 2 && int.TryParse(coords[0], out int x) && int.TryParse(coords[1], out int y))
-                    {
-                        Coordinates coordinates = new Coordinates(x, y);
-                        _settings.Modifiers.Mode.Base = coordinates;
-
-                        textBox_BaseXY._textBox.ForeColor = StaticColors.ForeGround;
-                    }
-                    else
-                    {
-                        textBox_BaseXY._textBox.ForeColor = Color.Red;
-                    }
-                }
-                else
-                {
-                    textBox_BaseXY._textBox.ForeColor = Color.Red;
-                }
-            };
-            textBox_SecondXY._textBox.KeyUp += (s, e) =>
-            {
-                if (textBox_SecondXY._textBox.Text.Contains(','))
-                {
-                    string[] coords = textBox_SecondXY._textBox.Text.Split(',');
-                    if (coords.Length == 2 && int.TryParse(coords[0], out int x) && int.TryParse(coords[1], out int y))
-                    {
-                        Coordinates coordinates = new Coordinates(x, y);
-                        _settings.Modifiers.Mode.Second = coordinates;
-
-                        textBox_SecondXY._textBox.ForeColor = StaticColors.ForeGround;
-                    }
-                    else
-                    {
-                        textBox_SecondXY._textBox.ForeColor = Color.Red;
-                    }
-                }
-                else
-                {
-                    textBox_SecondXY._textBox.ForeColor = Color.Red;
-                }
-            };
 
             textBox_GamblerGetCoordinatesKey._textBox.KeyDown += (s, e) =>
             {
@@ -383,85 +297,13 @@ namespace PoE
             BindFlaskDelayField(textBox_FlaskUtilityCooldown, v => _settings.FlaskControls.UtilityCooldown = v);
             BindFlaskDelayField(textBox_FlaskTinctureCooldown, v => _settings.FlaskControls.TinctureCooldown = v);
 
-            button_Record1.Click += (s, e) =>
-            {
-                if (_getCoordinatesBase)
-                    button_Record2.PerformClick();
-                if (_getCoordinatesSecond)
-                    button_Record3.PerformClick();
-                if (_getCoordinatesThird)
-                    button_Record4.PerformClick();
-
-                if (_getCoordinatesItem)
-                {
-                    _getCoordinatesItem = false;
-
-                    button_Record1.ForeColor = Color.Black;
-                    button_Record1.Text = "Rec";
-                }
-                else
-                {
-                    _getCoordinatesItem = true;
-
-                    button_Record1.ForeColor = Color.Red;
-                    button_Record1.Text = "...";
-                }
-            };
-            button_Record2.Click += (s, e) =>
-            {
-                if (_getCoordinatesItem)
-                    button_Record1.PerformClick();
-                if (_getCoordinatesSecond)
-                    button_Record3.PerformClick();
-                if (_getCoordinatesThird)
-                    button_Record4.PerformClick();
-
-                if (_getCoordinatesBase)
-                {
-                    _getCoordinatesBase = false;
-
-                    button_Record2.ForeColor = Color.Black;
-                    button_Record2.Text = "Rec";
-                }
-                else
-                {
-                    _getCoordinatesBase = true;
-
-                    button_Record2.ForeColor = Color.Red;
-                    button_Record2.Text = "...";
-                }
-            };
-            button_Record3.Click += (s, e) =>
-            {
-                if (_getCoordinatesItem)
-                    button_Record1.PerformClick();
-                if (_getCoordinatesBase)
-                    button_Record2.PerformClick();
-                if (_getCoordinatesThird)
-                    button_Record4.PerformClick();
-
-                if (_getCoordinatesSecond)
-                {
-                    _getCoordinatesSecond = false;
-
-                    button_Record3.ForeColor = Color.Black;
-                    button_Record3.Text = "Rec";
-                }
-                else
-                {
-                    _getCoordinatesSecond = true;
-
-                    button_Record3.ForeColor = Color.Red;
-                    button_Record3.Text = "...";
-                }
-            };
-
             ValidateAllStoredKeys();
 
             SetupSettingsHints();
 
             LayoutMainTab();
             LayoutGambleTab();
+            LayoutOrbsTab();
             LayoutSettingsTab();
 
             _ = Init();
@@ -470,18 +312,10 @@ namespace PoE
         private void LoadGambleModeIntoUi()
         {
             var store = _settings.Modifiers.GetModeStore(_settings.Modifiers.GambleType);
-            textBox_ItemXY._textBox.Text = $"{store.Item.X}, {store.Item.Y}";
-            textBox_BaseXY._textBox.Text = $"{store.Base.X}, {store.Base.Y}";
-            textBox_SecondXY._textBox.Text = $"{store.Second.X}, {store.Second.Y}";
-            textBox_ThirdXY._textBox.Text = $"{store.Third.X}, {store.Third.Y}";
 
             gamblePresetBar.RefreshPresets();
             gambleRulesPanel.PurgeViewsExcept(store.Presets);
             gambleRulesPanel.Bind(_settings.Modifiers.GetActivePreset());
-
-            UpdateGambleSecondCoordinateVisibility();
-            UpdateGambleThirdCoordinateVisibility();
-            UpdateGambleCoordinateLabels();
             LayoutGambleTab();
         }
 
@@ -489,7 +323,7 @@ namespace PoE
         {
             gamblePresetBar = new GamblePresetBar
             {
-                Location = new Point(7, 64),
+                Location = new Point(7, 40),
                 Size = new Size(603, 34),
                 Anchor = AnchorStyles.Top | AnchorStyles.Left | AnchorStyles.Right,
             };
@@ -508,7 +342,7 @@ namespace PoE
         {
             gambleRulesPanel = new GambleRulesPanel
             {
-                Location = new Point(7, 98),
+                Location = new Point(7, 74),
                 Size = new Size(603, 294),
                 Anchor = AnchorStyles.Top | AnchorStyles.Bottom | AnchorStyles.Left | AnchorStyles.Right,
             };
@@ -529,36 +363,12 @@ namespace PoE
                 () => GambleModeHelpDialog.ShowForMode(this, _settings.Modifiers.GambleType));
         }
 
-        private void UpdateGambleSecondCoordinateVisibility()
-        {
-            bool showSecond = GambleModeLayout.UsesSecond(_settings.Modifiers.GambleType);
-            label_SecondXY.Visible = showSecond;
-            textBox_SecondXY.Visible = showSecond;
-            button_Record3.Visible = showSecond;
-        }
-
-        private void UpdateGambleThirdCoordinateVisibility()
-        {
-            bool showThird = GambleModeLayout.UsesThird(_settings.Modifiers.GambleType);
-            label_ThirdXY.Visible = showThird;
-            textBox_ThirdXY.Visible = showThird;
-            button_Record4.Visible = showThird;
-        }
-
-        private void UpdateGambleCoordinateLabels()
-        {
-            var type = _settings.Modifiers.GambleType;
-            label_BaseXY.Text = GambleModeLayout.BaseCoordinateLabel(type);
-            label_SecondXY.Text = GambleModeLayout.SecondCoordinateLabel(type);
-            label_ThirdXY.Text = GambleModeLayout.ThirdCoordinateLabel(type);
-        }
-
         private void SetupSettingsHints()
         {
             SettingsHintHelper.Configure(toolTip_Settings);
 
             SettingsHintHelper.Attach(toolTip_Settings, groupBox_GambleSettings, label_GamblerGetCoorinatesKey, textBox_GamblerGetCoordinatesKey,
-                "Hotkey to capture the current mouse position as item, orb, or second-slot coordinates while recording on the Gamble tab.");
+                "Hotkey to capture the mouse position for the active Rec slot on the Orbs tab (items and orbs are shared across gamble modes).");
             SettingsHintHelper.Attach(toolTip_Settings, groupBox_GambleSettings, label_GamblerStartKey, textBox_GamblerStartKey,
                 "Hotkey to start the selected gamble routine.");
             SettingsHintHelper.Attach(toolTip_Settings, groupBox_GambleSettings, label_GamblerStopKey, textBox_GamblerStopKey,
@@ -711,12 +521,33 @@ namespace PoE
             _userSettings.SaveSettings();
         }
 
+        private static bool FlaskTypeUsesPercent(string? flaskType) =>
+            flaskType != FlaskType.Utility.ToString() && flaskType != FlaskType.Tincture.ToString();
+
+        private void ApplyFlaskPercentVisibility()
+        {
+            SetFlaskPercentVisible(comboBox_Flask1, slider_Flask1, label_Flask1_Slider);
+            SetFlaskPercentVisible(comboBox_Flask2, slider_Flask2, label_Flask2_Slider);
+            SetFlaskPercentVisible(comboBox_Flask3, slider_Flask3, label_Flask3_Slider);
+            SetFlaskPercentVisible(comboBox_Flask4, slider_Flask4, label_Flask4_Slider);
+            SetFlaskPercentVisible(comboBox_Flask5, slider_Flask5, label_Flask5_Slider);
+            LabelPercent();
+        }
+
+        private static void SetFlaskPercentVisible(FlatComboBox combo, Slider slider, Label label)
+        {
+            bool visible = FlaskTypeUsesPercent(combo.SelectedItem?.ToString());
+            slider.Visible = visible;
+            label.Visible = visible;
+        }
+
         private void LabelPercent()
         {
-            if (!groupBox_Flask1.Visible && !groupBox_Flask2.Visible && !groupBox_Flask3.Visible && !groupBox_Flask4.Visible && !groupBox_Flask5.Visible)
-                label_Percent.Visible = false;
-            else
-                label_Percent.Visible = true;
+            label_Percent.Visible = slider_Flask1.Visible
+                || slider_Flask2.Visible
+                || slider_Flask3.Visible
+                || slider_Flask4.Visible
+                || slider_Flask5.Visible;
         }
     }
 }

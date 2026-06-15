@@ -1,4 +1,5 @@
 using PoE.dlls.Gamble;
+using PoE.dlls.InteropServices;
 
 namespace PoE.dlls.Settings.Mods
 {
@@ -11,21 +12,94 @@ namespace PoE.dlls.Settings.Mods
             if (modifiers.ModeStores.Count > 0)
             {
                 EnsureAllModesPresent(modifiers.ModeStores);
-                return;
+            }
+            else
+            {
+                modifiers.ModeStores = CreateEmptyModeStores();
+
+                MigrateLegacy(modifiers, GambleType.Alt, modifiers._uialt);
+                MigrateLegacy(modifiers, GambleType.Alt_Aug, modifiers._uialt_aug);
+                MigrateLegacy(modifiers, GambleType.Chaos, modifiers._uichaos);
+                MigrateLegacy(modifiers, GambleType.Chromatic, modifiers._uichromatic);
+                MigrateLegacy(modifiers, GambleType.Eldritch, modifiers._uieldritch);
+                MigrateLegacy(modifiers, GambleType.Essence, modifiers._uiesscence);
+                MigrateLegacy(modifiers, GambleType.Harvest, modifiers._uiharvest);
+                MigrateLegacy(modifiers, GambleType.Map, modifiers._uimap);
+                MigrateLegacy(modifiers, GambleType.MapT17, modifiers._uimapT17);
             }
 
-            modifiers.ModeStores = CreateEmptyModeStores();
-
-            MigrateLegacy(modifiers, GambleType.Alt, modifiers._uialt);
-            MigrateLegacy(modifiers, GambleType.Alt_Aug, modifiers._uialt_aug);
-            MigrateLegacy(modifiers, GambleType.Chaos, modifiers._uichaos);
-            MigrateLegacy(modifiers, GambleType.Chromatic, modifiers._uichromatic);
-            MigrateLegacy(modifiers, GambleType.Eldritch, modifiers._uieldritch);
-            MigrateLegacy(modifiers, GambleType.Essence, modifiers._uiesscence);
-            MigrateLegacy(modifiers, GambleType.Harvest, modifiers._uiharvest);
-            MigrateLegacy(modifiers, GambleType.Map, modifiers._uimap);
-            MigrateLegacy(modifiers, GambleType.MapT17, modifiers._uimapT17);
+            MigrateCoordinates(modifiers);
         }
+
+        private static void MigrateCoordinates(UIModifiers modifiers)
+        {
+            modifiers.Items ??= new();
+            modifiers.Orbs ??= new();
+
+            foreach (GambleType type in Enum.GetValues<GambleType>())
+            {
+                if (!modifiers.ModeStores.TryGetValue(type, out var store))
+                    continue;
+
+                if (store.Item is { } item && IsSet(item))
+                    SetItemIfEmpty(modifiers, type, item);
+
+                if (store.Base is { } primary && IsSet(primary))
+                {
+                    var orb = GambleCoordinateResolver.PrimaryOrb(type);
+                    if (orb is not null)
+                        SetOrbIfEmpty(modifiers.Orbs, orb.Value, primary);
+                }
+
+                if (store.Second is { } second && IsSet(second))
+                {
+                    var orb = GambleCoordinateResolver.SecondaryOrb(type);
+                    if (orb is not null)
+                        SetOrbIfEmpty(modifiers.Orbs, orb.Value, second);
+                }
+
+                if (store.Third is { } third && IsSet(third))
+                {
+                    var orb = GambleCoordinateResolver.TertiaryOrb(type);
+                    if (orb is not null)
+                        SetOrbIfEmpty(modifiers.Orbs, orb.Value, third);
+                }
+
+                store.Item = null;
+                store.Base = null;
+                store.Second = null;
+                store.Third = null;
+            }
+        }
+
+        private static void SetItemIfEmpty(UIModifiers modifiers, GambleType type, Coordinates value)
+        {
+            switch (type)
+            {
+                case GambleType.Harvest:
+                    if (!IsSet(modifiers.Items.Harvest))
+                        modifiers.Items.Harvest = value;
+                    break;
+                case GambleType.Essence:
+                    if (!IsSet(modifiers.Items.Essence))
+                        modifiers.Items.Essence = value;
+                    break;
+                default:
+                    if (!IsSet(modifiers.Items.Default))
+                        modifiers.Items.Default = value;
+                    break;
+            }
+        }
+
+        private static void SetOrbIfEmpty(GambleOrbCoordinates orbs, GambleOrbType type, Coordinates value)
+        {
+            if (IsSet(orbs.Get(type)))
+                return;
+
+            orbs.Set(type, value);
+        }
+
+        private static bool IsSet(Coordinates c) => c.X != 0 || c.Y != 0;
 
         private static void MigrateLegacy(UIModifiers modifiers, GambleType type, IUIMods legacy)
         {

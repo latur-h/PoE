@@ -24,6 +24,12 @@ namespace PoE.dlls.Gamble.UI
             "• Plain Item Quantity: +87% without More (use format A: q80r60ps25)\r\n" +
             "• Mod lines such as 44% more Monster Life in prefix/suffix blocks");
 
+        private static GambleModeHelpSection OrbsTabCoordinatesSection(string modeUses) => Section("Coordinates",
+            "Orbs tab — shared stash positions for all gamble modes.\r\n\r\n" +
+            "Items: Default item (most modes), Harvest item, Essence item.\r\n" +
+            "Orbs: Alt, Aug, Chaos, Chromatic, Essence, Alchemy, Scouring, Exalt, Eldritch, Craft.\r\n\r\n" +
+            "This mode uses: " + modeUses);
+
         public static GambleModeHelpContent For(GambleType type) => type switch
         {
             GambleType.Alt => Alt,
@@ -48,9 +54,7 @@ namespace PoE.dlls.Gamble.UI
                 "2. Right-click Alteration on the item once.\r\n" +
                 "3. Hold Shift and spam left-click Alteration on the item; copy after each click.\r\n" +
                 "4. Release Shift when done or cancelled."),
-            Section("Coordinates",
-                "• Item — item in the grid\r\n" +
-                "• Base — Alteration orb"),
+            OrbsTabCoordinatesSection("Default item, Alt orb"),
             Section("Priority",
                 "• 1 or higher — Required: every such rule must match at least one mod\r\n" +
                 "• Between 0 and 1 (e.g. 0.5) — Optional: if you use any optional rules, at least one must match\r\n" +
@@ -74,10 +78,7 @@ namespace PoE.dlls.Gamble.UI
             Section("In game",
                 "1. Right-click Alteration and move to the item; hold Shift.\r\n" +
                 "2. Each loop: copy → evaluate → Alteration click (reroll), Augmentation click (add a mod), or stop on success."),
-            Section("Coordinates",
-                "• Item — item in the grid\r\n" +
-                "• Base — Alteration orb\r\n" +
-                "• Second — Augmentation orb"),
+            OrbsTabCoordinatesSection("Default item, Alt orb, Aug orb"),
             Section("When to Alt vs Aug",
                 "• Aug — rules not met and the item has exactly one prefix or suffix mod (add second mod)\r\n" +
                 "• Alt — rules not met and the item has two or more prefix/suffix mods (reroll)\r\n" +
@@ -99,9 +100,7 @@ namespace PoE.dlls.Gamble.UI
             Section("In game",
                 "1. Copy the item — if it matches, stop.\r\n" +
                 "2. Right-click Chaos on the item, hold Shift, spam Chaos clicks with copy between clicks."),
-            Section("Coordinates",
-                "• Item — rare item\r\n" +
-                "• Base — Chaos orb"),
+            OrbsTabCoordinatesSection("Default item, Chaos orb"),
             Section("Priority",
                 "• 1 or higher — Required\r\n" +
                 "• Between 0 and 1 — Optional (if any optional rows exist, at least one must match)\r\n" +
@@ -122,9 +121,7 @@ namespace PoE.dlls.Gamble.UI
             Section("In game",
                 "1. Copy the item — if it matches, stop.\r\n" +
                 "2. Right-click Essence on the item, hold Shift, click with copy between clicks."),
-            Section("Coordinates",
-                "• Item — item\r\n" +
-                "• Base — Essence"),
+            OrbsTabCoordinatesSection("Essence item, Essence orb"),
             Section("Priority",
                 "• 1 or higher — Required\r\n" +
                 "• Between 0 and 1 — Optional\r\n" +
@@ -144,9 +141,7 @@ namespace PoE.dlls.Gamble.UI
             Section("In game",
                 "1. Copy the item and compare socket colours.\r\n" +
                 "2. If they do not match: right-click Chromatic, hold Shift, click the item until colours match."),
-            Section("Coordinates",
-                "• Item — item with sockets\r\n" +
-                "• Base — Chromatic orb"),
+            OrbsTabCoordinatesSection("Default item, Chromatic orb"),
             Section("Rules",
                 "Only the first row with non-empty Content is used. Priority, Type, and Tier are ignored."),
             Section("Content",
@@ -168,10 +163,7 @@ namespace PoE.dlls.Gamble.UI
                 "1. Copy the map and evaluate rules.\r\n" +
                 "2. Right-click Alchemy on the map once (make it rare).\r\n" +
                 "3. Loop with Shift held: Alt+click Scouring (remove mods) → click Alchemy (reroll) → copy → evaluate."),
-            Section("Coordinates",
-                "• Item — map\r\n" +
-                "• Base — Alchemy orb\r\n" +
-                "• Second — Scouring orb"),
+            OrbsTabCoordinatesSection("Default item, Alchemy orb, Scouring orb"),
             Section("Priority",
                 "• 0 (or any value between -1 and 1) — Map stat threshold in Content (see below)\r\n" +
                 "• 1 or higher — Include: mod name must match\r\n" +
@@ -199,9 +191,7 @@ namespace PoE.dlls.Gamble.UI
                 "1. Copy the map and evaluate.\r\n" +
                 "2. If not satisfied: right-click Chaos, hold Shift, spam Chaos on the map with copy between clicks.\r\n" +
                 "No Scouring/Alchemy cycle (unlike standard Map mode)."),
-            Section("Coordinates",
-                "• Item — map\r\n" +
-                "• Base — Chaos orb"),
+            OrbsTabCoordinatesSection("Default item, Chaos orb"),
             Section("Mod rules",
                 "Same as Map mode: exclude on mod names (priority ≤ -1), optional include (priority ≥ 1). Type and Tier are ignored."),
             Section("Stat format A (compact)",
@@ -221,11 +211,7 @@ namespace PoE.dlls.Gamble.UI
                 "3. If rare and fewer than 6 mods: Exalt slam on the map, then copy and re-check.\r\n" +
                 "4. If an exclude rule matches or the map has 6 mods but rules fail: Scouring + Alchemy and restart.\r\n" +
                 "5. Stop when the map is rare, has 6 mods, and all rules pass."),
-            Section("Coordinates",
-                "• Item — map\r\n" +
-                "• Alchemy — Alchemy orb\r\n" +
-                "• Scouring — Scouring orb (inventory slot; Alt+click uses scour on item)\r\n" +
-                "• Exalt — Exalted orb"),
+            OrbsTabCoordinatesSection("Default item, Alchemy orb, Scouring orb, Exalt orb"),
             Section("Rules",
                 "Same as Map mode: stat rows (priority between -1 and 1), exclude (priority ≤ -1), optional include (priority ≥ 1). Type and Tier are ignored for map mod rows."),
             Section("Stat format A (compact)",
@@ -243,9 +229,7 @@ namespace PoE.dlls.Gamble.UI
                 "1. Copy the item.\r\n" +
                 "2. If not valid: click the Harvest craft button, then the item, then copy again.\r\n" +
                 "3. Repeat until match or cancel. No Shift+orb spam."),
-            Section("Coordinates",
-                "• Item — item in the Harvest craft window\r\n" +
-                "• Base — Reforge / craft button"),
+            OrbsTabCoordinatesSection("Harvest item, Craft button"),
             Section("Priority",
                 "• 1 or higher — Required\r\n" +
                 "• Between 0 and 1 — Optional"),
@@ -263,9 +247,7 @@ namespace PoE.dlls.Gamble.UI
                 "Eldritch implicit lines on maps or other items, rerolled with Eldritch currency."),
             Section("In game",
                 "Same as Chaos: right-click orb, hold Shift, spam on item with copy between clicks."),
-            Section("Coordinates",
-                "• Item — item with Eldritch implicits\r\n" +
-                "• Base — Eldritch orb position"),
+            OrbsTabCoordinatesSection("Default item, Eldritch orb"),
             Section("Priority",
                 "• 1 or higher — Required\r\n" +
                 "• Between 0 and 1 — Optional"),

@@ -79,6 +79,7 @@ namespace PoE
             textBox_BaseXY = new FlatTextBox();
             textBox_ItemXY = new FlatTextBox();
             comboBox_GambleType = new FlatComboBox();
+            tabPage_Orbs = new TabPage();
             tabPage_Settings = new TabPage();
             groupBox_FlaskSettings = new FlatGroupBox();
             label_FlaskTinctureCooldown = new Label();
@@ -127,48 +128,34 @@ namespace PoE
             // 
             tabControl_Main.Controls.Add(tabPage_Main);
             tabControl_Main.Controls.Add(tabPage_Gamble);
+            tabControl_Main.Controls.Add(tabPage_Orbs);
             tabControl_Main.Controls.Add(tabPage_Settings);
             tabControl_Main.Controls.Add(tabPage_Logs);
+            tabControl_Main.Dock = DockStyle.Fill;
             tabControl_Main.DrawMode = TabDrawMode.OwnerDrawFixed;
             tabControl_Main.ItemSize = new Size(100, 32);
-            tabControl_Main.Location = new Point(1, 12);
+            tabControl_Main.Location = new Point(0, 0);
             tabControl_Main.Name = "tabControl_Main";
             tabControl_Main.SelectedIndex = 0;
-            tabControl_Main.Size = new Size(740, 437);
+            tabControl_Main.Size = new Size(744, 451);
             tabControl_Main.SizeMode = TabSizeMode.Fixed;
             tabControl_Main.TabIndex = 6;
-            tabControl_Main.Dock = DockStyle.Fill;
             // 
             // tabPage_Main
             // 
             tabPage_Main.Controls.Add(label_Active);
-            tabPage_Main.Controls.Add(checkBox_Flask5);
-            tabPage_Main.Controls.Add(textBox_Flask1);
-            tabPage_Main.Controls.Add(checkBox_Flask4);
-            tabPage_Main.Controls.Add(checkBox_Flask3);
-            tabPage_Main.Controls.Add(checkBox_Flask2);
-            tabPage_Main.Controls.Add(checkBox_Flask1);
             tabPage_Main.Controls.Add(label_Key);
-            tabPage_Main.Controls.Add(textBox_Flask5);
-            tabPage_Main.Controls.Add(textBox_Flask4);
-            tabPage_Main.Controls.Add(textBox_Flask3);
-            tabPage_Main.Controls.Add(textBox_Flask2);
+            tabPage_Main.Controls.Add(label_Percent);
+            tabPage_Main.Controls.Add(label_FlaskType);
             tabPage_Main.Controls.Add(groupBox_Flask5);
             tabPage_Main.Controls.Add(groupBox_Flask4);
             tabPage_Main.Controls.Add(groupBox_Flask3);
             tabPage_Main.Controls.Add(groupBox_Flask2);
             tabPage_Main.Controls.Add(groupBox_Flask1);
-            tabPage_Main.Controls.Add(comboBox_Flask5);
-            tabPage_Main.Controls.Add(comboBox_Flask4);
-            tabPage_Main.Controls.Add(comboBox_Flask3);
-            tabPage_Main.Controls.Add(comboBox_Flask2);
-            tabPage_Main.Controls.Add(label_Percent);
-            tabPage_Main.Controls.Add(label_FlaskType);
-            tabPage_Main.Controls.Add(comboBox_Flask1);
             tabPage_Main.Location = new Point(4, 36);
             tabPage_Main.Name = "tabPage_Main";
             tabPage_Main.Padding = new Padding(3);
-            tabPage_Main.Size = new Size(732, 397);
+            tabPage_Main.Size = new Size(736, 411);
             tabPage_Main.TabIndex = 0;
             tabPage_Main.Text = "Main";
             tabPage_Main.UseVisualStyleBackColor = true;
@@ -187,23 +174,20 @@ namespace PoE
             // 
             checkBox_Flask5.AutoSize = true;
             checkBox_Flask5.Font = new Font("Segoe UI", 12F, FontStyle.Regular, GraphicsUnit.Point, 0);
-            checkBox_Flask5.Location = new Point(503, 22);
+            checkBox_Flask5.Location = new Point(36, 22);
             checkBox_Flask5.Name = "checkBox_Flask5";
-            checkBox_Flask5.Size = new Size(38, 25);
+            checkBox_Flask5.Size = new Size(15, 25);
             checkBox_Flask5.TabIndex = 40;
-            checkBox_Flask5.Text = "5";
-            checkBox_Flask5.TextAlign = ContentAlignment.MiddleCenter;
             checkBox_Flask5.UseVisualStyleBackColor = true;
             // 
             // textBox_Flask1
             // 
-            textBox_Flask1.Anchor = AnchorStyles.None;
             textBox_Flask1.BackColor = Color.Transparent;
             textBox_Flask1.Font = new Font("Segoe UI", 12F, FontStyle.Regular, GraphicsUnit.Point, 0);
-            textBox_Flask1.Location = new Point(102, 55);
+            textBox_Flask1.Location = new Point(6, 56);
             textBox_Flask1.Margin = new Padding(0);
             textBox_Flask1.Name = "textBox_Flask1";
-            textBox_Flask1.Size = new Size(85, 30);
+            textBox_Flask1.Size = new Size(78, 30);
             textBox_Flask1.TabIndex = 30;
             textBox_Flask1.TextAlign = HorizontalAlignment.Center;
             // 
@@ -211,48 +195,40 @@ namespace PoE
             // 
             checkBox_Flask4.AutoSize = true;
             checkBox_Flask4.Font = new Font("Segoe UI", 12F, FontStyle.Regular, GraphicsUnit.Point, 0);
-            checkBox_Flask4.Location = new Point(408, 22);
+            checkBox_Flask4.Location = new Point(36, 22);
             checkBox_Flask4.Name = "checkBox_Flask4";
-            checkBox_Flask4.Size = new Size(38, 25);
+            checkBox_Flask4.Size = new Size(15, 25);
             checkBox_Flask4.TabIndex = 39;
-            checkBox_Flask4.Text = "4";
-            checkBox_Flask4.TextAlign = ContentAlignment.MiddleCenter;
             checkBox_Flask4.UseVisualStyleBackColor = true;
             // 
             // checkBox_Flask3
             // 
             checkBox_Flask3.AutoSize = true;
             checkBox_Flask3.Font = new Font("Segoe UI", 12F, FontStyle.Regular, GraphicsUnit.Point, 0);
-            checkBox_Flask3.Location = new Point(313, 22);
+            checkBox_Flask3.Location = new Point(36, 22);
             checkBox_Flask3.Name = "checkBox_Flask3";
-            checkBox_Flask3.Size = new Size(38, 25);
+            checkBox_Flask3.Size = new Size(15, 25);
             checkBox_Flask3.TabIndex = 38;
-            checkBox_Flask3.Text = "3";
-            checkBox_Flask3.TextAlign = ContentAlignment.MiddleCenter;
             checkBox_Flask3.UseVisualStyleBackColor = true;
             // 
             // checkBox_Flask2
             // 
             checkBox_Flask2.AutoSize = true;
             checkBox_Flask2.Font = new Font("Segoe UI", 12F, FontStyle.Regular, GraphicsUnit.Point, 0);
-            checkBox_Flask2.Location = new Point(219, 22);
+            checkBox_Flask2.Location = new Point(36, 22);
             checkBox_Flask2.Name = "checkBox_Flask2";
-            checkBox_Flask2.Size = new Size(38, 25);
+            checkBox_Flask2.Size = new Size(15, 25);
             checkBox_Flask2.TabIndex = 37;
-            checkBox_Flask2.Text = "2";
-            checkBox_Flask2.TextAlign = ContentAlignment.MiddleCenter;
             checkBox_Flask2.UseVisualStyleBackColor = true;
             // 
             // checkBox_Flask1
             // 
             checkBox_Flask1.AutoSize = true;
             checkBox_Flask1.Font = new Font("Segoe UI", 12F, FontStyle.Regular, GraphicsUnit.Point, 0);
-            checkBox_Flask1.Location = new Point(120, 22);
+            checkBox_Flask1.Location = new Point(36, 22);
             checkBox_Flask1.Name = "checkBox_Flask1";
-            checkBox_Flask1.Size = new Size(38, 25);
+            checkBox_Flask1.Size = new Size(15, 25);
             checkBox_Flask1.TabIndex = 36;
-            checkBox_Flask1.Text = "1";
-            checkBox_Flask1.TextAlign = ContentAlignment.MiddleCenter;
             checkBox_Flask1.UseVisualStyleBackColor = true;
             // 
             // label_Key
@@ -269,9 +245,9 @@ namespace PoE
             // 
             textBox_Flask5.BackColor = Color.Transparent;
             textBox_Flask5.Font = new Font("Segoe UI", 12F, FontStyle.Regular, GraphicsUnit.Point, 0);
-            textBox_Flask5.Location = new Point(477, 55);
+            textBox_Flask5.Location = new Point(6, 56);
             textBox_Flask5.Name = "textBox_Flask5";
-            textBox_Flask5.Size = new Size(85, 30);
+            textBox_Flask5.Size = new Size(78, 30);
             textBox_Flask5.TabIndex = 34;
             textBox_Flask5.TextAlign = HorizontalAlignment.Center;
             // 
@@ -279,9 +255,9 @@ namespace PoE
             // 
             textBox_Flask4.BackColor = Color.Transparent;
             textBox_Flask4.Font = new Font("Segoe UI", 12F, FontStyle.Regular, GraphicsUnit.Point, 0);
-            textBox_Flask4.Location = new Point(382, 55);
+            textBox_Flask4.Location = new Point(6, 56);
             textBox_Flask4.Name = "textBox_Flask4";
-            textBox_Flask4.Size = new Size(85, 30);
+            textBox_Flask4.Size = new Size(78, 30);
             textBox_Flask4.TabIndex = 33;
             textBox_Flask4.TextAlign = HorizontalAlignment.Center;
             // 
@@ -289,9 +265,9 @@ namespace PoE
             // 
             textBox_Flask3.BackColor = Color.Transparent;
             textBox_Flask3.Font = new Font("Segoe UI", 12F, FontStyle.Regular, GraphicsUnit.Point, 0);
-            textBox_Flask3.Location = new Point(287, 55);
+            textBox_Flask3.Location = new Point(6, 56);
             textBox_Flask3.Name = "textBox_Flask3";
-            textBox_Flask3.Size = new Size(85, 30);
+            textBox_Flask3.Size = new Size(78, 30);
             textBox_Flask3.TabIndex = 32;
             textBox_Flask3.TextAlign = HorizontalAlignment.Center;
             // 
@@ -299,34 +275,38 @@ namespace PoE
             // 
             textBox_Flask2.BackColor = Color.Transparent;
             textBox_Flask2.Font = new Font("Segoe UI", 12F, FontStyle.Regular, GraphicsUnit.Point, 0);
-            textBox_Flask2.Location = new Point(191, 55);
+            textBox_Flask2.Location = new Point(6, 56);
             textBox_Flask2.Name = "textBox_Flask2";
-            textBox_Flask2.Size = new Size(85, 30);
+            textBox_Flask2.Size = new Size(78, 30);
             textBox_Flask2.TabIndex = 31;
             textBox_Flask2.TextAlign = HorizontalAlignment.Center;
             // 
             // groupBox_Flask5
             // 
+            groupBox_Flask5.Controls.Add(checkBox_Flask5);
+            groupBox_Flask5.Controls.Add(textBox_Flask5);
+            groupBox_Flask5.Controls.Add(comboBox_Flask5);
             groupBox_Flask5.Controls.Add(slider_Flask5);
             groupBox_Flask5.Controls.Add(label_Flask5_Slider);
-            groupBox_Flask5.Location = new Point(477, 146);
+            groupBox_Flask5.Location = new Point(477, 8);
             groupBox_Flask5.Name = "groupBox_Flask5";
-            groupBox_Flask5.Size = new Size(85, 231);
+            groupBox_Flask5.Size = new Size(90, 380);
             groupBox_Flask5.TabIndex = 14;
             groupBox_Flask5.TabStop = false;
+            groupBox_Flask5.Text = "5";
             // 
             // slider_Flask5
             // 
-            slider_Flask5.Location = new Point(26, 12);
+            slider_Flask5.Location = new Point(29, 132);
             slider_Flask5.Name = "slider_Flask5";
-            slider_Flask5.Size = new Size(32, 174);
+            slider_Flask5.Size = new Size(32, 200);
             slider_Flask5.TabIndex = 24;
             // 
             // label_Flask5_Slider
             // 
             label_Flask5_Slider.AutoSize = true;
             label_Flask5_Slider.Font = new Font("Segoe UI", 12F, FontStyle.Regular, GraphicsUnit.Point, 0);
-            label_Flask5_Slider.Location = new Point(26, 207);
+            label_Flask5_Slider.Location = new Point(35, 338);
             label_Flask5_Slider.Name = "label_Flask5_Slider";
             label_Flask5_Slider.Size = new Size(19, 21);
             label_Flask5_Slider.TabIndex = 25;
@@ -334,26 +314,30 @@ namespace PoE
             // 
             // groupBox_Flask4
             // 
+            groupBox_Flask4.Controls.Add(checkBox_Flask4);
+            groupBox_Flask4.Controls.Add(textBox_Flask4);
+            groupBox_Flask4.Controls.Add(comboBox_Flask4);
             groupBox_Flask4.Controls.Add(slider_Flask4);
             groupBox_Flask4.Controls.Add(label_Flask4_Slider);
-            groupBox_Flask4.Location = new Point(382, 146);
+            groupBox_Flask4.Location = new Point(382, 8);
             groupBox_Flask4.Name = "groupBox_Flask4";
-            groupBox_Flask4.Size = new Size(85, 231);
+            groupBox_Flask4.Size = new Size(90, 380);
             groupBox_Flask4.TabIndex = 29;
             groupBox_Flask4.TabStop = false;
+            groupBox_Flask4.Text = "4";
             // 
             // slider_Flask4
             // 
-            slider_Flask4.Location = new Point(26, 12);
+            slider_Flask4.Location = new Point(29, 132);
             slider_Flask4.Name = "slider_Flask4";
-            slider_Flask4.Size = new Size(32, 174);
+            slider_Flask4.Size = new Size(32, 200);
             slider_Flask4.TabIndex = 20;
             // 
             // label_Flask4_Slider
             // 
             label_Flask4_Slider.AutoSize = true;
             label_Flask4_Slider.Font = new Font("Segoe UI", 12F, FontStyle.Regular, GraphicsUnit.Point, 0);
-            label_Flask4_Slider.Location = new Point(28, 210);
+            label_Flask4_Slider.Location = new Point(35, 338);
             label_Flask4_Slider.Name = "label_Flask4_Slider";
             label_Flask4_Slider.Size = new Size(19, 21);
             label_Flask4_Slider.TabIndex = 21;
@@ -361,26 +345,30 @@ namespace PoE
             // 
             // groupBox_Flask3
             // 
+            groupBox_Flask3.Controls.Add(checkBox_Flask3);
+            groupBox_Flask3.Controls.Add(textBox_Flask3);
+            groupBox_Flask3.Controls.Add(comboBox_Flask3);
             groupBox_Flask3.Controls.Add(slider_Flask3);
             groupBox_Flask3.Controls.Add(label_Flask3_Slider);
-            groupBox_Flask3.Location = new Point(287, 146);
+            groupBox_Flask3.Location = new Point(287, 8);
             groupBox_Flask3.Name = "groupBox_Flask3";
-            groupBox_Flask3.Size = new Size(85, 231);
+            groupBox_Flask3.Size = new Size(90, 380);
             groupBox_Flask3.TabIndex = 28;
             groupBox_Flask3.TabStop = false;
+            groupBox_Flask3.Text = "3";
             // 
             // slider_Flask3
             // 
-            slider_Flask3.Location = new Point(26, 12);
+            slider_Flask3.Location = new Point(29, 132);
             slider_Flask3.Name = "slider_Flask3";
-            slider_Flask3.Size = new Size(32, 174);
+            slider_Flask3.Size = new Size(32, 200);
             slider_Flask3.TabIndex = 16;
             // 
             // label_Flask3_Slider
             // 
             label_Flask3_Slider.AutoSize = true;
             label_Flask3_Slider.Font = new Font("Segoe UI", 12F, FontStyle.Regular, GraphicsUnit.Point, 0);
-            label_Flask3_Slider.Location = new Point(28, 210);
+            label_Flask3_Slider.Location = new Point(35, 338);
             label_Flask3_Slider.Name = "label_Flask3_Slider";
             label_Flask3_Slider.Size = new Size(19, 21);
             label_Flask3_Slider.TabIndex = 17;
@@ -388,26 +376,30 @@ namespace PoE
             // 
             // groupBox_Flask2
             // 
+            groupBox_Flask2.Controls.Add(checkBox_Flask2);
+            groupBox_Flask2.Controls.Add(textBox_Flask2);
+            groupBox_Flask2.Controls.Add(comboBox_Flask2);
             groupBox_Flask2.Controls.Add(slider_Flask2);
             groupBox_Flask2.Controls.Add(label_Flask2_Slider);
-            groupBox_Flask2.Location = new Point(191, 146);
+            groupBox_Flask2.Location = new Point(191, 8);
             groupBox_Flask2.Name = "groupBox_Flask2";
-            groupBox_Flask2.Size = new Size(85, 231);
+            groupBox_Flask2.Size = new Size(90, 380);
             groupBox_Flask2.TabIndex = 27;
             groupBox_Flask2.TabStop = false;
+            groupBox_Flask2.Text = "2";
             // 
             // slider_Flask2
             // 
-            slider_Flask2.Location = new Point(28, 12);
+            slider_Flask2.Location = new Point(29, 132);
             slider_Flask2.Name = "slider_Flask2";
-            slider_Flask2.Size = new Size(32, 174);
+            slider_Flask2.Size = new Size(32, 200);
             slider_Flask2.TabIndex = 12;
             // 
             // label_Flask2_Slider
             // 
             label_Flask2_Slider.AutoSize = true;
             label_Flask2_Slider.Font = new Font("Segoe UI", 12F, FontStyle.Regular, GraphicsUnit.Point, 0);
-            label_Flask2_Slider.Location = new Point(30, 210);
+            label_Flask2_Slider.Location = new Point(35, 338);
             label_Flask2_Slider.Name = "label_Flask2_Slider";
             label_Flask2_Slider.Size = new Size(19, 21);
             label_Flask2_Slider.TabIndex = 13;
@@ -415,26 +407,30 @@ namespace PoE
             // 
             // groupBox_Flask1
             // 
+            groupBox_Flask1.Controls.Add(checkBox_Flask1);
+            groupBox_Flask1.Controls.Add(textBox_Flask1);
+            groupBox_Flask1.Controls.Add(comboBox_Flask1);
             groupBox_Flask1.Controls.Add(slider_Flask1);
             groupBox_Flask1.Controls.Add(label_Flask1_Slider);
-            groupBox_Flask1.Location = new Point(92, 146);
+            groupBox_Flask1.Location = new Point(92, 8);
             groupBox_Flask1.Name = "groupBox_Flask1";
-            groupBox_Flask1.Size = new Size(85, 231);
+            groupBox_Flask1.Size = new Size(90, 380);
             groupBox_Flask1.TabIndex = 26;
             groupBox_Flask1.TabStop = false;
+            groupBox_Flask1.Text = "1";
             // 
             // slider_Flask1
             // 
-            slider_Flask1.Location = new Point(26, 12);
+            slider_Flask1.Location = new Point(29, 132);
             slider_Flask1.Name = "slider_Flask1";
-            slider_Flask1.Size = new Size(32, 174);
+            slider_Flask1.Size = new Size(32, 200);
             slider_Flask1.TabIndex = 8;
             // 
             // label_Flask1_Slider
             // 
             label_Flask1_Slider.AutoSize = true;
             label_Flask1_Slider.Font = new Font("Segoe UI", 12F, FontStyle.Regular, GraphicsUnit.Point, 0);
-            label_Flask1_Slider.Location = new Point(28, 210);
+            label_Flask1_Slider.Location = new Point(35, 338);
             label_Flask1_Slider.Name = "label_Flask1_Slider";
             label_Flask1_Slider.Size = new Size(19, 21);
             label_Flask1_Slider.TabIndex = 9;
@@ -447,9 +443,9 @@ namespace PoE
             comboBox_Flask5.FlatStyle = FlatStyle.Flat;
             comboBox_Flask5.Font = new Font("Segoe UI", 12F, FontStyle.Regular, GraphicsUnit.Point, 0);
             comboBox_Flask5.FormattingEnabled = true;
-            comboBox_Flask5.Location = new Point(477, 98);
+            comboBox_Flask5.Location = new Point(6, 94);
             comboBox_Flask5.Name = "comboBox_Flask5";
-            comboBox_Flask5.Size = new Size(85, 30);
+            comboBox_Flask5.Size = new Size(78, 30);
             comboBox_Flask5.TabIndex = 22;
             // 
             // comboBox_Flask4
@@ -459,9 +455,9 @@ namespace PoE
             comboBox_Flask4.FlatStyle = FlatStyle.Flat;
             comboBox_Flask4.Font = new Font("Segoe UI", 12F, FontStyle.Regular, GraphicsUnit.Point, 0);
             comboBox_Flask4.FormattingEnabled = true;
-            comboBox_Flask4.Location = new Point(382, 98);
+            comboBox_Flask4.Location = new Point(6, 94);
             comboBox_Flask4.Name = "comboBox_Flask4";
-            comboBox_Flask4.Size = new Size(85, 30);
+            comboBox_Flask4.Size = new Size(78, 30);
             comboBox_Flask4.TabIndex = 18;
             // 
             // comboBox_Flask3
@@ -471,9 +467,9 @@ namespace PoE
             comboBox_Flask3.FlatStyle = FlatStyle.Flat;
             comboBox_Flask3.Font = new Font("Segoe UI", 12F, FontStyle.Regular, GraphicsUnit.Point, 0);
             comboBox_Flask3.FormattingEnabled = true;
-            comboBox_Flask3.Location = new Point(287, 98);
+            comboBox_Flask3.Location = new Point(6, 94);
             comboBox_Flask3.Name = "comboBox_Flask3";
-            comboBox_Flask3.Size = new Size(85, 30);
+            comboBox_Flask3.Size = new Size(78, 30);
             comboBox_Flask3.TabIndex = 14;
             // 
             // comboBox_Flask2
@@ -483,9 +479,9 @@ namespace PoE
             comboBox_Flask2.FlatStyle = FlatStyle.Flat;
             comboBox_Flask2.Font = new Font("Segoe UI", 12F, FontStyle.Regular, GraphicsUnit.Point, 0);
             comboBox_Flask2.FormattingEnabled = true;
-            comboBox_Flask2.Location = new Point(191, 98);
+            comboBox_Flask2.Location = new Point(6, 94);
             comboBox_Flask2.Name = "comboBox_Flask2";
-            comboBox_Flask2.Size = new Size(85, 30);
+            comboBox_Flask2.Size = new Size(78, 30);
             comboBox_Flask2.TabIndex = 10;
             // 
             // label_Percent
@@ -515,9 +511,9 @@ namespace PoE
             comboBox_Flask1.FlatStyle = FlatStyle.Flat;
             comboBox_Flask1.Font = new Font("Segoe UI", 12F, FontStyle.Regular, GraphicsUnit.Point, 0);
             comboBox_Flask1.FormattingEnabled = true;
-            comboBox_Flask1.Location = new Point(92, 98);
+            comboBox_Flask1.Location = new Point(6, 94);
             comboBox_Flask1.Name = "comboBox_Flask1";
-            comboBox_Flask1.Size = new Size(85, 30);
+            comboBox_Flask1.Size = new Size(78, 30);
             comboBox_Flask1.TabIndex = 0;
             // 
             // tabPage_Gamble
@@ -535,7 +531,7 @@ namespace PoE
             tabPage_Gamble.Controls.Add(comboBox_GambleType);
             tabPage_Gamble.Location = new Point(4, 36);
             tabPage_Gamble.Name = "tabPage_Gamble";
-            tabPage_Gamble.Size = new Size(713, 397);
+            tabPage_Gamble.Size = new Size(736, 411);
             tabPage_Gamble.TabIndex = 3;
             tabPage_Gamble.Text = "Gamble";
             tabPage_Gamble.UseVisualStyleBackColor = true;
@@ -649,6 +645,15 @@ namespace PoE
             comboBox_GambleType.Size = new Size(121, 30);
             comboBox_GambleType.TabIndex = 0;
             // 
+            // tabPage_Orbs
+            // 
+            tabPage_Orbs.Location = new Point(4, 36);
+            tabPage_Orbs.Name = "tabPage_Orbs";
+            tabPage_Orbs.Size = new Size(736, 411);
+            tabPage_Orbs.TabIndex = 4;
+            tabPage_Orbs.Text = "Orbs";
+            tabPage_Orbs.UseVisualStyleBackColor = true;
+            // 
             // tabPage_Settings
             // 
             tabPage_Settings.Controls.Add(groupBox_FlaskSettings);
@@ -656,7 +661,7 @@ namespace PoE
             tabPage_Settings.Location = new Point(4, 36);
             tabPage_Settings.Name = "tabPage_Settings";
             tabPage_Settings.Padding = new Padding(3);
-            tabPage_Settings.Size = new Size(713, 397);
+            tabPage_Settings.Size = new Size(732, 397);
             tabPage_Settings.TabIndex = 1;
             tabPage_Settings.Text = "Settings";
             tabPage_Settings.UseVisualStyleBackColor = true;
@@ -971,7 +976,7 @@ namespace PoE
             // 
             tabPage_Logs.Location = new Point(4, 36);
             tabPage_Logs.Name = "tabPage_Logs";
-            tabPage_Logs.Size = new Size(713, 397);
+            tabPage_Logs.Size = new Size(732, 397);
             tabPage_Logs.TabIndex = 2;
             tabPage_Logs.Text = "Logs";
             tabPage_Logs.UseVisualStyleBackColor = true;
@@ -982,7 +987,7 @@ namespace PoE
             AutoScaleMode = AutoScaleMode.Font;
             ClientSize = new Size(744, 451);
             Controls.Add(tabControl_Main);
-            MinimumSize = new Size(640, 420);
+            MinimumSize = new Size(760, 490);
             Name = "Main";
             Text = "PoE";
             FormClosing += Main_FormClosing;
@@ -1051,6 +1056,7 @@ namespace PoE
         private CheckBox checkBox_Flask3;
         private Label label_Active;
         private TabPage tabPage_Gamble;
+        private TabPage tabPage_Orbs;
         private FlatComboBox comboBox_GambleType;
         private Label label_BaseXY;
         private Label label_ItemXY;
