@@ -6,6 +6,16 @@ namespace PoE
 {
     public partial class Main
     {
+        private Panel? _separatorGambleFlask;
+        private Panel? _separatorFlaskGameData;
+        private Panel? _separatorGameDataInput;
+
+        private const int SettingsGambleHeight = 158;
+        private const int SettingsFlaskHeight = 158;
+        private const int SettingsGameDataHeight = 132;
+        private const int SettingsInputHeight = 62;
+        private const int SettingsSectionGap = 10;
+
         private void SetupResponsiveLayout()
         {
             tabControl_Main.Dock = DockStyle.Fill;
@@ -15,12 +25,14 @@ namespace PoE
             tabPage_Main.Resize += (_, _) => LayoutMainTab();
             tabPage_Gamble.Resize += (_, _) => LayoutGambleTab();
             tabPage_Orbs.Resize += (_, _) => LayoutOrbsTab();
+            tabPage_Macros.Resize += (_, _) => LayoutMacrosTab();
             tabPage_Settings.Resize += (_, _) => LayoutSettingsTab();
             Resize += (_, _) =>
             {
                 LayoutMainTab();
                 LayoutGambleTab();
                 LayoutOrbsTab();
+                LayoutMacrosTab();
                 LayoutSettingsTab();
             };
         }
@@ -163,36 +175,119 @@ namespace PoE
             gambleRulesPanel.Size = new Size(width - margin * 2, Math.Max(120, height - gambleRulesPanel.Top - margin));
         }
 
+        private void LayoutMacrosTab()
+        {
+            if (!_macrosTabUiReady)
+                return;
+
+            const int margin = 7;
+            const int topBarHeight = 40;
+            const int globalHeaderHeight = 24;
+            const int globalPanelHeight = 150;
+            const int sectionGap = 10;
+            const int buildHeaderHeight = 24;
+            const int presetBarHeight = 34;
+
+            int width = tabPage_Macros.ClientSize.Width;
+            int height = tabPage_Macros.ClientSize.Height;
+            if (width <= 0 || height <= 0)
+                return;
+
+            int innerWidth = Math.Max(400, width - margin * 2);
+            int y = margin;
+
+            label_MacrosEnableKey.Location = new Point(margin, y + 6);
+            textBox_MacrosEnableKey.Location = new Point(132, y + 2);
+            checkBox_MacrosFeatureEnabled.Location = new Point(230, y + 8);
+            y += topBarHeight;
+
+            label_MacrosGlobalSection.Location = new Point(margin, y);
+            y += globalHeaderHeight;
+
+            _globalMacrosPanel.Location = new Point(margin, y);
+            _globalMacrosPanel.Size = new Size(innerWidth, globalPanelHeight);
+            y += globalPanelHeight + sectionGap;
+
+            if (_macrosSectionSeparator is not null)
+            {
+                _macrosSectionSeparator.Location = new Point(margin, y);
+                _macrosSectionSeparator.Size = new Size(innerWidth, 1);
+                y += 1 + sectionGap;
+            }
+
+            label_MacrosBuildSection.Location = new Point(margin, y);
+            y += buildHeaderHeight;
+
+            _macroBuildPresetBar.Location = new Point(margin, y);
+            _macroBuildPresetBar.Size = new Size(innerWidth, presetBarHeight);
+            y += presetBarHeight + 4;
+
+            _buildMacrosPanel.Location = new Point(margin, y);
+            _buildMacrosPanel.Size = new Size(innerWidth, Math.Max(120, height - y - margin));
+        }
+
         private void LayoutSettingsTab()
         {
             const int margin = 7;
             int width = tabPage_Settings.ClientSize.Width;
-            int height = tabPage_Settings.ClientSize.Height;
-            if (width <= 0 || height <= 0)
+            if (width <= 0)
                 return;
 
             if (groupBox_Input is null || groupBox_GameData is null)
                 return;
 
-            int innerWidth = width - margin * 2;
-            const int inputHeight = 62;
-            const int gameDataHeight = 132;
+            int innerWidth = Math.Max(200, width - margin * 2);
+            int y = margin;
 
-            groupBox_GambleSettings.Location = new Point(margin, margin);
-            groupBox_GambleSettings.Size = new Size(innerWidth, 158);
-
-            groupBox_Input.Size = new Size(innerWidth, inputHeight);
-            groupBox_Input.Location = new Point(margin, height - margin - inputHeight);
-            LayoutInputSettingsGroup();
-            groupBox_Input.BringToFront();
-
-            groupBox_GameData.Size = new Size(innerWidth, gameDataHeight);
-            groupBox_GameData.Location = new Point(margin, groupBox_Input.Top - margin - gameDataHeight);
+            y = PlaceSettingsSection(groupBox_GambleSettings, margin, y, innerWidth, SettingsGambleHeight);
+            y = PlaceSettingsSeparator(_separatorGambleFlask, margin, y, innerWidth);
+            y = PlaceSettingsSection(groupBox_FlaskSettings, margin, y, innerWidth, SettingsFlaskHeight);
+            y = PlaceSettingsSeparator(_separatorFlaskGameData, margin, y, innerWidth);
+            y = PlaceSettingsSection(groupBox_GameData, margin, y, innerWidth, SettingsGameDataHeight);
             LayoutGameDataSettingsGroup();
-            groupBox_GameData.BringToFront();
+            y = PlaceSettingsSeparator(_separatorGameDataInput, margin, y, innerWidth);
+            PlaceSettingsSection(groupBox_Input, margin, y, innerWidth, SettingsInputHeight);
+            LayoutInputSettingsGroup();
+        }
 
-            groupBox_FlaskSettings.Location = new Point(margin, groupBox_GambleSettings.Bottom + margin);
-            groupBox_FlaskSettings.Size = new Size(innerWidth, Math.Max(120, groupBox_GameData.Top - groupBox_FlaskSettings.Top - margin));
+        private void InitializeSettingsSeparators()
+        {
+            if (_separatorGambleFlask is not null)
+                return;
+
+            _separatorGambleFlask = CreateSettingsSeparator();
+            _separatorFlaskGameData = CreateSettingsSeparator();
+            _separatorGameDataInput = CreateSettingsSeparator();
+
+            tabPage_Settings.Controls.Add(_separatorGambleFlask);
+            tabPage_Settings.Controls.Add(_separatorFlaskGameData);
+            tabPage_Settings.Controls.Add(_separatorGameDataInput);
+        }
+
+        private static Panel CreateSettingsSeparator() =>
+            new()
+            {
+                Height = 1,
+                BackColor = StaticColors.TabControlForeGround,
+            };
+
+        private static int PlaceSettingsSection(Control section, int x, int y, int width, int height)
+        {
+            section.Location = new Point(x, y);
+            section.Size = new Size(width, height);
+            return y + height;
+        }
+
+        private static int PlaceSettingsSeparator(Panel? separator, int x, int y, int width)
+        {
+            if (separator is null)
+                return y;
+
+            y += SettingsSectionGap;
+            separator.Location = new Point(x, y);
+            separator.Size = new Size(width, 1);
+            separator.Visible = true;
+            return y + 1 + SettingsSectionGap;
         }
     }
 }

@@ -1,6 +1,9 @@
+using PoE.dlls.Automation;
 using PoE.dlls.Flasks.Base;
 using PoE.dlls.Gamba;
 using PoE.dlls.Gamble;
+using PoE.dlls.Macros;
+using PoE.dlls.Settings.Macros;
 using PoE.dlls.InteropServices;
 using PoE.dlls.Logger;
 using PoE.dlls.Settings.Mods;
@@ -23,19 +26,12 @@ namespace PoE
             _hotkeys.Register("Gambler start", GamblerStart, _settings.Modifiers.GamblerStart);
             _hotkeys.Register("Gambler stop", GamblerStop, _settings.Modifiers.GamblerStop);
 
-            await Task.Run(async () =>
-            {
-                while (true)
-                {
-                    if (_inputHost.Simulator.GetKeyState("XButton1"))
-                    {
-                        _inputHost.Simulator.Send("LButton Down");
-                        await Task.Delay(20);
-                        _inputHost.Simulator.Send("LButton Up");
-                        await Task.Delay(20);
-                    }
-                }
-            });
+            MacroSettingsHelper.EnsureInitialized(_settings.Macros);
+            MacroHotkeyBinder.RegisterEnableHotkey(_hotkeys, _macroEngine, _settings.Macros.EnableKey);
+            ApplyMacrosRuntime();
+            _macroEngine.Start();
+
+            await Task.CompletedTask;
         }
 
         #region Flasks
@@ -117,46 +113,6 @@ namespace PoE
         private Task StopDrinking()
         {
             _flaskManager.Stop();
-            return Task.CompletedTask;
-        }
-        #endregion
-        #region Clicker
-        private CancellationTokenSource? cts = null;
-        private CancellationToken token;
-        private async Task ClickerStart()
-        {
-            if (cts is null)
-            {
-                cts = new CancellationTokenSource();
-                token = cts.Token;
-            }
-
-            if (cts is not null && !token.IsCancellationRequested) return;
-
-            AppLog.System(LogSeverity.Info, "Clicker run...");
-
-            AppLog.System(LogSeverity.Debug, token.IsCancellationRequested.ToString());
-
-            while (!token.IsCancellationRequested)
-            {
-                _inputHost.Simulator.Send("LButton Down");
-                await Task.Delay(20);
-                _inputHost.Simulator.Send("LButton Up");
-                await Task.Delay(20);
-            }
-
-            AppLog.System(LogSeverity.Info, "Clicker stop...");
-
-            cts?.Dispose();
-            cts = null;
-            token = CancellationToken.None;
-        }
-        private Task ClickerStop()
-        {
-            if (cts is null || token.IsCancellationRequested) return Task.CompletedTask;
-
-            cts.Cancel();
-
             return Task.CompletedTask;
         }
         #endregion

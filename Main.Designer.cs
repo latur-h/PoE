@@ -71,6 +71,7 @@ namespace PoE
             label_GambleType = new Label();
             comboBox_GambleType = new FlatComboBox();
             tabPage_Orbs = new TabPage();
+            tabPage_Macros = new TabPage();
             tabPage_Settings = new TabPage();
             groupBox_FlaskSettings = new FlatGroupBox();
             label_FlaskTinctureCooldown = new Label();
@@ -120,6 +121,7 @@ namespace PoE
             tabControl_Main.Controls.Add(tabPage_Main);
             tabControl_Main.Controls.Add(tabPage_Gamble);
             tabControl_Main.Controls.Add(tabPage_Orbs);
+            tabControl_Main.Controls.Add(tabPage_Macros);
             tabControl_Main.Controls.Add(tabPage_Settings);
             tabControl_Main.Controls.Add(tabPage_Logs);
             tabControl_Main.Dock = DockStyle.Fill;
@@ -549,6 +551,15 @@ namespace PoE
             tabPage_Orbs.Text = "Orbs";
             tabPage_Orbs.UseVisualStyleBackColor = true;
             // 
+            // tabPage_Macros
+            // 
+            tabPage_Macros.Location = new Point(4, 36);
+            tabPage_Macros.Name = "tabPage_Macros";
+            tabPage_Macros.Size = new Size(896, 411);
+            tabPage_Macros.TabIndex = 5;
+            tabPage_Macros.Text = "Macros";
+            tabPage_Macros.UseVisualStyleBackColor = true;
+            // 
             // tabPage_Settings
             // 
             tabPage_Settings.Controls.Add(groupBox_FlaskSettings);
@@ -952,6 +963,7 @@ namespace PoE
         private Label label_Active;
         private TabPage tabPage_Gamble;
         private TabPage tabPage_Orbs;
+        private TabPage tabPage_Macros;
         private FlatComboBox comboBox_GambleType;
         private Label label_GambleType;
         private FlatGroupBox groupBox_GambleSettings;

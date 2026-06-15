@@ -9,6 +9,7 @@ using PoE.dlls.Gamble.UI;
 using PoE.dlls.KeyBindings;
 using PoE.dlls.Logger;
 using PoE.dlls.Logger.UI;
+using PoE.dlls.Macros;
 using PoE.dlls.Settings;
 using PoE.dlls.Settings.Mods;
 using PoE.dlls.Style;
@@ -25,6 +26,8 @@ namespace PoE
         private readonly GameDataRefreshService _gameDataRefresh;
         private readonly ModSuggestionService _modSuggestions;
         private readonly ModCacheDatabase _modCacheDatabase;
+        private readonly MacroEngine _macroEngine;
+        private readonly MacroHotkeyBinder _macroHotkeyBinder;
         private GamblePresetBar gamblePresetBar = null!;
         private GambleRulesPanel gambleRulesPanel = null!;
         private Label? _gambleTypeHelpIcon;
@@ -38,7 +41,9 @@ namespace PoE
             UserSettings userSettings,
             GameDataRefreshService gameDataRefresh,
             ModSuggestionService modSuggestions,
-            ModCacheDatabase modCacheDatabase)
+            ModCacheDatabase modCacheDatabase,
+            MacroEngine macroEngine,
+            MacroHotkeyBinder macroHotkeyBinder)
         {
             _inputHost = inputHost;
             _hotkeys = hotkeys;
@@ -47,6 +52,9 @@ namespace PoE
             _gameDataRefresh = gameDataRefresh;
             _modSuggestions = modSuggestions;
             _modCacheDatabase = modCacheDatabase;
+            _macroEngine = macroEngine;
+            _macroHotkeyBinder = macroHotkeyBinder;
+            _macroEngine.SettingsChanged += MacrosEngine_SettingsChanged;
 
             InitializeComponent();
         }
@@ -65,7 +73,9 @@ namespace PoE
             tabPage_Main.BackColor = StaticColors.BackGround;
             tabPage_Gamble.BackColor = StaticColors.BackGround;
             tabPage_Orbs.BackColor = StaticColors.BackGround;
+            tabPage_Macros.BackColor = StaticColors.BackGround;
             tabPage_Settings.BackColor = StaticColors.BackGround;
+            tabPage_Settings.AutoScroll = true;
             tabPage_Logs.BackColor = StaticColors.BackGround;
 
             groupBox_GambleSettings.BackColor = StaticColors.BackGround;
@@ -239,8 +249,12 @@ namespace PoE
             InitializeGambleRulesPanel();
             InitializeGameDataSettingsUi();
             InitializeInputSettingsUi();
+            InitializeSettingsSeparators();
             InitializeOrbsTab();
+            InitializeMacrosTab();
             SetupGambleModeHelp();
+
+            tabControl_Main.Selecting += MacrosTab_Selecting;
 
             comboBox_GambleType.SelectedIndexChanged += (s, e) =>
             {
@@ -319,6 +333,7 @@ namespace PoE
             LayoutMainTab();
             LayoutGambleTab();
             LayoutOrbsTab();
+            LayoutMacrosTab();
             LayoutSettingsTab();
 
             _ = Init();
@@ -530,7 +545,14 @@ namespace PoE
 
         private void Main_FormClosing(object sender, FormClosingEventArgs e)
         {
+            if (!TryCommitMacrosTab(showConflictDialog: true))
+            {
+                e.Cancel = true;
+                return;
+            }
+
             _hotkeys.Stop();
+            _macroEngine.Stop();
             gambleRulesPanel.Commit();
             SaveWindowSize();
 

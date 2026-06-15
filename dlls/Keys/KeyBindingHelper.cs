@@ -18,6 +18,8 @@ namespace PoE.dlls.KeyBindings
             if (string.IsNullOrWhiteSpace(raw))
                 return false;
 
+            raw = raw.Trim();
+
             if (!KeyStroke.TryParseKey(raw, out VirtualKey vk))
                 return false;
 

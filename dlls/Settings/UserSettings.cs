@@ -5,6 +5,7 @@ using System.Text;
 using System.Threading.Tasks;
 using Newtonsoft.Json;
 using PoE.dlls.Logger;
+using PoE.dlls.Settings.Macros;
 using PoE.dlls.Settings.Mods;
 
 namespace PoE.dlls.Settings
@@ -19,7 +20,7 @@ namespace PoE.dlls.Settings
         private readonly string _folderPath;
         private readonly string _settingsFilePath;
 
-        public UserSettings() 
+        public UserSettings()
         {
             _folderPath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), appName);
             _settingsFilePath = Path.Combine(_folderPath, settingsName);
@@ -31,7 +32,7 @@ namespace PoE.dlls.Settings
 
         public Settings LoadSettings()
         {
-            if (!File.Exists(_settingsFilePath))            
+            if (!File.Exists(_settingsFilePath))
                 return Settings;
 
             try
@@ -47,7 +48,9 @@ namespace PoE.dlls.Settings
 
                 Settings.FlaskControls ??= new UIFlaskControls();
                 Settings.GameData ??= new PoE.dlls.GameData.GameDataSettings();
+                Settings.Macros ??= new MacroSettings();
                 GambleSettingsMigration.EnsureMigrated(Settings.Modifiers);
+                MacroSettingsHelper.EnsureInitialized(Settings.Macros);
             }
             catch (Exception ex)
             {

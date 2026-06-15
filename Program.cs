@@ -3,6 +3,7 @@ using Microsoft.Extensions.Hosting;
 using PoE.dlls.Automation;
 using PoE.dlls.Flasks;
 using PoE.dlls.GameData;
+using PoE.dlls.Macros;
 using PoE.dlls.Settings;
 using Poss.Win.Automation.GlobalHotKeys;
 
@@ -26,6 +27,8 @@ namespace PoE
                     // Automation
                     services.AddSingleton<InputSimulatorHost>();
                     services.AddSingleton<GlobalHotKeyManager>();
+                    services.AddSingleton<MacroEngine>();
+                    services.AddSingleton<MacroHotkeyBinder>();
 
                     // Flask manager
                     services.AddSingleton<FlaskManager>();

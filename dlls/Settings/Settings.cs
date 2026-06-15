@@ -1,4 +1,5 @@
 ﻿using PoE.dlls.GameData;
+using PoE.dlls.Settings.Macros;
 using PoE.dlls.Settings.Mods;
 using System;
 using System.Collections.Generic;
@@ -14,6 +15,7 @@ namespace PoE.dlls.Settings
         public UIFlaskControls FlaskControls { get; set; } = new();
         public UIModifiers Modifiers { get; set; }
         public GameDataSettings GameData { get; set; } = new();
+        public MacroSettings Macros { get; set; } = new();
         public string InputProcessName { get; set; } = string.Empty;
         public int WindowWidth { get; set; }
         public int WindowHeight { get; set; }
