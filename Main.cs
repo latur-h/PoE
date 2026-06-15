@@ -51,6 +51,11 @@ namespace PoE
             tabPage_Settings.BackColor = StaticColors.BackGround;
             tabPage_Logs.BackColor = StaticColors.BackGround;
 
+            groupBox_GambleSettings.BackColor = StaticColors.BackGround;
+            groupBox_GambleSettings.ForeColor = StaticColors.ForeGround;
+            groupBox_FlaskSettings.BackColor = StaticColors.BackGround;
+            groupBox_FlaskSettings.ForeColor = StaticColors.ForeGround;
+
             checkBox_Flask1.ForeColor = StaticColors.ForeGround;
             checkBox_Flask2.ForeColor = StaticColors.ForeGround;
             checkBox_Flask3.ForeColor = StaticColors.ForeGround;
@@ -218,7 +223,6 @@ namespace PoE
             label_ModifierType.ForeColor = StaticColors.ForeGround;
             label_Priority.ForeColor = StaticColors.ForeGround;
             label_Tier.ForeColor = StaticColors.ForeGround;
-            label_GambleSettings.ForeColor = StaticColors.ForeGround;
             label_GambleType.ForeColor = StaticColors.ForeGround;
             label_ItemXY.ForeColor = StaticColors.ForeGround;
             label_BaseXY.ForeColor = StaticColors.ForeGround;
@@ -228,6 +232,14 @@ namespace PoE
             label_GamblerStopKey.ForeColor = StaticColors.ForeGround;
             label_GamblerDelay.ForeColor = StaticColors.ForeGround;
             label_GambleSpeed.ForeColor = StaticColors.ForeGround;
+            label_FlaskRegisterKey.ForeColor = StaticColors.ForeGround;
+            label_FlaskDrinkKey.ForeColor = StaticColors.ForeGround;
+            label_FlaskStopKey.ForeColor = StaticColors.ForeGround;
+            label_FlaskDelay.ForeColor = StaticColors.ForeGround;
+            label_FlaskKeyPressDelay.ForeColor = StaticColors.ForeGround;
+            label_FlaskHpMpCooldown.ForeColor = StaticColors.ForeGround;
+            label_FlaskUtilityCooldown.ForeColor = StaticColors.ForeGround;
+            label_FlaskTinctureCooldown.ForeColor = StaticColors.ForeGround;
 
             comboBox_GambleType.Items.AddRange(Enum.GetNames<GambleType>());
             comboBox_GambleType.SelectedIndex = 0;
@@ -361,6 +373,11 @@ namespace PoE
             textBox_SecondXY._textBox.Text = $"{_settings.Modifiers.Mode.Second.X}, {_settings.Modifiers.Mode.Second.Y}";
             textBox_GamblerDelay._textBox.Text = _settings.Modifiers.Delay.ToString();
             textBox_GambleSpeed._textBox.Text = _settings.Modifiers.Speed.ToString();
+            textBox_FlaskDelay._textBox.Text = _settings.FlaskControls.Delay.ToString();
+            textBox_FlaskKeyPressDelay._textBox.Text = _settings.FlaskControls.KeyPressDelay.ToString();
+            textBox_FlaskHpMpCooldown._textBox.Text = _settings.FlaskControls.HpMpCooldown.ToString();
+            textBox_FlaskUtilityCooldown._textBox.Text = _settings.FlaskControls.UtilityCooldown.ToString();
+            textBox_FlaskTinctureCooldown._textBox.Text = _settings.FlaskControls.TinctureCooldown.ToString();
 
             comboBox_Mod1.SelectedItem = _settings.Modifiers.Mode.modifierType1.ToString();
             comboBox_Mod2.SelectedItem = _settings.Modifiers.Mode.modifierType2.ToString();
@@ -493,6 +510,21 @@ namespace PoE
                 if (Speed_NumberOnly(textBox_GambleSpeed._textBox))
                     _settings.Modifiers.Speed = double.Parse(textBox_GambleSpeed._textBox.Text);
             };
+
+            textBox_FlaskRegisterKey._textBox.KeyDown += (s, e) => e.SuppressKeyPress = true;
+            textBox_FlaskRegisterKey._textBox.KeyUp += (s, e) =>
+                BindHotkeySetting("Register Flask", ref _settings.FlaskControls.RegisterKey, textBox_FlaskRegisterKey, e.KeyCode);
+            textBox_FlaskDrinkKey._textBox.KeyDown += (s, e) => e.SuppressKeyPress = true;
+            textBox_FlaskDrinkKey._textBox.KeyUp += (s, e) =>
+                BindHotkeySetting("Drink Flask", ref _settings.FlaskControls.DrinkKey, textBox_FlaskDrinkKey, e.KeyCode);
+            textBox_FlaskStopKey._textBox.KeyDown += (s, e) => e.SuppressKeyPress = true;
+            textBox_FlaskStopKey._textBox.KeyUp += (s, e) =>
+                BindHotkeySetting("Stop Drinking", ref _settings.FlaskControls.StopKey, textBox_FlaskStopKey, e.KeyCode);
+            BindFlaskDelayField(textBox_FlaskDelay, v => _settings.FlaskControls.Delay = v);
+            BindFlaskDelayField(textBox_FlaskKeyPressDelay, v => _settings.FlaskControls.KeyPressDelay = v);
+            BindFlaskDelayField(textBox_FlaskHpMpCooldown, v => _settings.FlaskControls.HpMpCooldown = v);
+            BindFlaskDelayField(textBox_FlaskUtilityCooldown, v => _settings.FlaskControls.UtilityCooldown = v);
+            BindFlaskDelayField(textBox_FlaskTinctureCooldown, v => _settings.FlaskControls.TinctureCooldown = v);
 
             textBox_Priority1._textBox.KeyUp += (s, e) =>
             {
@@ -678,7 +710,42 @@ namespace PoE
 
             ValidateAllStoredKeys();
 
+            SetupSettingsHints();
+
             _ = Init();
+        }
+
+        private void SetupSettingsHints()
+        {
+            SettingsHintHelper.Configure(toolTip_Settings);
+
+            SettingsHintHelper.Attach(toolTip_Settings, groupBox_GambleSettings, label_GamblerGetCoorinatesKey, textBox_GamblerGetCoordinatesKey,
+                "Hotkey to capture the current mouse position as item, orb, or second-slot coordinates while recording on the Gamble tab.");
+            SettingsHintHelper.Attach(toolTip_Settings, groupBox_GambleSettings, label_GamblerStartKey, textBox_GamblerStartKey,
+                "Hotkey to start the selected gamble routine.");
+            SettingsHintHelper.Attach(toolTip_Settings, groupBox_GambleSettings, label_GamblerStopKey, textBox_GamblerStopKey,
+                "Hotkey to stop the running gamble routine.");
+            SettingsHintHelper.Attach(toolTip_Settings, groupBox_GambleSettings, label_GamblerDelay, textBox_GamblerDelay,
+                "Pause in milliseconds between gamble actions (clicks, keys, clipboard). Increase if item text fails to copy or orbs miss.");
+            SettingsHintHelper.Attach(toolTip_Settings, groupBox_GambleSettings, label_GambleSpeed, textBox_GambleSpeed,
+                "Mouse movement speed when traveling between stash positions. Higher is faster. Does not change click or key timing.");
+
+            SettingsHintHelper.Attach(toolTip_Settings, groupBox_FlaskSettings, label_FlaskRegisterKey, textBox_FlaskRegisterKey,
+                "Hotkey to register active flasks and snapshot their bar pixel colors for drinking detection.");
+            SettingsHintHelper.Attach(toolTip_Settings, groupBox_FlaskSettings, label_FlaskDrinkKey, textBox_FlaskDrinkKey,
+                "Hotkey to start the automatic flask drinking loop.");
+            SettingsHintHelper.Attach(toolTip_Settings, groupBox_FlaskSettings, label_FlaskStopKey, textBox_FlaskStopKey,
+                "Hotkey to stop the flask drinking loop.");
+            SettingsHintHelper.Attach(toolTip_Settings, groupBox_FlaskSettings, label_FlaskDelay, textBox_FlaskDelay,
+                "How often the drink loop runs, in milliseconds. The loop still waits this long when PoE is not focused, but skips drinking.");
+            SettingsHintHelper.Attach(toolTip_Settings, groupBox_FlaskSettings, label_FlaskKeyPressDelay, textBox_FlaskKeyPressDelay,
+                "Delay in milliseconds between flask key down and key up when a drink is sent.");
+            SettingsHintHelper.Attach(toolTip_Settings, groupBox_FlaskSettings, label_FlaskHpMpCooldown, textBox_FlaskHpMpCooldown,
+                "Minimum time in milliseconds before the same life (HP) or mana (MP) flask can fire again after a successful drink.");
+            SettingsHintHelper.Attach(toolTip_Settings, groupBox_FlaskSettings, label_FlaskUtilityCooldown, textBox_FlaskUtilityCooldown,
+                "Minimum time in milliseconds before the same utility flask can fire again after a successful drink.");
+            SettingsHintHelper.Attach(toolTip_Settings, groupBox_FlaskSettings, label_FlaskTinctureCooldown, textBox_FlaskTinctureCooldown,
+                "Minimum time in milliseconds before the same tincture flask can fire again after a successful drink.");
         }
 
         private void ValidateAllStoredKeys()
@@ -692,6 +759,28 @@ namespace PoE
             InitHotkeySetting(ref _settings.Modifiers.GetCoorinatesKey, textBox_GamblerGetCoordinatesKey);
             InitHotkeySetting(ref _settings.Modifiers.GamblerStart, textBox_GamblerStartKey);
             InitHotkeySetting(ref _settings.Modifiers.GamblerStop, textBox_GamblerStopKey);
+
+            InitHotkeySetting(ref _settings.FlaskControls.RegisterKey, textBox_FlaskRegisterKey);
+            InitHotkeySetting(ref _settings.FlaskControls.DrinkKey, textBox_FlaskDrinkKey);
+            InitHotkeySetting(ref _settings.FlaskControls.StopKey, textBox_FlaskStopKey);
+            ApplyFlaskSettings();
+        }
+
+        private void BindFlaskDelayField(FlatTextBox textBox, Action<int> setter)
+        {
+            textBox._textBox.KeyUp += (s, e) =>
+            {
+                if (Delay_NumberOnly(textBox._textBox))
+                {
+                    setter(int.Parse(textBox._textBox.Text));
+                    ApplyFlaskSettings();
+                }
+            };
+        }
+
+        private void ApplyFlaskSettings()
+        {
+            _flaskManager.ApplySettings(_settings.FlaskControls);
         }
 
         private static void InitFlaskKey(UIFlask flask, FlatTextBox textBox)

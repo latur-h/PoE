@@ -8,12 +8,12 @@ namespace PoE.dlls.Flasks.Base
         public Flask Flask { get; set; }
         public InputSimulator Input { get; set; }
 
-        private readonly TimeSpan delay = TimeSpan.FromMilliseconds(5);
-        private readonly TimeSpan cooldown = TimeSpan.FromMilliseconds(500);
+        private readonly FlaskTiming _timing;
 
-        public Tincture(InputSimulator simulator, string key, int number)
+        public Tincture(InputSimulator simulator, string key, int number, FlaskTiming timing)
         {
             Input = simulator;
+            _timing = timing;
 
             ResolutionType resolution = InteropHelper.GetScreenResolution();
             var coordinates = GetCoordinates(resolution);
@@ -28,17 +28,15 @@ namespace PoE.dlls.Flasks.Base
 
         public async Task Drink()
         {
-            if (Flask.LastUsed + cooldown > DateTimeOffset.Now)
+            if (Flask.LastUsed + _timing.TinctureCooldown > DateTimeOffset.Now)
                 return;
-
-            Color color = InteropHelper.GetColorAt(Flask.X_Bottom, Flask.Y_Bottom);
 
             if (InteropHelper.GetColorAt(Flask.X, Flask.Y) == Flask.Top && InteropHelper.GetColorAt(Flask.X_Bottom, Flask.Y_Bottom) != Flask.Bottom)
             {
                 Input.Send(Flask.Key + " Down");
-                await Task.Delay(delay);
+                await Task.Delay(_timing.KeyPressDelay);
                 Input.Send(Flask.Key + " Up");
-                await Task.Delay(delay);
+                await Task.Delay(_timing.KeyPressDelay);
 
                 Flask.LastUsed = DateTimeOffset.Now;
             }

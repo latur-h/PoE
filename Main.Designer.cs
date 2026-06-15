@@ -30,6 +30,7 @@ namespace PoE
         /// </summary>
         private void InitializeComponent()
         {
+            components = new System.ComponentModel.Container();
             tabControl_Main = new FlatTabControl();
             tabPage_Main = new TabPage();
             label_Active = new Label();
@@ -115,7 +116,24 @@ namespace PoE
             textBox_Mod1 = new FlatTextBox();
             comboBox_GambleType = new FlatComboBox();
             tabPage_Settings = new TabPage();
-            panel_settings_Line1 = new Panel();
+            groupBox_FlaskSettings = new FlatGroupBox();
+            label_FlaskTinctureCooldown = new Label();
+            textBox_FlaskTinctureCooldown = new FlatTextBox();
+            label_FlaskUtilityCooldown = new Label();
+            textBox_FlaskUtilityCooldown = new FlatTextBox();
+            label_FlaskHpMpCooldown = new Label();
+            textBox_FlaskHpMpCooldown = new FlatTextBox();
+            label_FlaskKeyPressDelay = new Label();
+            textBox_FlaskKeyPressDelay = new FlatTextBox();
+            label_FlaskDelay = new Label();
+            textBox_FlaskDelay = new FlatTextBox();
+            label_FlaskStopKey = new Label();
+            label_FlaskDrinkKey = new Label();
+            label_FlaskRegisterKey = new Label();
+            textBox_FlaskStopKey = new FlatTextBox();
+            textBox_FlaskDrinkKey = new FlatTextBox();
+            textBox_FlaskRegisterKey = new FlatTextBox();
+            groupBox_GambleSettings = new FlatGroupBox();
             label_GambleSpeed = new Label();
             textBox_GambleSpeed = new FlatTextBox();
             label_GamblerDelay = new Label();
@@ -125,8 +143,8 @@ namespace PoE
             label_GamblerGetCoorinatesKey = new Label();
             textBox_GamblerStopKey = new FlatTextBox();
             textBox_GamblerStartKey = new FlatTextBox();
-            label_GambleSettings = new Label();
             textBox_GamblerGetCoordinatesKey = new FlatTextBox();
+            toolTip_Settings = new ToolTip(components);
             tabPage_Logs = new TabPage();
             textBox_Logs = new TextBox();
             tabControl_Main.SuspendLayout();
@@ -138,6 +156,8 @@ namespace PoE
             groupBox_Flask1.SuspendLayout();
             tabPage_Gamble.SuspendLayout();
             tabPage_Settings.SuspendLayout();
+            groupBox_FlaskSettings.SuspendLayout();
+            groupBox_GambleSettings.SuspendLayout();
             tabPage_Logs.SuspendLayout();
             SuspendLayout();
             // 
@@ -220,7 +240,7 @@ namespace PoE
             textBox_Flask1.Location = new Point(92, 55);
             textBox_Flask1.Margin = new Padding(0);
             textBox_Flask1.Name = "textBox_Flask1";
-            textBox_Flask1.Size = new Size(85, 29);
+            textBox_Flask1.Size = new Size(85, 30);
             textBox_Flask1.TabIndex = 30;
             textBox_Flask1.TextAlign = HorizontalAlignment.Center;
             // 
@@ -288,7 +308,7 @@ namespace PoE
             textBox_Flask5.Font = new Font("Segoe UI", 12F, FontStyle.Regular, GraphicsUnit.Point, 0);
             textBox_Flask5.Location = new Point(477, 55);
             textBox_Flask5.Name = "textBox_Flask5";
-            textBox_Flask5.Size = new Size(85, 29);
+            textBox_Flask5.Size = new Size(85, 30);
             textBox_Flask5.TabIndex = 34;
             textBox_Flask5.TextAlign = HorizontalAlignment.Center;
             // 
@@ -298,7 +318,7 @@ namespace PoE
             textBox_Flask4.Font = new Font("Segoe UI", 12F, FontStyle.Regular, GraphicsUnit.Point, 0);
             textBox_Flask4.Location = new Point(382, 55);
             textBox_Flask4.Name = "textBox_Flask4";
-            textBox_Flask4.Size = new Size(85, 29);
+            textBox_Flask4.Size = new Size(85, 30);
             textBox_Flask4.TabIndex = 33;
             textBox_Flask4.TextAlign = HorizontalAlignment.Center;
             // 
@@ -308,7 +328,7 @@ namespace PoE
             textBox_Flask3.Font = new Font("Segoe UI", 12F, FontStyle.Regular, GraphicsUnit.Point, 0);
             textBox_Flask3.Location = new Point(287, 55);
             textBox_Flask3.Name = "textBox_Flask3";
-            textBox_Flask3.Size = new Size(85, 29);
+            textBox_Flask3.Size = new Size(85, 30);
             textBox_Flask3.TabIndex = 32;
             textBox_Flask3.TextAlign = HorizontalAlignment.Center;
             // 
@@ -318,7 +338,7 @@ namespace PoE
             textBox_Flask2.Font = new Font("Segoe UI", 12F, FontStyle.Regular, GraphicsUnit.Point, 0);
             textBox_Flask2.Location = new Point(191, 55);
             textBox_Flask2.Name = "textBox_Flask2";
-            textBox_Flask2.Size = new Size(85, 29);
+            textBox_Flask2.Size = new Size(85, 30);
             textBox_Flask2.TabIndex = 31;
             textBox_Flask2.TextAlign = HorizontalAlignment.Center;
             // 
@@ -1072,18 +1092,8 @@ namespace PoE
             // 
             // tabPage_Settings
             // 
-            tabPage_Settings.Controls.Add(panel_settings_Line1);
-            tabPage_Settings.Controls.Add(label_GambleSpeed);
-            tabPage_Settings.Controls.Add(textBox_GambleSpeed);
-            tabPage_Settings.Controls.Add(label_GamblerDelay);
-            tabPage_Settings.Controls.Add(textBox_GamblerDelay);
-            tabPage_Settings.Controls.Add(label_GamblerStopKey);
-            tabPage_Settings.Controls.Add(label_GamblerStartKey);
-            tabPage_Settings.Controls.Add(label_GamblerGetCoorinatesKey);
-            tabPage_Settings.Controls.Add(textBox_GamblerStopKey);
-            tabPage_Settings.Controls.Add(textBox_GamblerStartKey);
-            tabPage_Settings.Controls.Add(label_GambleSettings);
-            tabPage_Settings.Controls.Add(textBox_GamblerGetCoordinatesKey);
+            tabPage_Settings.Controls.Add(groupBox_FlaskSettings);
+            tabPage_Settings.Controls.Add(groupBox_GambleSettings);
             tabPage_Settings.Location = new Point(4, 36);
             tabPage_Settings.Name = "tabPage_Settings";
             tabPage_Settings.Padding = new Padding(3);
@@ -1092,125 +1102,310 @@ namespace PoE
             tabPage_Settings.Text = "Settings";
             tabPage_Settings.UseVisualStyleBackColor = true;
             // 
-            // panel_settings_Line1
+            // groupBox_FlaskSettings
             // 
-            panel_settings_Line1.BackColor = Color.Crimson;
-            panel_settings_Line1.Location = new Point(7, 128);
-            panel_settings_Line1.Name = "panel_settings_Line1";
-            panel_settings_Line1.Size = new Size(600, 2);
-            panel_settings_Line1.TabIndex = 57;
+            groupBox_FlaskSettings.Controls.Add(label_FlaskTinctureCooldown);
+            groupBox_FlaskSettings.Controls.Add(textBox_FlaskTinctureCooldown);
+            groupBox_FlaskSettings.Controls.Add(label_FlaskUtilityCooldown);
+            groupBox_FlaskSettings.Controls.Add(textBox_FlaskUtilityCooldown);
+            groupBox_FlaskSettings.Controls.Add(label_FlaskHpMpCooldown);
+            groupBox_FlaskSettings.Controls.Add(textBox_FlaskHpMpCooldown);
+            groupBox_FlaskSettings.Controls.Add(label_FlaskKeyPressDelay);
+            groupBox_FlaskSettings.Controls.Add(textBox_FlaskKeyPressDelay);
+            groupBox_FlaskSettings.Controls.Add(label_FlaskDelay);
+            groupBox_FlaskSettings.Controls.Add(textBox_FlaskDelay);
+            groupBox_FlaskSettings.Controls.Add(label_FlaskStopKey);
+            groupBox_FlaskSettings.Controls.Add(label_FlaskDrinkKey);
+            groupBox_FlaskSettings.Controls.Add(label_FlaskRegisterKey);
+            groupBox_FlaskSettings.Controls.Add(textBox_FlaskStopKey);
+            groupBox_FlaskSettings.Controls.Add(textBox_FlaskDrinkKey);
+            groupBox_FlaskSettings.Controls.Add(textBox_FlaskRegisterKey);
+            groupBox_FlaskSettings.Font = new Font("Segoe UI", 12F, FontStyle.Regular, GraphicsUnit.Point, 0);
+            groupBox_FlaskSettings.Location = new Point(7, 175);
+            groupBox_FlaskSettings.Name = "groupBox_FlaskSettings";
+            groupBox_FlaskSettings.Size = new Size(603, 158);
+            groupBox_FlaskSettings.TabIndex = 59;
+            groupBox_FlaskSettings.TabStop = false;
+            groupBox_FlaskSettings.Text = "Flasks";
+            // 
+            // label_FlaskTinctureCooldown
+            // 
+            label_FlaskTinctureCooldown.AutoSize = true;
+            label_FlaskTinctureCooldown.Font = new Font("Segoe UI", 12F, FontStyle.Regular, GraphicsUnit.Point, 0);
+            label_FlaskTinctureCooldown.Location = new Point(452, 78);
+            label_FlaskTinctureCooldown.Name = "label_FlaskTinctureCooldown";
+            label_FlaskTinctureCooldown.Size = new Size(66, 21);
+            label_FlaskTinctureCooldown.TabIndex = 15;
+            label_FlaskTinctureCooldown.Text = "Tincture";
+            // 
+            // textBox_FlaskTinctureCooldown
+            // 
+            textBox_FlaskTinctureCooldown.BackColor = Color.Transparent;
+            textBox_FlaskTinctureCooldown.Font = new Font("Segoe UI", 12F, FontStyle.Regular, GraphicsUnit.Point, 0);
+            textBox_FlaskTinctureCooldown.Location = new Point(452, 102);
+            textBox_FlaskTinctureCooldown.Name = "textBox_FlaskTinctureCooldown";
+            textBox_FlaskTinctureCooldown.Size = new Size(85, 30);
+            textBox_FlaskTinctureCooldown.TabIndex = 14;
+            textBox_FlaskTinctureCooldown.TextAlign = HorizontalAlignment.Center;
+            // 
+            // label_FlaskUtilityCooldown
+            // 
+            label_FlaskUtilityCooldown.AutoSize = true;
+            label_FlaskUtilityCooldown.Font = new Font("Segoe UI", 12F, FontStyle.Regular, GraphicsUnit.Point, 0);
+            label_FlaskUtilityCooldown.Location = new Point(338, 78);
+            label_FlaskUtilityCooldown.Name = "label_FlaskUtilityCooldown";
+            label_FlaskUtilityCooldown.Size = new Size(51, 21);
+            label_FlaskUtilityCooldown.TabIndex = 13;
+            label_FlaskUtilityCooldown.Text = "Utility";
+            // 
+            // textBox_FlaskUtilityCooldown
+            // 
+            textBox_FlaskUtilityCooldown.BackColor = Color.Transparent;
+            textBox_FlaskUtilityCooldown.Font = new Font("Segoe UI", 12F, FontStyle.Regular, GraphicsUnit.Point, 0);
+            textBox_FlaskUtilityCooldown.Location = new Point(338, 102);
+            textBox_FlaskUtilityCooldown.Name = "textBox_FlaskUtilityCooldown";
+            textBox_FlaskUtilityCooldown.Size = new Size(85, 30);
+            textBox_FlaskUtilityCooldown.TabIndex = 12;
+            textBox_FlaskUtilityCooldown.TextAlign = HorizontalAlignment.Center;
+            // 
+            // label_FlaskHpMpCooldown
+            // 
+            label_FlaskHpMpCooldown.AutoSize = true;
+            label_FlaskHpMpCooldown.Font = new Font("Segoe UI", 12F, FontStyle.Regular, GraphicsUnit.Point, 0);
+            label_FlaskHpMpCooldown.Location = new Point(224, 78);
+            label_FlaskHpMpCooldown.Name = "label_FlaskHpMpCooldown";
+            label_FlaskHpMpCooldown.Size = new Size(59, 21);
+            label_FlaskHpMpCooldown.TabIndex = 11;
+            label_FlaskHpMpCooldown.Text = "HP/MP";
+            // 
+            // textBox_FlaskHpMpCooldown
+            // 
+            textBox_FlaskHpMpCooldown.BackColor = Color.Transparent;
+            textBox_FlaskHpMpCooldown.Font = new Font("Segoe UI", 12F, FontStyle.Regular, GraphicsUnit.Point, 0);
+            textBox_FlaskHpMpCooldown.Location = new Point(224, 102);
+            textBox_FlaskHpMpCooldown.Name = "textBox_FlaskHpMpCooldown";
+            textBox_FlaskHpMpCooldown.Size = new Size(85, 30);
+            textBox_FlaskHpMpCooldown.TabIndex = 10;
+            textBox_FlaskHpMpCooldown.TextAlign = HorizontalAlignment.Center;
+            // 
+            // label_FlaskKeyPressDelay
+            // 
+            label_FlaskKeyPressDelay.AutoSize = true;
+            label_FlaskKeyPressDelay.Font = new Font("Segoe UI", 12F, FontStyle.Regular, GraphicsUnit.Point, 0);
+            label_FlaskKeyPressDelay.Location = new Point(110, 78);
+            label_FlaskKeyPressDelay.Name = "label_FlaskKeyPressDelay";
+            label_FlaskKeyPressDelay.Size = new Size(35, 21);
+            label_FlaskKeyPressDelay.TabIndex = 9;
+            label_FlaskKeyPressDelay.Text = "Key";
+            // 
+            // textBox_FlaskKeyPressDelay
+            // 
+            textBox_FlaskKeyPressDelay.BackColor = Color.Transparent;
+            textBox_FlaskKeyPressDelay.Font = new Font("Segoe UI", 12F, FontStyle.Regular, GraphicsUnit.Point, 0);
+            textBox_FlaskKeyPressDelay.Location = new Point(110, 102);
+            textBox_FlaskKeyPressDelay.Name = "textBox_FlaskKeyPressDelay";
+            textBox_FlaskKeyPressDelay.Size = new Size(85, 30);
+            textBox_FlaskKeyPressDelay.TabIndex = 8;
+            textBox_FlaskKeyPressDelay.TextAlign = HorizontalAlignment.Center;
+            // 
+            // label_FlaskDelay
+            // 
+            label_FlaskDelay.AutoSize = true;
+            label_FlaskDelay.Font = new Font("Segoe UI", 12F, FontStyle.Regular, GraphicsUnit.Point, 0);
+            label_FlaskDelay.Location = new Point(452, 22);
+            label_FlaskDelay.Name = "label_FlaskDelay";
+            label_FlaskDelay.Size = new Size(35, 21);
+            label_FlaskDelay.TabIndex = 7;
+            label_FlaskDelay.Text = "Poll";
+            // 
+            // textBox_FlaskDelay
+            // 
+            textBox_FlaskDelay.BackColor = Color.Transparent;
+            textBox_FlaskDelay.Font = new Font("Segoe UI", 12F, FontStyle.Regular, GraphicsUnit.Point, 0);
+            textBox_FlaskDelay.Location = new Point(452, 46);
+            textBox_FlaskDelay.Name = "textBox_FlaskDelay";
+            textBox_FlaskDelay.Size = new Size(85, 30);
+            textBox_FlaskDelay.TabIndex = 6;
+            textBox_FlaskDelay.TextAlign = HorizontalAlignment.Center;
+            // 
+            // label_FlaskStopKey
+            // 
+            label_FlaskStopKey.AutoSize = true;
+            label_FlaskStopKey.Font = new Font("Segoe UI", 12F, FontStyle.Regular, GraphicsUnit.Point, 0);
+            label_FlaskStopKey.Location = new Point(338, 22);
+            label_FlaskStopKey.Name = "label_FlaskStopKey";
+            label_FlaskStopKey.Size = new Size(41, 21);
+            label_FlaskStopKey.TabIndex = 5;
+            label_FlaskStopKey.Text = "Stop";
+            // 
+            // label_FlaskDrinkKey
+            // 
+            label_FlaskDrinkKey.AutoSize = true;
+            label_FlaskDrinkKey.Font = new Font("Segoe UI", 12F, FontStyle.Regular, GraphicsUnit.Point, 0);
+            label_FlaskDrinkKey.Location = new Point(224, 22);
+            label_FlaskDrinkKey.Name = "label_FlaskDrinkKey";
+            label_FlaskDrinkKey.Size = new Size(48, 21);
+            label_FlaskDrinkKey.TabIndex = 4;
+            label_FlaskDrinkKey.Text = "Drink";
+            // 
+            // label_FlaskRegisterKey
+            // 
+            label_FlaskRegisterKey.AutoSize = true;
+            label_FlaskRegisterKey.Font = new Font("Segoe UI", 12F, FontStyle.Regular, GraphicsUnit.Point, 0);
+            label_FlaskRegisterKey.Location = new Point(110, 22);
+            label_FlaskRegisterKey.Name = "label_FlaskRegisterKey";
+            label_FlaskRegisterKey.Size = new Size(67, 21);
+            label_FlaskRegisterKey.TabIndex = 3;
+            label_FlaskRegisterKey.Text = "Register";
+            // 
+            // textBox_FlaskStopKey
+            // 
+            textBox_FlaskStopKey.BackColor = Color.Transparent;
+            textBox_FlaskStopKey.Font = new Font("Segoe UI", 12F, FontStyle.Regular, GraphicsUnit.Point, 0);
+            textBox_FlaskStopKey.Location = new Point(338, 46);
+            textBox_FlaskStopKey.Name = "textBox_FlaskStopKey";
+            textBox_FlaskStopKey.Size = new Size(85, 30);
+            textBox_FlaskStopKey.TabIndex = 2;
+            textBox_FlaskStopKey.TextAlign = HorizontalAlignment.Center;
+            // 
+            // textBox_FlaskDrinkKey
+            // 
+            textBox_FlaskDrinkKey.BackColor = Color.Transparent;
+            textBox_FlaskDrinkKey.Font = new Font("Segoe UI", 12F, FontStyle.Regular, GraphicsUnit.Point, 0);
+            textBox_FlaskDrinkKey.Location = new Point(224, 46);
+            textBox_FlaskDrinkKey.Name = "textBox_FlaskDrinkKey";
+            textBox_FlaskDrinkKey.Size = new Size(85, 30);
+            textBox_FlaskDrinkKey.TabIndex = 1;
+            textBox_FlaskDrinkKey.TextAlign = HorizontalAlignment.Center;
+            // 
+            // textBox_FlaskRegisterKey
+            // 
+            textBox_FlaskRegisterKey.BackColor = Color.Transparent;
+            textBox_FlaskRegisterKey.Font = new Font("Segoe UI", 12F, FontStyle.Regular, GraphicsUnit.Point, 0);
+            textBox_FlaskRegisterKey.Location = new Point(110, 46);
+            textBox_FlaskRegisterKey.Name = "textBox_FlaskRegisterKey";
+            textBox_FlaskRegisterKey.Size = new Size(85, 30);
+            textBox_FlaskRegisterKey.TabIndex = 0;
+            textBox_FlaskRegisterKey.TextAlign = HorizontalAlignment.Center;
+            // 
+            // groupBox_GambleSettings
+            // 
+            groupBox_GambleSettings.Controls.Add(label_GambleSpeed);
+            groupBox_GambleSettings.Controls.Add(textBox_GambleSpeed);
+            groupBox_GambleSettings.Controls.Add(label_GamblerDelay);
+            groupBox_GambleSettings.Controls.Add(textBox_GamblerDelay);
+            groupBox_GambleSettings.Controls.Add(label_GamblerStopKey);
+            groupBox_GambleSettings.Controls.Add(label_GamblerStartKey);
+            groupBox_GambleSettings.Controls.Add(label_GamblerGetCoorinatesKey);
+            groupBox_GambleSettings.Controls.Add(textBox_GamblerStopKey);
+            groupBox_GambleSettings.Controls.Add(textBox_GamblerStartKey);
+            groupBox_GambleSettings.Controls.Add(textBox_GamblerGetCoordinatesKey);
+            groupBox_GambleSettings.Font = new Font("Segoe UI", 12F, FontStyle.Regular, GraphicsUnit.Point, 0);
+            groupBox_GambleSettings.Location = new Point(7, 7);
+            groupBox_GambleSettings.Name = "groupBox_GambleSettings";
+            groupBox_GambleSettings.Size = new Size(603, 158);
+            groupBox_GambleSettings.TabIndex = 58;
+            groupBox_GambleSettings.TabStop = false;
+            groupBox_GambleSettings.Text = "Gamble";
             // 
             // label_GambleSpeed
             // 
             label_GambleSpeed.AutoSize = true;
             label_GambleSpeed.Font = new Font("Segoe UI", 12F, FontStyle.Regular, GraphicsUnit.Point, 0);
-            label_GambleSpeed.Location = new Point(117, 71);
+            label_GambleSpeed.Location = new Point(110, 78);
             label_GambleSpeed.Name = "label_GambleSpeed";
             label_GambleSpeed.Size = new Size(53, 21);
-            label_GambleSpeed.TabIndex = 56;
+            label_GambleSpeed.TabIndex = 9;
             label_GambleSpeed.Text = "Speed";
             // 
             // textBox_GambleSpeed
             // 
-            textBox_GambleSpeed.Anchor = AnchorStyles.None;
             textBox_GambleSpeed.BackColor = Color.Transparent;
             textBox_GambleSpeed.Font = new Font("Segoe UI", 12F, FontStyle.Regular, GraphicsUnit.Point, 0);
-            textBox_GambleSpeed.Location = new Point(117, 95);
-            textBox_GambleSpeed.Margin = new Padding(0);
+            textBox_GambleSpeed.Location = new Point(110, 102);
             textBox_GambleSpeed.Name = "textBox_GambleSpeed";
             textBox_GambleSpeed.Size = new Size(85, 30);
-            textBox_GambleSpeed.TabIndex = 55;
+            textBox_GambleSpeed.TabIndex = 8;
             textBox_GambleSpeed.TextAlign = HorizontalAlignment.Center;
             // 
             // label_GamblerDelay
             // 
             label_GamblerDelay.AutoSize = true;
             label_GamblerDelay.Font = new Font("Segoe UI", 12F, FontStyle.Regular, GraphicsUnit.Point, 0);
-            label_GamblerDelay.Location = new Point(457, 15);
+            label_GamblerDelay.Location = new Point(452, 22);
             label_GamblerDelay.Name = "label_GamblerDelay";
             label_GamblerDelay.Size = new Size(49, 21);
-            label_GamblerDelay.TabIndex = 54;
+            label_GamblerDelay.TabIndex = 7;
             label_GamblerDelay.Text = "Delay";
             // 
             // textBox_GamblerDelay
             // 
             textBox_GamblerDelay.BackColor = Color.Transparent;
-            textBox_GamblerDelay.Location = new Point(457, 39);
+            textBox_GamblerDelay.Font = new Font("Segoe UI", 12F, FontStyle.Regular, GraphicsUnit.Point, 0);
+            textBox_GamblerDelay.Location = new Point(452, 46);
             textBox_GamblerDelay.Name = "textBox_GamblerDelay";
             textBox_GamblerDelay.Size = new Size(85, 30);
-            textBox_GamblerDelay.TabIndex = 53;
+            textBox_GamblerDelay.TabIndex = 6;
             textBox_GamblerDelay.TextAlign = HorizontalAlignment.Center;
             // 
             // label_GamblerStopKey
             // 
             label_GamblerStopKey.AutoSize = true;
             label_GamblerStopKey.Font = new Font("Segoe UI", 12F, FontStyle.Regular, GraphicsUnit.Point, 0);
-            label_GamblerStopKey.Location = new Point(345, 15);
+            label_GamblerStopKey.Location = new Point(338, 22);
             label_GamblerStopKey.Name = "label_GamblerStopKey";
             label_GamblerStopKey.Size = new Size(41, 21);
-            label_GamblerStopKey.TabIndex = 52;
+            label_GamblerStopKey.TabIndex = 5;
             label_GamblerStopKey.Text = "Stop";
             // 
             // label_GamblerStartKey
             // 
             label_GamblerStartKey.AutoSize = true;
             label_GamblerStartKey.Font = new Font("Segoe UI", 12F, FontStyle.Regular, GraphicsUnit.Point, 0);
-            label_GamblerStartKey.Location = new Point(231, 15);
+            label_GamblerStartKey.Location = new Point(224, 22);
             label_GamblerStartKey.Name = "label_GamblerStartKey";
             label_GamblerStartKey.Size = new Size(42, 21);
-            label_GamblerStartKey.TabIndex = 51;
+            label_GamblerStartKey.TabIndex = 4;
             label_GamblerStartKey.Text = "Start";
             // 
             // label_GamblerGetCoorinatesKey
             // 
             label_GamblerGetCoorinatesKey.AutoSize = true;
             label_GamblerGetCoorinatesKey.Font = new Font("Segoe UI", 12F, FontStyle.Regular, GraphicsUnit.Point, 0);
-            label_GamblerGetCoorinatesKey.Location = new Point(117, 15);
+            label_GamblerGetCoorinatesKey.Location = new Point(110, 22);
             label_GamblerGetCoorinatesKey.Name = "label_GamblerGetCoorinatesKey";
             label_GamblerGetCoorinatesKey.Size = new Size(72, 21);
-            label_GamblerGetCoorinatesKey.TabIndex = 50;
+            label_GamblerGetCoorinatesKey.TabIndex = 3;
             label_GamblerGetCoorinatesKey.Text = "Possition";
             // 
             // textBox_GamblerStopKey
             // 
             textBox_GamblerStopKey.BackColor = Color.Transparent;
             textBox_GamblerStopKey.Font = new Font("Segoe UI", 12F, FontStyle.Regular, GraphicsUnit.Point, 0);
-            textBox_GamblerStopKey.Location = new Point(345, 39);
+            textBox_GamblerStopKey.Location = new Point(338, 46);
             textBox_GamblerStopKey.Name = "textBox_GamblerStopKey";
             textBox_GamblerStopKey.Size = new Size(85, 30);
-            textBox_GamblerStopKey.TabIndex = 49;
+            textBox_GamblerStopKey.TabIndex = 2;
             textBox_GamblerStopKey.TextAlign = HorizontalAlignment.Center;
             // 
             // textBox_GamblerStartKey
             // 
             textBox_GamblerStartKey.BackColor = Color.Transparent;
             textBox_GamblerStartKey.Font = new Font("Segoe UI", 12F, FontStyle.Regular, GraphicsUnit.Point, 0);
-            textBox_GamblerStartKey.Location = new Point(231, 39);
+            textBox_GamblerStartKey.Location = new Point(224, 46);
             textBox_GamblerStartKey.Name = "textBox_GamblerStartKey";
             textBox_GamblerStartKey.Size = new Size(85, 30);
-            textBox_GamblerStartKey.TabIndex = 48;
+            textBox_GamblerStartKey.TabIndex = 1;
             textBox_GamblerStartKey.TextAlign = HorizontalAlignment.Center;
-            // 
-            // label_GambleSettings
-            // 
-            label_GambleSettings.AutoSize = true;
-            label_GambleSettings.Font = new Font("Segoe UI", 12F, FontStyle.Regular, GraphicsUnit.Point, 0);
-            label_GambleSettings.Location = new Point(7, 39);
-            label_GambleSettings.Name = "label_GambleSettings";
-            label_GambleSettings.Size = new Size(64, 21);
-            label_GambleSettings.TabIndex = 47;
-            label_GambleSettings.Text = "Gamble";
             // 
             // textBox_GamblerGetCoordinatesKey
             // 
-            textBox_GamblerGetCoordinatesKey.Anchor = AnchorStyles.None;
             textBox_GamblerGetCoordinatesKey.BackColor = Color.Transparent;
             textBox_GamblerGetCoordinatesKey.Font = new Font("Segoe UI", 12F, FontStyle.Regular, GraphicsUnit.Point, 0);
-            textBox_GamblerGetCoordinatesKey.Location = new Point(117, 39);
-            textBox_GamblerGetCoordinatesKey.Margin = new Padding(0);
+            textBox_GamblerGetCoordinatesKey.Location = new Point(110, 46);
             textBox_GamblerGetCoordinatesKey.Name = "textBox_GamblerGetCoordinatesKey";
             textBox_GamblerGetCoordinatesKey.Size = new Size(85, 30);
-            textBox_GamblerGetCoordinatesKey.TabIndex = 46;
+            textBox_GamblerGetCoordinatesKey.TabIndex = 0;
             textBox_GamblerGetCoordinatesKey.TextAlign = HorizontalAlignment.Center;
             // 
             // tabPage_Logs
@@ -1262,7 +1457,10 @@ namespace PoE
             tabPage_Gamble.ResumeLayout(false);
             tabPage_Gamble.PerformLayout();
             tabPage_Settings.ResumeLayout(false);
-            tabPage_Settings.PerformLayout();
+            groupBox_FlaskSettings.ResumeLayout(false);
+            groupBox_FlaskSettings.PerformLayout();
+            groupBox_GambleSettings.ResumeLayout(false);
+            groupBox_GambleSettings.PerformLayout();
             tabPage_Logs.ResumeLayout(false);
             tabPage_Logs.PerformLayout();
             ResumeLayout(false);
@@ -1357,7 +1555,8 @@ namespace PoE
         private Button button_Record3;
         private Label label_SecondXY;
         private FlatTextBox textBox_SecondXY;
-        private Label label_GambleSettings;
+        private FlatGroupBox groupBox_GambleSettings;
+        private FlatGroupBox groupBox_FlaskSettings;
         private FlatTextBox textBox_GamblerGetCoordinatesKey;
         private FlatTextBox textBox_GamblerStartKey;
         private FlatTextBox textBox_GamblerStopKey;
@@ -1366,8 +1565,24 @@ namespace PoE
         private Label label_GamblerGetCoorinatesKey;
         private Label label_GamblerDelay;
         private FlatTextBox textBox_GamblerDelay;
-        private Panel panel_settings_Line1;
         private Label label_GambleSpeed;
         private FlatTextBox textBox_GambleSpeed;
+        private Label label_FlaskRegisterKey;
+        private FlatTextBox textBox_FlaskRegisterKey;
+        private Label label_FlaskDrinkKey;
+        private FlatTextBox textBox_FlaskDrinkKey;
+        private Label label_FlaskStopKey;
+        private FlatTextBox textBox_FlaskStopKey;
+        private Label label_FlaskDelay;
+        private FlatTextBox textBox_FlaskDelay;
+        private Label label_FlaskKeyPressDelay;
+        private FlatTextBox textBox_FlaskKeyPressDelay;
+        private Label label_FlaskHpMpCooldown;
+        private FlatTextBox textBox_FlaskHpMpCooldown;
+        private Label label_FlaskUtilityCooldown;
+        private FlatTextBox textBox_FlaskUtilityCooldown;
+        private Label label_FlaskTinctureCooldown;
+        private FlatTextBox textBox_FlaskTinctureCooldown;
+        private ToolTip toolTip_Settings;
     }
 }

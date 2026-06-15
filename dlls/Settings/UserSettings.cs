@@ -42,6 +42,8 @@ namespace PoE.dlls.Settings
 
                 if (!string.IsNullOrEmpty(json))
                     Settings = JsonConvert.DeserializeObject<Settings>(json) ?? new Settings();
+
+                Settings.FlaskControls ??= new UIFlaskControls();
             }
             catch (Exception ex)
             {

@@ -1,4 +1,5 @@
 ﻿using PoE.dlls.Flasks.Base;
+using PoE.dlls.Settings;
 using Poss.Win.Automation.Input;
 
 namespace PoE.dlls.Flasks
@@ -9,7 +10,7 @@ namespace PoE.dlls.Flasks
 
         private readonly InputSimulator simulator;
 
-        private readonly TimeSpan delay = TimeSpan.FromMilliseconds(100);
+        public FlaskTiming Timing { get; } = new();
 
         private CancellationTokenSource? cts;
         private CancellationToken token;
@@ -21,6 +22,8 @@ namespace PoE.dlls.Flasks
             cts = new CancellationTokenSource();
             token = cts.Token;
         }
+
+        public void ApplySettings(UIFlaskControls controls) => Timing.Apply(controls);
 
         public void Flush()
         {
@@ -36,10 +39,10 @@ namespace PoE.dlls.Flasks
 
             switch (type)
             {
-                case FlaskType.HP: flasks.Add(new HP(simulator, key, numer)); break;
-                case FlaskType.MP: flasks.Add(new MP(simulator, key, numer)); break;
-                case FlaskType.Utility: flasks.Add(new Utility(simulator, key, numer)); break;
-                case FlaskType.Tincture: flasks.Add(new Tincture(simulator, key, numer)); break;
+                case FlaskType.HP: flasks.Add(new HP(simulator, key, numer, Timing)); break;
+                case FlaskType.MP: flasks.Add(new MP(simulator, key, numer, Timing)); break;
+                case FlaskType.Utility: flasks.Add(new Utility(simulator, key, numer, Timing)); break;
+                case FlaskType.Tincture: flasks.Add(new Tincture(simulator, key, numer, Timing)); break;
                 default: throw new NotSupportedException("Unsupported flask type.");
             }
         }
@@ -55,7 +58,7 @@ namespace PoE.dlls.Flasks
 
             while (!token.IsCancellationRequested)
             {
-                await Task.Delay(delay);
+                await Task.Delay(Timing.PollDelay);
 
                 if (!simulator.IsActiveWindow()) continue;
 

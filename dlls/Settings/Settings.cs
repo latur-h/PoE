@@ -10,6 +10,7 @@ namespace PoE.dlls.Settings
     public class Settings
     {
         public Dictionary<string, UIFlask> Flasks = [];
+        public UIFlaskControls FlaskControls { get; set; } = new();
         public UIModifiers Modifiers { get; set; }
 
         public Settings()

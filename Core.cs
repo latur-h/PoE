@@ -13,9 +13,9 @@ namespace PoE
         {
             _hotkeys.Start();
 
-            _hotkeys.Register("Register Flask", RegisterFlasks, "F5");
-            _hotkeys.Register("Drink Flask", DrinkFlasks, "F2");
-            _hotkeys.Register("Stop Drinking", StopDrinking, "F4");
+            _hotkeys.Register("Register Flask", RegisterFlasks, _settings.FlaskControls.RegisterKey);
+            _hotkeys.Register("Drink Flask", DrinkFlasks, _settings.FlaskControls.DrinkKey);
+            _hotkeys.Register("Stop Drinking", StopDrinking, _settings.FlaskControls.StopKey);
 
             _hotkeys.Register("Gambler get coordinates", GamblerGetCoordinates, _settings.Modifiers.GetCoorinatesKey);
             _hotkeys.Register("Gambler start", GamblerStart, _settings.Modifiers.GamblerStart);
