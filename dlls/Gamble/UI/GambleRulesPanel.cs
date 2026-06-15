@@ -21,6 +21,8 @@ namespace PoE.dlls.Gamble.UI
         private GamblePreset? _visiblePreset;
         private PresetView? _activeView;
         private bool _suppressEvents;
+        private bool _inLayout;
+        private bool _relayoutScheduled;
 
         public GambleRulesPanel()
         {
@@ -70,6 +72,7 @@ namespace PoE.dlls.Gamble.UI
             };
             _scrollPanel.Controls.Add(_rowsHost);
             _scrollPanel.Resize += (_, _) => LayoutActiveView();
+            _scrollPanel.Layout += (_, _) => OnScrollPanelLayout();
             _scrollPanel.HandleCreated += (_, _) => DisableHorizontalScroll();
 
             Controls.Add(_scrollPanel);
@@ -211,25 +214,79 @@ namespace PoE.dlls.Gamble.UI
 
         private void LayoutActiveView()
         {
-            if (_activeView is not null)
+            if (_inLayout || _activeView is null)
+                return;
+
+            _inLayout = true;
+            try
+            {
                 LayoutView(_activeView);
+            }
+            finally
+            {
+                _inLayout = false;
+            }
+        }
+
+        private void OnScrollPanelLayout()
+        {
+            if (_inLayout || _activeView is null)
+                return;
+
+            int width = GetViewportWidth();
+            if (width > 0 && width != _activeView.Host.Width)
+                LayoutActiveView();
+        }
+
+        private void ScheduleViewportRelayout()
+        {
+            if (!IsHandleCreated || _relayoutScheduled || _activeView is null)
+                return;
+
+            _relayoutScheduled = true;
+            BeginInvoke(() =>
+            {
+                _relayoutScheduled = false;
+                if (_activeView is null)
+                    return;
+
+                int width = GetViewportWidth();
+                if (width > 0 && width != _activeView.Host.Width)
+                    LayoutActiveView();
+            });
         }
 
         private void LayoutView(PresetView view)
         {
-            int rowWidth = Math.Max(0, _scrollPanel.ClientSize.Width);
+            ApplyRowLayout(view, GetViewportWidth());
+
+            int contentHeight = Math.Max(RowHeight, view.Rows.Count * RowHeight);
+            view.Host.Height = contentHeight;
+            _rowsHost.Height = contentHeight;
+
+            if (contentHeight <= _scrollPanel.ClientSize.Height)
+                _scrollPanel.AutoScrollPosition = new Point(0, 0);
+
+            // Scrollbar show/hide changes client width without always raising Resize.
+            int widthAfter = GetViewportWidth();
+            if (widthAfter != view.Host.Width)
+                ApplyRowLayout(view, widthAfter);
+
+            ScheduleViewportRelayout();
+        }
+
+        private int GetViewportWidth() => Math.Max(0, _scrollPanel.ClientSize.Width);
+
+        private void ApplyRowLayout(PresetView view, int rowWidth)
+        {
             view.Host.Width = rowWidth;
+            _rowsHost.Width = rowWidth;
 
             for (int i = 0; i < view.Rows.Count; i++)
             {
                 view.Rows[i].Location = new Point(0, i * RowHeight);
                 view.Rows[i].SetWidth(rowWidth);
             }
-
-            int contentHeight = Math.Max(RowHeight, view.Rows.Count * RowHeight);
-            view.Host.Height = contentHeight;
-            _rowsHost.Height = contentHeight;
-            _rowsHost.Width = rowWidth;
         }
 
         private void DisableHorizontalScroll()
@@ -351,9 +408,10 @@ namespace PoE.dlls.Gamble.UI
             public void SetWidth(int width)
             {
                 Width = width;
-                const int removeWidth = 24;
-                _content.Width = Math.Max(59, width - _content.Left - removeWidth);
-                _remove.Location = new Point(width - removeWidth + 2, 5);
+                const int removeReserve = 28;
+                _content.Width = Math.Max(59, width - _content.Left - removeReserve);
+                _remove.Location = new Point(width - _remove.Width - 4, 5);
+                _remove.BringToFront();
             }
 
             private static FlatTextBox CreateTextBox(Point location, Size size, HorizontalAlignment align)

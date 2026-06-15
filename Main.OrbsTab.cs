@@ -1,5 +1,6 @@
 using PoE.dlls.InteropServices;
-using PoE.dlls.Settings.Mods;using PoE.dlls.Style;
+using PoE.dlls.Settings.Mods;
+using PoE.dlls.Style;
 
 namespace PoE
 {
@@ -104,9 +105,14 @@ namespace PoE
 
             var record = new Button
             {
-                Size = new Size(48, 23),
+                Size = new Size(48, 30),
                 Text = "Rec",
+                ForeColor = Color.Black,
+                Font = new Font("Segoe UI", 9F, FontStyle.Regular, GraphicsUnit.Point),
+                TextAlign = ContentAlignment.MiddleCenter,
+                Padding = Padding.Empty,
                 UseVisualStyleBackColor = true,
+                UseCompatibleTextRendering = true,
             };
 
             var slot = new CoordinateSlot
@@ -136,7 +142,7 @@ namespace PoE
 
             var panel = new Panel { Size = new Size(280, 62), Margin = new Padding(4) };
             label.Location = new Point(0, 0);
-            record.Location = new Point(0, 28);
+            record.Location = new Point(0, 26);
             textBox.Location = new Point(54, 26);
             panel.Controls.Add(label);
             panel.Controls.Add(record);
