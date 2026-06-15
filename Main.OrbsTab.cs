@@ -201,19 +201,6 @@ namespace PoE
             return true;
         }
 
-        private void DetachLegacyGambleCoordinateControls()
-        {
-            Control[] legacy =
-            [
-                label_ItemXY, textBox_ItemXY, button_Record1,
-                label_BaseXY, textBox_BaseXY, button_Record2,
-                label_SecondXY, textBox_SecondXY, button_Record3,
-            ];
-
-            foreach (var control in legacy)
-                tabPage_Gamble.Controls.Remove(control);
-        }
-
         private void LayoutOrbsTab()
         {
             const int margin = 7;

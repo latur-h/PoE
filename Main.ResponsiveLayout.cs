@@ -96,18 +96,37 @@ namespace PoE
         private void LayoutGambleTab()
         {
             const int margin = 7;
-            const int typeWidth = 150;
+            const int rowHeight = 30;
+            const int labelGap = 8;
+            const int iconGap = 6;
+            const int preferredTypeWidth = 180;
+            const int iconWidth = 20;
 
             int width = tabPage_Gamble.ClientSize.Width;
             int height = tabPage_Gamble.ClientSize.Height;
             if (width <= 0 || height <= 0)
                 return;
 
-            comboBox_GambleType.Location = new Point(margin, 26);
-            comboBox_GambleType.Size = new Size(typeWidth, 30);
-            label_GambleType.Location = new Point(margin, 2);
+            int rowY = margin;
+            label_GambleType.Location = new Point(margin, rowY + (rowHeight - label_GambleType.Height) / 2);
 
-            int contentTop = 40;
+            int comboX = label_GambleType.Right + labelGap;
+            int comboWidth = Math.Max(120, Math.Min(preferredTypeWidth, width - comboX - iconGap - iconWidth - margin));
+            comboBox_GambleType.Location = new Point(comboX, rowY);
+            comboBox_GambleType.Size = new Size(comboWidth, rowHeight);
+
+            if (_gambleTypeHelpIcon is not null)
+            {
+                _gambleTypeHelpIcon.Location = new Point(
+                    comboBox_GambleType.Right + iconGap,
+                    rowY + (rowHeight - _gambleTypeHelpIcon.Height) / 2);
+                _gambleTypeHelpIcon.BringToFront();
+            }
+
+            label_GambleType.BringToFront();
+            comboBox_GambleType.BringToFront();
+
+            int contentTop = rowY + rowHeight + margin;
             gamblePresetBar.Location = new Point(margin, contentTop);
             gamblePresetBar.Width = width - margin * 2;
 

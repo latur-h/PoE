@@ -23,6 +23,7 @@ namespace PoE
         private readonly UserSettings _userSettings;
         private GamblePresetBar gamblePresetBar = null!;
         private GambleRulesPanel gambleRulesPanel = null!;
+        private Label? _gambleTypeHelpIcon;
         private ToolTip toolTip_Gamble = null!;
         private Settings _settings = null!;
 
@@ -201,9 +202,6 @@ namespace PoE
             ApplyFlaskPercentVisibility();
 
             label_GambleType.ForeColor = StaticColors.ForeGround;
-            label_ItemXY.ForeColor = StaticColors.ForeGround;
-            label_BaseXY.ForeColor = StaticColors.ForeGround;
-            label_SecondXY.ForeColor = StaticColors.ForeGround;
             label_GamblerGetCoorinatesKey.ForeColor = StaticColors.ForeGround;
             label_GamblerStartKey.ForeColor = StaticColors.ForeGround;
             label_GamblerStopKey.ForeColor = StaticColors.ForeGround;
@@ -225,7 +223,6 @@ namespace PoE
 
             InitializeGamblePresetBar();
             InitializeGambleRulesPanel();
-            DetachLegacyGambleCoordinateControls();
             InitializeOrbsTab();
             SetupGambleModeHelp();
 
@@ -354,7 +351,7 @@ namespace PoE
             toolTip_Gamble = new ToolTip(components);
             SettingsHintHelper.Configure(toolTip_Gamble);
 
-            SettingsHintHelper.Attach(
+            _gambleTypeHelpIcon = SettingsHintHelper.Attach(
                 toolTip_Gamble,
                 tabPage_Gamble,
                 label_GambleType,

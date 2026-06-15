@@ -68,16 +68,7 @@ namespace PoE
             label_FlaskType = new Label();
             comboBox_Flask1 = new FlatComboBox();
             tabPage_Gamble = new TabPage();
-            button_Record3 = new Button();
-            label_SecondXY = new Label();
-            textBox_SecondXY = new FlatTextBox();
-            button_Record2 = new Button();
-            button_Record1 = new Button();
-            label_BaseXY = new Label();
-            label_ItemXY = new Label();
             label_GambleType = new Label();
-            textBox_BaseXY = new FlatTextBox();
-            textBox_ItemXY = new FlatTextBox();
             comboBox_GambleType = new FlatComboBox();
             tabPage_Orbs = new TabPage();
             tabPage_Settings = new TabPage();
@@ -518,16 +509,7 @@ namespace PoE
             // 
             // tabPage_Gamble
             // 
-            tabPage_Gamble.Controls.Add(button_Record3);
-            tabPage_Gamble.Controls.Add(label_SecondXY);
-            tabPage_Gamble.Controls.Add(textBox_SecondXY);
-            tabPage_Gamble.Controls.Add(button_Record2);
-            tabPage_Gamble.Controls.Add(button_Record1);
-            tabPage_Gamble.Controls.Add(label_BaseXY);
-            tabPage_Gamble.Controls.Add(label_ItemXY);
             tabPage_Gamble.Controls.Add(label_GambleType);
-            tabPage_Gamble.Controls.Add(textBox_BaseXY);
-            tabPage_Gamble.Controls.Add(textBox_ItemXY);
             tabPage_Gamble.Controls.Add(comboBox_GambleType);
             tabPage_Gamble.Location = new Point(4, 36);
             tabPage_Gamble.Name = "tabPage_Gamble";
@@ -536,102 +518,15 @@ namespace PoE
             tabPage_Gamble.Text = "Gamble";
             tabPage_Gamble.UseVisualStyleBackColor = true;
             // 
-            // button_Record3
-            // 
-            button_Record3.Location = new Point(547, 26);
-            button_Record3.Name = "button_Record3";
-            button_Record3.Size = new Size(48, 23);
-            button_Record3.TabIndex = 50;
-            button_Record3.Text = "Rec";
-            button_Record3.UseVisualStyleBackColor = true;
-            // 
-            // label_SecondXY
-            // 
-            label_SecondXY.AutoSize = true;
-            label_SecondXY.Font = new Font("Segoe UI", 12F, FontStyle.Regular, GraphicsUnit.Point, 0);
-            label_SecondXY.Location = new Point(456, 2);
-            label_SecondXY.Name = "label_SecondXY";
-            label_SecondXY.Size = new Size(61, 21);
-            label_SecondXY.TabIndex = 49;
-            label_SecondXY.Text = "Second";
-            // 
-            // textBox_SecondXY
-            // 
-            textBox_SecondXY.BackColor = Color.Transparent;
-            textBox_SecondXY.Font = new Font("Segoe UI", 12F, FontStyle.Regular, GraphicsUnit.Point, 0);
-            textBox_SecondXY.Location = new Point(444, 26);
-            textBox_SecondXY.Name = "textBox_SecondXY";
-            textBox_SecondXY.Size = new Size(97, 30);
-            textBox_SecondXY.TabIndex = 48;
-            textBox_SecondXY.TextAlign = HorizontalAlignment.Center;
-            // 
-            // button_Record2
-            // 
-            button_Record2.Location = new Point(390, 26);
-            button_Record2.Name = "button_Record2";
-            button_Record2.Size = new Size(48, 23);
-            button_Record2.TabIndex = 47;
-            button_Record2.Text = "Rec";
-            button_Record2.UseVisualStyleBackColor = true;
-            // 
-            // button_Record1
-            // 
-            button_Record1.Location = new Point(234, 26);
-            button_Record1.Name = "button_Record1";
-            button_Record1.Size = new Size(48, 23);
-            button_Record1.TabIndex = 46;
-            button_Record1.Text = "Rec";
-            button_Record1.UseVisualStyleBackColor = true;
-            // 
-            // label_BaseXY
-            // 
-            label_BaseXY.AutoSize = true;
-            label_BaseXY.Font = new Font("Segoe UI", 12F, FontStyle.Regular, GraphicsUnit.Point, 0);
-            label_BaseXY.Location = new Point(299, 2);
-            label_BaseXY.Name = "label_BaseXY";
-            label_BaseXY.Size = new Size(42, 21);
-            label_BaseXY.TabIndex = 42;
-            label_BaseXY.Text = "Base";
-            // 
-            // label_ItemXY
-            // 
-            label_ItemXY.AutoSize = true;
-            label_ItemXY.Font = new Font("Segoe UI", 12F, FontStyle.Regular, GraphicsUnit.Point, 0);
-            label_ItemXY.Location = new Point(131, 2);
-            label_ItemXY.Name = "label_ItemXY";
-            label_ItemXY.Size = new Size(41, 21);
-            label_ItemXY.TabIndex = 41;
-            label_ItemXY.Text = "Item";
-            // 
             // label_GambleType
             // 
             label_GambleType.AutoSize = true;
             label_GambleType.Font = new Font("Segoe UI", 12F, FontStyle.Regular, GraphicsUnit.Point, 0);
-            label_GambleType.Location = new Point(7, 2);
+            label_GambleType.Location = new Point(7, 10);
             label_GambleType.Name = "label_GambleType";
-            label_GambleType.Size = new Size(98, 21);
+            label_GambleType.Size = new Size(104, 21);
             label_GambleType.TabIndex = 40;
-            label_GambleType.Text = "Gamble type";
-            // 
-            // textBox_BaseXY
-            // 
-            textBox_BaseXY.BackColor = Color.Transparent;
-            textBox_BaseXY.Font = new Font("Segoe UI", 12F, FontStyle.Regular, GraphicsUnit.Point, 0);
-            textBox_BaseXY.Location = new Point(287, 26);
-            textBox_BaseXY.Name = "textBox_BaseXY";
-            textBox_BaseXY.Size = new Size(97, 30);
-            textBox_BaseXY.TabIndex = 39;
-            textBox_BaseXY.TextAlign = HorizontalAlignment.Center;
-            // 
-            // textBox_ItemXY
-            // 
-            textBox_ItemXY.BackColor = Color.Transparent;
-            textBox_ItemXY.Font = new Font("Segoe UI", 12F, FontStyle.Regular, GraphicsUnit.Point, 0);
-            textBox_ItemXY.Location = new Point(131, 26);
-            textBox_ItemXY.Name = "textBox_ItemXY";
-            textBox_ItemXY.Size = new Size(97, 30);
-            textBox_ItemXY.TabIndex = 38;
-            textBox_ItemXY.TextAlign = HorizontalAlignment.Center;
+            label_GambleType.Text = "Gamble type:";
             // 
             // comboBox_GambleType
             // 
@@ -640,9 +535,9 @@ namespace PoE
             comboBox_GambleType.FlatStyle = FlatStyle.Flat;
             comboBox_GambleType.Font = new Font("Segoe UI", 12F, FontStyle.Regular, GraphicsUnit.Point, 0);
             comboBox_GambleType.FormattingEnabled = true;
-            comboBox_GambleType.Location = new Point(7, 26);
+            comboBox_GambleType.Location = new Point(119, 7);
             comboBox_GambleType.Name = "comboBox_GambleType";
-            comboBox_GambleType.Size = new Size(121, 30);
+            comboBox_GambleType.Size = new Size(180, 30);
             comboBox_GambleType.TabIndex = 0;
             // 
             // tabPage_Orbs
@@ -1058,16 +953,7 @@ namespace PoE
         private TabPage tabPage_Gamble;
         private TabPage tabPage_Orbs;
         private FlatComboBox comboBox_GambleType;
-        private Label label_BaseXY;
-        private Label label_ItemXY;
         private Label label_GambleType;
-        private FlatTextBox textBox_BaseXY;
-        private FlatTextBox textBox_ItemXY;
-        private Button button_Record1;
-        private Button button_Record2;
-        private Button button_Record3;
-        private Label label_SecondXY;
-        private FlatTextBox textBox_SecondXY;
         private FlatGroupBox groupBox_GambleSettings;
         private FlatGroupBox groupBox_FlaskSettings;
         private FlatTextBox textBox_GamblerGetCoordinatesKey;
