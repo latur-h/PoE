@@ -12,4 +12,11 @@ public class GambleInputReleaseHelperTests
         var host = new InputSimulatorHost();
         GambleInputReleaseHelper.ReleaseAll(host);
     }
+
+    [Fact]
+    public void ReleaseModifiers_does_not_throw()
+    {
+        var host = new InputSimulatorHost();
+        GambleInputReleaseHelper.ReleaseModifiers(host);
+    }
 }

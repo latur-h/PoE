@@ -96,7 +96,7 @@ namespace PoE.dlls.Gamba
             finally
             {
                 GambleModContentMatcher.ClearCatalogContext();
-                GambleInputReleaseHelper.ReleaseAll(_inputHost);
+                GambleInputReleaseHelper.ReleaseModifiers(_inputHost);
                 _cts?.Dispose();
                 _cts = null;
             }
