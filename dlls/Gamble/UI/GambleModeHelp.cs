@@ -280,7 +280,10 @@ namespace PoE.dlls.Gamble.UI
             Section("Target",
                 "Eldritch implicit lines on maps or other items — one Searing Exarch line and one Eater of Worlds line."),
             Section("In game",
-                "Right-click the matching orb, hold Shift, spam on item with copy between clicks. The gambler switches between Exarch and Eater orbs depending on which line still needs to hit."),
+                "1. Move to the item → copy → evaluate. Stop if rules already match.\r\n" +
+                "2. Pick up the Searing Exarch orb, move back to the item, hold Shift.\r\n" +
+                "3. Loop: copy → evaluate → slam (switch to Eater orb when Exarch line is satisfied).\r\n" +
+                "4. Release Shift when done or cancelled."),
             OrbsTabCoordinatesSection("Default item, Searing Exarch orb, Eater of Worlds orb"),
             Section("Priority",
                 "• 1 or higher — Required\r\n" +

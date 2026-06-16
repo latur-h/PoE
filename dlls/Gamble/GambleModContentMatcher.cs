@@ -26,17 +26,28 @@ namespace PoE.dlls.Gamble
         [ThreadStatic]
         private static GambleType? t_gambleType;
 
+        private static readonly AsyncLocal<ModCacheDatabase?> s_asyncDatabase = new();
+        private static readonly AsyncLocal<GambleType?> s_asyncGambleType = new();
+
         internal static void SetCatalogContext(ModCacheDatabase? database, GambleType gambleType)
         {
             t_database = database;
             t_gambleType = gambleType;
+            s_asyncDatabase.Value = database;
+            s_asyncGambleType.Value = gambleType;
         }
 
         internal static void ClearCatalogContext()
         {
             t_database = null;
             t_gambleType = null;
+            s_asyncDatabase.Value = null;
+            s_asyncGambleType.Value = null;
         }
+
+        private static ModCacheDatabase? GetDatabase() => s_asyncDatabase.Value ?? t_database;
+
+        private static GambleType? GetGambleType() => s_asyncGambleType.Value ?? t_gambleType;
 
         /// <summary>
         /// Normalizes clipboard mod text: drops tier roll ranges in parentheses and keeps the
@@ -72,13 +83,24 @@ namespace PoE.dlls.Gamble
             if (string.IsNullOrEmpty(ruleContent))
                 return false;
 
-            if (UsesCatalogMatching()
-                && t_database is not null
-                && t_gambleType is GambleType gambleType)
+            string skeleton = ModTemplateNormalizer.ToSkeleton(ruleContent);
+
+            ModCacheDatabase? database = GetDatabase();
+            GambleType? gambleType = GetGambleType();
+
+            if (UsesCatalogMatching(gambleType)
+                && database is not null
+                && gambleType is GambleType type
+                && database.TryFindModTemplate(skeleton, type, out string? template)
+                && ModTemplateMatcher.TryMatch(ruleContent, template, itemModContent))
             {
-                string skeleton = ModTemplateNormalizer.ToSkeleton(ruleContent);
-                if (t_database.TryFindModTemplate(skeleton, gambleType, out string? template))
-                    return ModTemplateMatcher.TryMatch(ruleContent, template, itemModContent);
+                return true;
+            }
+
+            if (skeleton.Contains('#', StringComparison.Ordinal)
+                && ModTemplateMatcher.TryMatch(ruleContent, skeleton, itemModContent))
+            {
+                return true;
             }
 
             return IsLegacyRegexMatch(ruleContent, itemModContent);
@@ -98,8 +120,8 @@ namespace PoE.dlls.Gamble
             return matchNameToo && IsContentMatch(rule.Content, mod.Name);
         }
 
-        private static bool UsesCatalogMatching() =>
-            t_gambleType is not (
+        private static bool UsesCatalogMatching(GambleType? gambleType) =>
+            gambleType is not (
                 GambleType.Map
                 or GambleType.MapExalt
                 or GambleType.MapT17

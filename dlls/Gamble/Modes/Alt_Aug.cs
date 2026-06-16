@@ -1,261 +1,133 @@
 using Poss.Win.Automation.Input;
 using PoE.dlls.Automation;
 using PoE.dlls.Logger;
-using PoE.dlls.Gamble.Modifiers;
 using PoE.dlls.InteropServices;
-using System.Text.RegularExpressions;
 
 namespace PoE.dlls.Gamble.Modes
 {
     public class Alt_Aug : IGamba
     {
-        private enum Response
-        {
-            Alt,
-            Aug,
-            Success,
-            Failure
-        }
-
         private readonly Main _main;
         private readonly InputSimulatorHost _inputHost;
-
-        private double speed = 10.0;
-        private TimeSpan delay = TimeSpan.FromMilliseconds(50);
+        private readonly double speed;
+        private readonly TimeSpan delay;
         private readonly Coordinates item;
         private readonly Coordinates alt;
         private readonly Coordinates aug;
-
-        private readonly List<Rule> rules = [];
-
+        private readonly List<Rule> rules;
         private readonly CancellationTokenSource _cts;
         private readonly CancellationToken _token;
-
-        private bool _isShiftHeld = false;
-
-        private int _hash = 0;
-        private int count = 0;
-        private int maxAttempts = 3;
+        private readonly GambleItemClipboardHelper.HashState _hashState = new();
+        private bool _isShiftHeld;
 
         public Alt_Aug(Main main, InputSimulatorHost inputHost, CancellationTokenSource cts, TimeSpan delay, double speed, Coordinates item, Coordinates alt, Coordinates aug, List<Rule> rules)
         {
             _main = main;
             _inputHost = inputHost;
-
             this.delay = delay;
             this.speed = speed;
-
             this.item = item;
             this.alt = alt;
             this.aug = aug;
-
             this.rules = rules;
-
             _cts = cts;
             _token = _cts.Token;
         }
 
         public async Task Gamble()
         {
-            /*
             _inputHost.Simulator.MouseDeltaMove(item.X, item.Y, speed);
-            await Task.Delay(delay);
-            */
-            await FirstMove();
+            await Task.Delay(delay, _token);
 
-            await Copy();
+            AltAugResponse response = await GambleItemMatcher.ReadAltAugAfterCopyAsync(
+                _main, _inputHost, delay, _token, _cts, _hashState, rules);
 
-            Response response = CheckItem();
-            while (response != Response.Success && !_token.IsCancellationRequested)
+            if (response == AltAugResponse.Success)
             {
-                if (response == Response.Alt)
-                    await SlamAlt();
-                else if (response == Response.Aug)
-                    await SlamAug();
-
-                await Copy();
-
-                response = CheckItem();
+                GamblerLog.Success();
+                return;
             }
 
-            if (_isShiftHeld)
-                _inputHost.Simulator.Send("Shift Up");
-
-            if (_token.IsCancellationRequested)
+            if (response == AltAugResponse.Failure)
             {
                 GamblerLog.Cancelled();
                 return;
             }
 
-            if (response == Response.Success)
+            await PickUpOrbAsync();
+
+            bool afterSlam = false;
+            int? baselineHash = null;
+
+            while (response != AltAugResponse.Success && !_token.IsCancellationRequested)
+            {
+                response = await GambleItemMatcher.ReadAltAugAfterCopyAsync(
+                    _main, _inputHost, delay, _token, _cts, _hashState, rules, afterSlam, baselineHash);
+
+                if (response == AltAugResponse.Success)
+                    break;
+
+                if (response == AltAugResponse.Failure)
+                    break;
+
+                baselineHash = _hashState.Hash;
+
+                if (response == AltAugResponse.Alt)
+                    await SlamAltAsync();
+                else
+                    await SlamAugAsync();
+
+                afterSlam = true;
+            }
+
+            if (_isShiftHeld)
+                _inputHost.Simulator.Send("Shift Up");
+
+            if (_token.IsCancellationRequested || response == AltAugResponse.Failure)
+            {
+                GamblerLog.Cancelled();
+                return;
+            }
+
+            if (response == AltAugResponse.Success)
                 GamblerLog.Success();
             else
                 GamblerLog.Error("Failed to check item!");
         }
-        private async Task FirstMove()
+
+        private async Task PickUpOrbAsync()
         {
             _inputHost.Simulator.MouseDeltaMove(alt.X, alt.Y, speed);
-            await Task.Delay(delay);
+            await Task.Delay(delay, _token);
             _inputHost.Simulator.Send("RButton Down");
-            await Task.Delay(delay);
+            await Task.Delay(delay, _token);
             _inputHost.Simulator.Send("RButton Up");
-            await Task.Delay(delay);
+            await Task.Delay(delay, _token);
             _inputHost.Simulator.MouseDeltaMove(item.X, item.Y, speed);
-            await Task.Delay(delay);
+            await Task.Delay(delay, _token);
             _inputHost.Simulator.Send("Shift Down");
-            await Task.Delay(delay);
-
+            await Task.Delay(delay, _token);
             _isShiftHeld = true;
         }
-        private async Task SlamAlt()
+
+        private async Task SlamAltAsync()
         {
             _inputHost.Simulator.Send("LButton Down");
-            await Task.Delay(delay);
+            await Task.Delay(delay, _token);
             _inputHost.Simulator.Send("LButton Up");
-            await Task.Delay(delay);
+            await Task.Delay(delay, _token);
         }
-        private async Task SlamAug()
+
+        private async Task SlamAugAsync()
         {
             _inputHost.Simulator.Send("Alt Down");
-            await Task.Delay(delay);
+            await Task.Delay(delay, _token);
             _inputHost.Simulator.Send("LButton Down");
-            await Task.Delay(delay);
+            await Task.Delay(delay, _token);
             _inputHost.Simulator.Send("LButton Up");
-            await Task.Delay(delay);
+            await Task.Delay(delay, _token);
             _inputHost.Simulator.Send("Alt Up");
-            await Task.Delay(delay);
-        }
-        private async Task Copy()
-        {
-            _inputHost.Simulator.Send("Ctrl Down");
-            await Task.Delay(delay);
-            _inputHost.Simulator.Send("Alt Down");
-            await Task.Delay(delay);
-            _inputHost.Simulator.Send("C Down");
-            await Task.Delay(delay);
-            _inputHost.Simulator.Send("C Up");
-            await Task.Delay(delay);
-            _inputHost.Simulator.Send("Alt Up");
-            await Task.Delay(delay);
-            _inputHost.Simulator.Send("Ctrl Up");
-            await Task.Delay(delay);
-        }
-        private Response CheckItem()
-        {
-            string itemContent = _main.Invoke(() => Clipboard.GetText(TextDataFormat.Text));
-            if (string.IsNullOrEmpty(itemContent))
-            {
-                GamblerLog.Error("Clipboard is empty or item content is not available.");
-                _cts.Cancel();
-                return Response.Failure;
-            }
-            _main.Invoke(Clipboard.Clear);
-
-            int hash = itemContent.GetHashCode();
-
-            if (_hash != hash)
-                _hash = hash;
-            else
-            {
-                if (count >= maxAttempts)
-                {
-                    GamblerLog.MaxAttemptsReached();
-                    _cts.Cancel();
-                    return Response.Failure;
-                }
-
-                count++;
-            }
-
-            Regex getModifiers = new(@"\{.*?\}.*?(?={|--------|$)", RegexOptions.IgnoreCase | RegexOptions.Singleline);
-            Regex getType = new(@"\{.*?(?'Type'implicit|prefix|suffix).*?\}", RegexOptions.IgnoreCase);
-            Regex getName = new(@"\{.*?""(?'Name'.*?)"".*?\}", RegexOptions.IgnoreCase);
-            Regex getTier = new(@"\{.*?\(Tier:\s(?'Tier'\d+)\).*?\}", RegexOptions.IgnoreCase);
-            Regex getContent = new(@"}(?'Content'.*?)$", RegexOptions.IgnoreCase | RegexOptions.Singleline);
-
-            var mods = getModifiers.Matches(itemContent);
-
-            List<Modifier> modifiers = [];
-
-            GamblerLog.DebugSeparator();
-            foreach (var mod in mods.Cast<Match>())
-            {
-                ModifierType type = Enum.Parse<ModifierType>(getType.Match(mod.Value).Groups["Type"].Value.Trim());
-
-                string name = string.Empty;
-                if (getName.IsMatch(mod.Value))
-                    name = getName.Match(mod.Value).Groups["Name"].Value.Trim();
-
-                int tier = 0;
-                if (getTier.IsMatch(mod.Value))
-                    tier = int.Parse(getTier.Match(mod.Value).Groups["Tier"].Value.Trim());
-
-                string content = getContent.Match(mod.Value).Groups["Content"].Value.Trim();
-                content = GambleModContentMatcher.NormalizeItemModContent(content);
-
-                if (!Regex.IsMatch(content, @"fractured", RegexOptions.IgnoreCase) && type != ModifierType.Implicit)
-                    GamblerLog.DebugMod(type, tier, name, content);
-
-                Modifier parsedMod = new(type, tier, name, content);
-                modifiers.Add(parsedMod);
-            }
-
-            var required = rules.Where(r => r.Priority >= 1).ToList();
-            var optional = rules.Where(r => r.Priority > 0 && r.Priority < 1).ToList();
-
-            int requiredCount = 0;
-            int optionalCount = 0;
-
-            int modsCount = modifiers.Count(x => x.Type == ModifierType.Suffix || x.Type == ModifierType.Prefix);
-
-            foreach (var rule in required)
-            {
-                foreach (var mod in modifiers)
-                {
-                    if (!GambleModContentMatcher.MatchesModRule(rule, mod, matchNameToo: true))
-                        continue;
-
-                    requiredCount++;
-                }
-            }
-
-            if (optional is not null)
-                foreach (var rule in optional)
-                {
-                    foreach (var mod in modifiers)
-                    {
-                        if (!GambleModContentMatcher.MatchesModRule(rule, mod, matchNameToo: true))
-                            continue;
-
-                        optionalCount++;
-                    }
-                }
-
-            if (required.Count <= requiredCount)
-            {
-                if (optional?.Count > 0 && optionalCount == 0)
-                {
-                    if (modsCount == 1)
-                    {
-                        return Response.Aug;
-                    }
-                    else
-                    {
-                        return Response.Alt;
-                    }
-                }
-
-                return Response.Success;
-            }
-
-            if (modsCount == 1)
-            {
-                return Response.Aug;
-            }
-            else
-            {
-                return Response.Alt;
-            }
+            await Task.Delay(delay, _token);
         }
     }
 }

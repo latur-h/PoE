@@ -172,5 +172,56 @@ namespace PoE.Tests
                 "#% increased Physical Damage",
                 ModTemplateNormalizer.ToHashTemplate("65% increased Physical Damage"));
         }
+
+        [Fact]
+        public void Operator_rules_match_via_skeleton_without_catalog_context()
+        {
+            GambleModContentMatcher.ClearCatalogContext();
+            try
+            {
+                Assert.True(GambleModContentMatcher.IsContentMatch(
+                    ">=60% increased Physical Damage",
+                    "65% increased Physical Damage"));
+
+                Assert.True(GambleModContentMatcher.IsContentMatch(
+                    "=65% increased Physical Damage",
+                    "65% increased Physical Damage"));
+
+                Assert.False(GambleModContentMatcher.IsContentMatch(
+                    "=65% increased Physical Damage",
+                    "64% increased Physical Damage"));
+            }
+            finally
+            {
+                GambleModContentMatcher.ClearCatalogContext();
+            }
+        }
+
+        [Fact]
+        public async Task Catalog_context_survives_async_await()
+        {
+            string dbPath = Path.Combine(Path.GetTempPath(), $"poe_modcache_test_{Guid.NewGuid():N}.sqlite");
+            try
+            {
+                using var database = new ModCacheDatabase(dbPath);
+                database.Recreate(
+                [
+                    new ModCatalogEntry("PhysicalDamage", "#% increased Physical Damage", false, ModEldritchInfluence.None),
+                ]);
+
+                GambleModContentMatcher.SetCatalogContext(database, GambleType.Alt);
+                await Task.Yield();
+
+                Assert.True(GambleModContentMatcher.IsContentMatch(
+                    ">=60% increased Physical Damage",
+                    "65% increased Physical Damage"));
+            }
+            finally
+            {
+                GambleModContentMatcher.ClearCatalogContext();
+                if (File.Exists(dbPath))
+                    File.Delete(dbPath);
+            }
+        }
     }
 }

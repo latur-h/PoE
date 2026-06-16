@@ -4,7 +4,6 @@ using PoE.dlls.InteropServices;
 using PoE.dlls.Settings.Mods;
 using Poss.Win.Automation.Input;
 using PoE.dlls.Automation;
-using System.Text.RegularExpressions;
 
 namespace PoE.dlls.Gamble.Modes
 {
@@ -14,7 +13,7 @@ namespace PoE.dlls.Gamble.Modes
         private readonly InputSimulatorHost inputHost;
 
         private double speed = 10.0;
-        private TimeSpan delay = TimeSpan.FromMilliseconds(10);
+        private TimeSpan delay = TimeSpan.FromMilliseconds(50);
 
         private readonly Coordinates item;
         private readonly Coordinates exarchOrb;
@@ -25,9 +24,11 @@ namespace PoE.dlls.Gamble.Modes
         private readonly CancellationTokenSource _cts;
         private readonly CancellationToken _token;
 
-        private int _hash = 0;
-        private int count = 0;
-        private int maxAttempts = 3;
+        private bool _isShiftHeld;
+        private EldritchInfluence _currentOrb = EldritchInfluence.SearingExarch;
+        private readonly GambleItemClipboardHelper.HashState _hashState = new();
+
+        private const int MaxUnchangedReads = 3;
 
         public Eldritch(
             Main main,
@@ -59,44 +60,55 @@ namespace PoE.dlls.Gamble.Modes
         public async Task Gamble()
         {
             inputHost.Simulator.MouseDeltaMove(item.X, item.Y, speed);
-            await Task.Delay(delay);
+            await Task.Delay(delay, _token);
 
-            await Copy();
+            (bool ok, List<Modifier> modifiers) = await TryReadItemAsync(requireHashChange: false);
+            if (!ok)
+            {
+                GamblerLog.Cancelled();
+                return;
+            }
 
-            if (IsComplete())
+            if (await TryConfirmCompleteAsync(modifiers))
             {
                 GamblerLog.Success();
                 return;
             }
 
+            await PickUpOrbAsync(EldritchInfluence.SearingExarch);
+
+            bool afterSlam = false;
+            int? baselineHash = null;
+            bool succeeded = false;
+
             while (!_token.IsCancellationRequested)
             {
-                var targetOrb = SelectOrb();
-                await ApplyOrb(targetOrb);
+                (ok, modifiers) = await TryReadItemAsync(afterSlam, baselineHash);
+                if (!ok)
+                    break;
 
-                inputHost.Simulator.Send("Shift Down");
-                await Task.Delay(delay);
-                while (!_token.IsCancellationRequested)
+                if (await TryConfirmCompleteAsync(modifiers))
                 {
-                    inputHost.Simulator.Send("LButton Down");
-                    await Task.Delay(delay);
-                    inputHost.Simulator.Send("LButton Up");
-                    await Task.Delay(delay);
-
-                    await Copy();
-
-                    if (IsComplete())
-                        break;
+                    succeeded = true;
+                    break;
                 }
-                await Task.Delay(delay);
-                inputHost.Simulator.Send("Shift Up");
 
-                if (_token.IsCancellationRequested)
-                    break;
+                EldritchInfluence targetOrb = SelectOrb(modifiers);
+                if (targetOrb != _currentOrb)
+                {
+                    await ReleaseShift();
+                    await PickOrbAndMoveToItem(targetOrb);
+                    _currentOrb = targetOrb;
+                    await HoldShift();
+                    _hashState.Reset();
+                }
 
-                if (IsComplete())
-                    break;
+                baselineHash = _hashState.Hash;
+                await Slam();
+                afterSlam = true;
             }
+
+            await ReleaseShift();
 
             if (_token.IsCancellationRequested)
             {
@@ -104,27 +116,26 @@ namespace PoE.dlls.Gamble.Modes
                 return;
             }
 
-            GamblerLog.Success();
+            if (succeeded)
+                GamblerLog.Success();
+            else
+                GamblerLog.Error("Failed to check item!");
         }
 
-        private EldritchInfluence SelectOrb()
+        private async Task PickUpOrbAsync(EldritchInfluence influence)
         {
-            var modifiers = ParseClipboard();
-            if (modifiers is null)
-                return EldritchInfluence.SearingExarch;
-
-            return SlotSatisfied(modifiers, EldritchInfluence.SearingExarch)
-                ? EldritchInfluence.EaterOfWorlds
-                : EldritchInfluence.SearingExarch;
+            await PickOrbAndMoveToItem(influence);
+            _currentOrb = influence;
+            await HoldShift();
         }
 
-        private Coordinates OrbFor(EldritchInfluence influence) =>
-            influence == EldritchInfluence.EaterOfWorlds ? eaterOrb : exarchOrb;
+        private async Task PickOrbAndMoveToItem(EldritchInfluence influence) =>
+            await PickOrbAndMoveToItem(OrbFor(influence));
 
-        private async Task ApplyOrb(Coordinates orb)
+        private async Task PickOrbAndMoveToItem(Coordinates orb)
         {
-            await Task.Delay(delay);
             inputHost.Simulator.MouseDeltaMove(orb.X, orb.Y, speed);
+            await Task.Delay(delay);
             inputHost.Simulator.Send("RButton Down");
             await Task.Delay(delay);
             inputHost.Simulator.Send("RButton Up");
@@ -133,14 +144,90 @@ namespace PoE.dlls.Gamble.Modes
             await Task.Delay(delay);
         }
 
-        private async Task ApplyOrb(EldritchInfluence influence) => await ApplyOrb(OrbFor(influence));
-
-        private bool IsComplete()
+        private async Task HoldShift()
         {
-            var modifiers = ParseClipboard();
-            return modifiers is not null
-                   && SlotSatisfied(modifiers, EldritchInfluence.SearingExarch)
-                   && SlotSatisfied(modifiers, EldritchInfluence.EaterOfWorlds);
+            if (_isShiftHeld)
+                return;
+
+            inputHost.Simulator.Send("Shift Down");
+            await Task.Delay(delay);
+            _isShiftHeld = true;
+        }
+
+        private async Task ReleaseShift()
+        {
+            if (!_isShiftHeld)
+                return;
+
+            inputHost.Simulator.Send("Shift Up");
+            await Task.Delay(delay);
+            _isShiftHeld = false;
+        }
+
+        private async Task Slam()
+        {
+            inputHost.Simulator.Send("LButton Down");
+            await Task.Delay(delay);
+            inputHost.Simulator.Send("LButton Up");
+            await Task.Delay(delay);
+        }
+
+        private EldritchInfluence SelectOrb(List<Modifier> modifiers) =>
+            SlotSatisfied(modifiers, EldritchInfluence.SearingExarch)
+                ? EldritchInfluence.EaterOfWorlds
+                : EldritchInfluence.SearingExarch;
+
+        private Coordinates OrbFor(EldritchInfluence influence) =>
+            influence == EldritchInfluence.EaterOfWorlds ? eaterOrb : exarchOrb;
+
+        private bool IsComplete(List<Modifier> modifiers) =>
+            SlotSatisfied(modifiers, EldritchInfluence.SearingExarch)
+            && SlotSatisfied(modifiers, EldritchInfluence.EaterOfWorlds);
+
+        private async Task<(bool Ok, List<Modifier> Modifiers)> TryReadItemAsync(
+            bool requireHashChange,
+            int? baselineHash = null)
+        {
+            string? content = await GambleItemClipboardHelper.CopyAndReadAsync(
+                _main,
+                inputHost,
+                delay,
+                _token,
+                baselineHash,
+                requireHashChange);
+
+            if (content is null)
+            {
+                GamblerLog.ClipboardEmptyWarning();
+                _cts.Cancel();
+                return (false, []);
+            }
+
+            if (!_hashState.Register(content, MaxUnchangedReads, _cts))
+                return (false, []);
+
+            List<Modifier> modifiers = GambleRuleEvaluator.ParseModifiers(content, logImplicitMods: true, logParse: true);
+            return (true, modifiers);
+        }
+
+        private async Task<bool> TryConfirmCompleteAsync(List<Modifier> modifiers)
+        {
+            if (!IsComplete(modifiers))
+                return false;
+
+            string? confirm = await GambleItemClipboardHelper.ConfirmMatchAsync(_main, inputHost, delay, _token);
+            if (confirm is null)
+            {
+                GamblerLog.ClipboardEmptyWarning();
+                _cts.Cancel();
+                return false;
+            }
+
+            if (!_hashState.Register(confirm, MaxUnchangedReads, _cts))
+                return false;
+
+            List<Modifier> confirmed = GambleRuleEvaluator.ParseModifiers(confirm, logImplicitMods: true, logParse: true);
+            return IsComplete(confirmed);
         }
 
         private bool SlotSatisfied(List<Modifier> modifiers, EldritchInfluence influence)
@@ -237,83 +324,5 @@ namespace PoE.dlls.Gamble.Modes
             mod.Content.Contains("Searing Exarch", StringComparison.OrdinalIgnoreCase)
             || mod.Name.Contains("Searing Exarch", StringComparison.OrdinalIgnoreCase)
             || mod.Name.Contains("Exarch", StringComparison.OrdinalIgnoreCase);
-
-        private List<Modifier>? ParseClipboard()
-        {
-            string itemContent = _main.Invoke(() => Clipboard.GetText(TextDataFormat.Text));
-            if (string.IsNullOrEmpty(itemContent))
-            {
-                GamblerLog.ClipboardEmptyWarning();
-                _cts.Cancel();
-                return null;
-            }
-            _main.Invoke(Clipboard.Clear);
-
-            int hash = itemContent.GetHashCode();
-
-            if (_hash != hash)
-                _hash = hash;
-            else
-            {
-                if (count >= maxAttempts)
-                {
-                    GamblerLog.MaxAttemptsReached();
-                    _cts.Cancel();
-                    return null;
-                }
-
-                count++;
-            }
-
-            Regex getModifiers = new(@"\{.*?\}.*?(?={|--------|$)", RegexOptions.IgnoreCase | RegexOptions.Singleline);
-            Regex getType = new(@"\{.*?(?'Type'implicit|prefix|suffix).*?\}", RegexOptions.IgnoreCase);
-            Regex getName = new(@"\{.*?""(?'Name'.*?)"".*?\}", RegexOptions.IgnoreCase);
-            Regex getTier = new(@"\{.*?\(Tier:\s(?'Tier'\d+)\).*?\}", RegexOptions.IgnoreCase);
-            Regex getContent = new(@"}(?'Content'.*?)$", RegexOptions.IgnoreCase | RegexOptions.Singleline);
-
-            var mods = getModifiers.Matches(itemContent);
-
-            List<Modifier> modifiers = [];
-
-            GamblerLog.DebugSeparator();
-            foreach (var mod in mods.Cast<Match>())
-            {
-                ModifierType type = Enum.Parse<ModifierType>(getType.Match(mod.Value).Groups["Type"].Value.Trim());
-
-                string name = string.Empty;
-                if (getName.IsMatch(mod.Value))
-                    name = getName.Match(mod.Value).Groups["Name"].Value.Trim();
-
-                int tier = 0;
-                if (getTier.IsMatch(mod.Value))
-                    tier = int.Parse(getTier.Match(mod.Value).Groups["Tier"].Value.Trim());
-
-                string content = getContent.Match(mod.Value).Groups["Content"].Value.Trim();
-                content = GambleModContentMatcher.NormalizeItemModContent(content);
-
-                if (!Regex.IsMatch(content, @"fractured", RegexOptions.IgnoreCase))
-                    GamblerLog.DebugMod(type, tier, name, content);
-
-                modifiers.Add(new Modifier(type, tier, name, content));
-            }
-
-            return modifiers;
-        }
-
-        private async Task Copy()
-        {
-            inputHost.Simulator.Send("Ctrl Down");
-            await Task.Delay(delay);
-            inputHost.Simulator.Send("Alt Down");
-            await Task.Delay(delay);
-            inputHost.Simulator.Send("C Down");
-            await Task.Delay(delay);
-            inputHost.Simulator.Send("C Up");
-            await Task.Delay(delay);
-            inputHost.Simulator.Send("Alt Up");
-            await Task.Delay(delay);
-            inputHost.Simulator.Send("Ctrl Up");
-            await Task.Delay(delay);
-        }
     }
 }
