@@ -91,7 +91,7 @@ namespace PoE.dlls.Gamble.Modes
                         continue;
                     }
 
-                    if (evaluation.ModCount >= TargetModCount)
+                    if (evaluation.AffixModCount >= TargetModCount)
                     {
                         if (evaluation.RulesPassed)
                         {
