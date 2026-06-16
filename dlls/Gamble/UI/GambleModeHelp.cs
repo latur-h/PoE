@@ -27,7 +27,7 @@ namespace PoE.dlls.Gamble.UI
         private static GambleModeHelpSection OrbsTabCoordinatesSection(string modeUses) => Section("Coordinates",
             "Orbs tab — shared stash positions for all gamble modes.\r\n\r\n" +
             "Items: Default item (most modes), Harvest item, Essence item.\r\n" +
-            "Orbs: Alt, Aug, Chaos, Chromatic, Essence, Alchemy, Scouring, Exalt, Vaal, Eldritch, Craft.\r\n\r\n" +
+            "Orbs: Alt, Aug, Chaos, Chromatic, Essence, Alchemy, Scouring, Exalt, Vaal, Searing Exarch, Eater of Worlds, Craft.\r\n\r\n" +
             "This mode uses: " + modeUses);
 
         public static GambleModeHelpContent For(GambleType type) => type switch
@@ -262,20 +262,20 @@ namespace PoE.dlls.Gamble.UI
         private static GambleModeHelpContent Eldritch => new("Eldritch — Implicit rerolling",
         [
             Section("Target",
-                "Eldritch implicit lines on maps or other items, rerolled with Eldritch currency."),
+                "Eldritch implicit lines on maps or other items — one Searing Exarch line and one Eater of Worlds line."),
             Section("In game",
-                "Same as Chaos: right-click orb, hold Shift, spam on item with copy between clicks."),
-            OrbsTabCoordinatesSection("Default item, Eldritch orb"),
+                "Right-click the matching orb, hold Shift, spam on item with copy between clicks. The gambler switches between Exarch and Eater orbs depending on which line still needs to hit."),
+            OrbsTabCoordinatesSection("Default item, Searing Exarch orb, Eater of Worlds orb"),
             Section("Priority",
                 "• 1 or higher — Required\r\n" +
                 "• Between 0 and 1 — Optional"),
             Section("Rules",
-                "Only Implicit mods are checked. Prefix/suffix rows never match.\r\n" +
-                "Tier is not used. Content regex runs on the implicit line text."),
+                "Each rule targets one influence (Searing Exarch or Eater of Worlds). Only the matching implicit line is checked.\r\n" +
+                "Tier and Type columns are hidden — only implicit content regex applies."),
             Section("Content",
-                "Examples: of the Conqueror, Eater of Worlds, damage penetration lines."),
+                "Examples: damage penetration, item quantity, reservation efficiency lines."),
             Section("Success",
-                "All required rules match; optional rules satisfied when configured."),
+                "Both influence groups pass their required rules; optional rules satisfied when configured."),
         ]);
 
         private static GambleModeHelpSection Section(string heading, string body) => new(heading, body);

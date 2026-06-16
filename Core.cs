@@ -150,7 +150,7 @@ namespace PoE
             List<Rule> rules = preset.Rules
                 .Where(r => !string.IsNullOrEmpty(r.Content))
                 .Take(GambleModeLayout.MaxRules)
-                .Select(r => new Rule(r.Priority, r.ModifierType, r.Tier, r.Content))
+                .Select(r => new Rule(r.Priority, r.ModifierType, r.Tier, r.Content, r.EldritchInfluence))
                 .ToList();
 
             if (rules.Count == 0)

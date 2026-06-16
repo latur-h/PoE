@@ -1,9 +1,11 @@
 using PoE.dlls.Gamble.Modifiers;
 using PoE.dlls.Logger;
 using PoE.dlls.InteropServices;
+using PoE.dlls.Settings.Mods;
 using Poss.Win.Automation.Input;
 using PoE.dlls.Automation;
 using System.Text.RegularExpressions;
+
 namespace PoE.dlls.Gamble.Modes
 {
     public class Eldritch : IGamba
@@ -15,7 +17,8 @@ namespace PoE.dlls.Gamble.Modes
         private TimeSpan delay = TimeSpan.FromMilliseconds(10);
 
         private readonly Coordinates item;
-        private readonly Coordinates orb;
+        private readonly Coordinates exarchOrb;
+        private readonly Coordinates eaterOrb;
 
         private readonly List<Rule> rules = [];
 
@@ -26,7 +29,16 @@ namespace PoE.dlls.Gamble.Modes
         private int count = 0;
         private int maxAttempts = 3;
 
-        public Eldritch(Main main, InputSimulatorHost inputHost, CancellationTokenSource cts, TimeSpan delay, double speed, Coordinates item, Coordinates orb, List<Rule> rules)
+        public Eldritch(
+            Main main,
+            InputSimulatorHost inputHost,
+            CancellationTokenSource cts,
+            TimeSpan delay,
+            double speed,
+            Coordinates item,
+            Coordinates exarchOrb,
+            Coordinates eaterOrb,
+            List<Rule> rules)
         {
             _main = main;
             this.inputHost = inputHost;
@@ -38,7 +50,8 @@ namespace PoE.dlls.Gamble.Modes
             _token = _cts.Token;
 
             this.item = item;
-            this.orb = orb;
+            this.exarchOrb = exarchOrb;
+            this.eaterOrb = eaterOrb;
 
             this.rules = rules;
         }
@@ -50,37 +63,40 @@ namespace PoE.dlls.Gamble.Modes
 
             await Copy();
 
-            if (CheckItem() == true)
+            if (IsComplete())
             {
                 GamblerLog.Success();
                 return;
             }
 
-            await Task.Delay(delay);
-            inputHost.Simulator.MouseDeltaMove(orb.X, orb.Y, speed);
-            inputHost.Simulator.Send("RButton Down");
-            await Task.Delay(delay);
-            inputHost.Simulator.Send("RButton Up");
-            await Task.Delay(delay);
-            inputHost.Simulator.MouseDeltaMove(item.X, item.Y, speed);
-            await Task.Delay(delay);
-
-            inputHost.Simulator.Send("Shift Down");
-            await Task.Delay(delay);
             while (!_token.IsCancellationRequested)
             {
-                inputHost.Simulator.Send("LButton Down");
-                await Task.Delay(delay);
-                inputHost.Simulator.Send("LButton Up");
-                await Task.Delay(delay);
+                var targetOrb = SelectOrb();
+                await ApplyOrb(targetOrb);
 
-                await Copy();
+                inputHost.Simulator.Send("Shift Down");
+                await Task.Delay(delay);
+                while (!_token.IsCancellationRequested)
+                {
+                    inputHost.Simulator.Send("LButton Down");
+                    await Task.Delay(delay);
+                    inputHost.Simulator.Send("LButton Up");
+                    await Task.Delay(delay);
 
-                if (CheckItem())
+                    await Copy();
+
+                    if (IsComplete())
+                        break;
+                }
+                await Task.Delay(delay);
+                inputHost.Simulator.Send("Shift Up");
+
+                if (_token.IsCancellationRequested)
+                    break;
+
+                if (IsComplete())
                     break;
             }
-            await Task.Delay(delay);
-            inputHost.Simulator.Send("Shift Up");
 
             if (_token.IsCancellationRequested)
             {
@@ -90,29 +106,146 @@ namespace PoE.dlls.Gamble.Modes
 
             GamblerLog.Success();
         }
-        private async Task Copy()
+
+        private EldritchInfluence SelectOrb()
         {
-            inputHost.Simulator.Send("Ctrl Down");
+            var modifiers = ParseClipboard();
+            if (modifiers is null)
+                return EldritchInfluence.SearingExarch;
+
+            return SlotSatisfied(modifiers, EldritchInfluence.SearingExarch)
+                ? EldritchInfluence.EaterOfWorlds
+                : EldritchInfluence.SearingExarch;
+        }
+
+        private Coordinates OrbFor(EldritchInfluence influence) =>
+            influence == EldritchInfluence.EaterOfWorlds ? eaterOrb : exarchOrb;
+
+        private async Task ApplyOrb(Coordinates orb)
+        {
             await Task.Delay(delay);
-            inputHost.Simulator.Send("Alt Down");
+            inputHost.Simulator.MouseDeltaMove(orb.X, orb.Y, speed);
+            inputHost.Simulator.Send("RButton Down");
             await Task.Delay(delay);
-            inputHost.Simulator.Send("C Down");
+            inputHost.Simulator.Send("RButton Up");
             await Task.Delay(delay);
-            inputHost.Simulator.Send("C Up");
-            await Task.Delay(delay);
-            inputHost.Simulator.Send("Alt Up");
-            await Task.Delay(delay);
-            inputHost.Simulator.Send("Ctrl Up");
+            inputHost.Simulator.MouseDeltaMove(item.X, item.Y, speed);
             await Task.Delay(delay);
         }
-        private bool CheckItem()
+
+        private async Task ApplyOrb(EldritchInfluence influence) => await ApplyOrb(OrbFor(influence));
+
+        private bool IsComplete()
+        {
+            var modifiers = ParseClipboard();
+            return modifiers is not null
+                   && SlotSatisfied(modifiers, EldritchInfluence.SearingExarch)
+                   && SlotSatisfied(modifiers, EldritchInfluence.EaterOfWorlds);
+        }
+
+        private bool SlotSatisfied(List<Modifier> modifiers, EldritchInfluence influence)
+        {
+            var slotRules = RulesFor(influence);
+            if (slotRules.Count == 0)
+                return true;
+
+            var slotMod = ResolveImplicit(modifiers, influence);
+            if (slotMod is null)
+                return false;
+
+            return RulesMatch(slotRules, slotMod.Value);
+        }
+
+        private List<Rule> RulesFor(EldritchInfluence influence) =>
+            rules
+                .Where(r => ResolveInfluence(r) == influence)
+                .ToList();
+
+        private static EldritchInfluence ResolveInfluence(Rule rule) =>
+            rule.EldritchInfluence ?? EldritchInfluence.SearingExarch;
+
+        private static bool RulesMatch(List<Rule> slotRules, Modifier mod)
+        {
+            var required = slotRules.Where(r => r.Priority >= 1).ToList();
+            var optional = slotRules.Where(r => r.Priority > 0 && r.Priority < 1).ToList();
+
+            int requiredCount = 0;
+            int optionalCount = 0;
+
+            foreach (var rule in required)
+            {
+                if (GambleModContentMatcher.MatchesModRule(rule, mod))
+                    requiredCount++;
+            }
+
+            foreach (var rule in optional)
+            {
+                if (GambleModContentMatcher.MatchesModRule(rule, mod))
+                    optionalCount++;
+            }
+
+            if (required.Count != requiredCount)
+                return false;
+
+            if (optional.Count > 0 && optionalCount == 0)
+                return false;
+
+            return true;
+        }
+
+        private static Modifier? ResolveImplicit(List<Modifier> modifiers, EldritchInfluence influence)
+        {
+            var implicits = modifiers
+                .Where(m => m.Type == ModifierType.Implicit && !IsEnchant(m))
+                .ToList();
+
+            if (implicits.Count == 0)
+                return null;
+
+            int eaterIndex = implicits.FindIndex(IsEaterImplicit);
+            int exarchIndex = implicits.FindIndex(IsExarchImplicit);
+
+            if (influence == EldritchInfluence.EaterOfWorlds)
+            {
+                if (eaterIndex >= 0)
+                    return implicits[eaterIndex];
+
+                return implicits.Count >= 2 ? implicits[^1] : null;
+            }
+
+            if (exarchIndex >= 0)
+                return implicits[exarchIndex];
+
+            if (eaterIndex >= 0 && implicits.Count >= 2)
+            {
+                int otherIndex = eaterIndex == 0 ? 1 : 0;
+                return implicits[otherIndex];
+            }
+
+            return implicits[0];
+        }
+
+        private static bool IsEnchant(Modifier mod) =>
+            mod.Name.Contains("Enchant", StringComparison.OrdinalIgnoreCase)
+            || mod.Content.Contains("(enchant)", StringComparison.OrdinalIgnoreCase);
+
+        private static bool IsEaterImplicit(Modifier mod) =>
+            mod.Content.Contains("Eater of Worlds", StringComparison.OrdinalIgnoreCase)
+            || mod.Name.Contains("Eater of Worlds", StringComparison.OrdinalIgnoreCase);
+
+        private static bool IsExarchImplicit(Modifier mod) =>
+            mod.Content.Contains("Searing Exarch", StringComparison.OrdinalIgnoreCase)
+            || mod.Name.Contains("Searing Exarch", StringComparison.OrdinalIgnoreCase)
+            || mod.Name.Contains("Exarch", StringComparison.OrdinalIgnoreCase);
+
+        private List<Modifier>? ParseClipboard()
         {
             string itemContent = _main.Invoke(() => Clipboard.GetText(TextDataFormat.Text));
             if (string.IsNullOrEmpty(itemContent))
             {
                 GamblerLog.ClipboardEmptyWarning();
                 _cts.Cancel();
-                return false;
+                return null;
             }
             _main.Invoke(Clipboard.Clear);
 
@@ -126,14 +259,13 @@ namespace PoE.dlls.Gamble.Modes
                 {
                     GamblerLog.MaxAttemptsReached();
                     _cts.Cancel();
-                    return false;
+                    return null;
                 }
 
                 count++;
             }
 
             Regex getModifiers = new(@"\{.*?\}.*?(?={|--------|$)", RegexOptions.IgnoreCase | RegexOptions.Singleline);
-
             Regex getType = new(@"\{.*?(?'Type'implicit|prefix|suffix).*?\}", RegexOptions.IgnoreCase);
             Regex getName = new(@"\{.*?""(?'Name'.*?)"".*?\}", RegexOptions.IgnoreCase);
             Regex getTier = new(@"\{.*?\(Tier:\s(?'Tier'\d+)\).*?\}", RegexOptions.IgnoreCase);
@@ -162,54 +294,26 @@ namespace PoE.dlls.Gamble.Modes
                 if (!Regex.IsMatch(content, @"fractured", RegexOptions.IgnoreCase))
                     GamblerLog.DebugMod(type, tier, name, content);
 
-                Modifier parsedMod = new(type, tier, name, content);
-                modifiers.Add(parsedMod);
+                modifiers.Add(new Modifier(type, tier, name, content));
             }
 
-            var required = rules.Where(r => r.Priority >= 1).ToList();
-            var optional = rules.Where(r => r.Priority > 0 && r.Priority < 1).ToList();
+            return modifiers;
+        }
 
-            int requiredCount = 0;
-            int optionalCount = 0;
-
-            foreach (var rule in required)
-            {
-                foreach (var mod in modifiers)
-                {
-                    if (mod.Type != ModifierType.Implicit)
-                        continue;
-
-                    if (!GambleModContentMatcher.MatchesModRule(rule, mod))
-                        continue;
-
-                    requiredCount++;
-                }
-            }
-
-            if (optional is not null)
-                foreach (var rule in optional)
-                {
-                    foreach (var mod in modifiers)
-                    {
-                        if (mod.Type != ModifierType.Implicit)
-                            continue;
-
-                        if (!GambleModContentMatcher.MatchesModRule(rule, mod))
-                            continue;
-
-                        optionalCount++;
-                    }
-                }
-
-            if (required.Count == requiredCount)
-            {
-                if (optional?.Count > 0 && optionalCount == 0)
-                    return false;
-
-                return true;
-            }
-
-            return false;
+        private async Task Copy()
+        {
+            inputHost.Simulator.Send("Ctrl Down");
+            await Task.Delay(delay);
+            inputHost.Simulator.Send("Alt Down");
+            await Task.Delay(delay);
+            inputHost.Simulator.Send("C Down");
+            await Task.Delay(delay);
+            inputHost.Simulator.Send("C Up");
+            await Task.Delay(delay);
+            inputHost.Simulator.Send("Alt Up");
+            await Task.Delay(delay);
+            inputHost.Simulator.Send("Ctrl Up");
+            await Task.Delay(delay);
         }
     }
 }

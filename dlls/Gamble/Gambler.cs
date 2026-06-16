@@ -67,7 +67,7 @@ namespace PoE.dlls.Gamba
                     GambleType.MapT17 => new MapT17(_main, inputHost, _cts, delay, speed, itemXY, baseXY, rules, session),
                     GambleType.MapExalt => new MapExalt(_main, inputHost, _cts, delay, speed, itemXY, baseXY, secondXY, thirdXY, rules, session),
                     GambleType.Harvest => new Harvest(_main, inputHost, _cts, delay, speed, itemXY, baseXY, rules),
-                    GambleType.Eldritch => new Eldritch(_main, inputHost, _cts, delay, speed, itemXY, baseXY, rules),
+                    GambleType.Eldritch => new Eldritch(_main, inputHost, _cts, delay, speed, itemXY, baseXY, secondXY, rules),
                     _ => throw new ArgumentOutOfRangeException(nameof(type), type, null)
                 };
             }

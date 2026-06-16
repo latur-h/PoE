@@ -8,6 +8,17 @@ namespace PoE.dlls.GameData
         private static readonly HashSet<int> AllowedDomains = [0, 1, 5, 10, 11, 33];
         private const int GenerationPrefix = 1;
         private const int GenerationSuffix = 2;
+        private const int GenerationExarchImplicit = 28;
+        private const int GenerationEaterImplicit = 29;
+
+        private static readonly HashSet<string> EldritchItemSpawnTags = new(StringComparer.OrdinalIgnoreCase)
+        {
+            "gloves",
+            "boots",
+            "helmet",
+            "body_armour",
+            "amulet",
+        };
 
         private static readonly HashSet<string> MapSpawnTags = new(StringComparer.OrdinalIgnoreCase)
         {
@@ -82,7 +93,7 @@ namespace PoE.dlls.GameData
             "StatsKey1", "StatsKey2", "StatsKey3", "StatsKey4", "StatsKey5", "StatsKey6",
         ];
 
-        public static HashSet<(string ModName, string ModContent, bool IsMap)> Build(
+        public static HashSet<ModCatalogEntry> Build(
             string schemaJsonPath,
             byte[] modsBytes,
             byte[] tagsBytes,
@@ -103,13 +114,14 @@ namespace PoE.dlls.GameData
             string?[] tagIds = BuildTagIds(tags);
             string?[] statIds = BuildStatIds(stats);
 
-            var entries = new Dictionary<(string ModName, string ModContent), bool>(ModEntryKeyComparer.Instance);
+            var entries = new Dictionary<(string ModName, string ModContent, ModEldritchInfluence Eldritch), bool>(ModEntryKeyComparer.Instance);
             int includedMods = 0;
             int mapMods = 0;
+            int eldritchMods = 0;
             var scanTimer = Stopwatch.StartNew();
             long lastProgressMs = 0;
 
-            GameDataLog.Info($"Scanning {mods.RowCount} mods (items & maps, prefix/suffix only)…");
+            GameDataLog.Info($"Scanning {mods.RowCount} mods (items, maps, eldritch implicits)…");
             for (int row = 0; row < mods.RowCount; row++)
             {
                 long elapsedMs = scanTimer.ElapsedMilliseconds;
@@ -117,6 +129,39 @@ namespace PoE.dlls.GameData
                 {
                     GameDataLog.Info($"Scanning mods… {row:N0} / {mods.RowCount:N0} ({100.0 * row / mods.RowCount:0.#}%), {includedMods:N0} matched so far.");
                     lastProgressMs = elapsedMs;
+                }
+
+                int generation = mods.GetInt32(row, "GenerationType");
+                ModEldritchInfluence eldritchInfluence = generation switch
+                {
+                    GenerationExarchImplicit => ModEldritchInfluence.SearingExarch,
+                    GenerationEaterImplicit => ModEldritchInfluence.EaterOfWorlds,
+                    _ => ModEldritchInfluence.None,
+                };
+
+                if (eldritchInfluence != ModEldritchInfluence.None)
+                {
+                    if (!ShouldIncludeEldritchImplicit(mods, tagIds, row))
+                        continue;
+
+                    includedMods++;
+                    eldritchMods++;
+                    bool eldritchIsMap = IsMapMod(mods, tagIds, row);
+                    if (eldritchIsMap)
+                        mapMods++;
+
+                    string? eldritchName = ResolveCatalogModName(mods, row);
+                    if (string.IsNullOrWhiteSpace(eldritchName))
+                        continue;
+
+                    IReadOnlyList<string> lines = BuildDescriptionLines(mods, statIds, statTemplates, row);
+                    if (lines.Count == 0)
+                        continue;
+
+                    foreach (string line in lines)
+                        AddSuggestion(entries, eldritchName, line, eldritchIsMap, eldritchInfluence);
+
+                    continue;
                 }
 
                 if (!ShouldIncludeMod(mods, tagIds, row))
@@ -131,46 +176,69 @@ namespace PoE.dlls.GameData
                 if (string.IsNullOrWhiteSpace(name))
                     continue;
 
-                AddSuggestion(entries, name, string.Empty, isMap);
+                AddSuggestion(entries, name, string.Empty, isMap, ModEldritchInfluence.None);
 
                 foreach (string line in BuildDescriptionLines(mods, statIds, statTemplates, row))
-                    AddSuggestion(entries, name, line, isMap);
+                    AddSuggestion(entries, name, line, isMap, ModEldritchInfluence.None);
             }
 
-            GameDataLog.Info($"Scan complete — {includedMods:N0} mods matched filters ({mapMods:N0} map-tagged), {entries.Count:N0} suggestion rows.");
+            GameDataLog.Info($"Scan complete — {includedMods:N0} mods matched filters ({mapMods:N0} map-tagged, {eldritchMods:N0} eldritch implicit), {entries.Count:N0} suggestion rows.");
             if (includedMods == 0)
                 WriteFilterDebugDump(mods, tagIds);
 
             return entries
-                .Select(kv => (kv.Key.ModName, kv.Key.ModContent, kv.Value))
+                .Select(kv => new ModCatalogEntry(kv.Key.ModName, kv.Key.ModContent, kv.Value, kv.Key.Eldritch))
                 .ToHashSet();
         }
 
         private static void AddSuggestion(
-            Dictionary<(string ModName, string ModContent), bool> entries,
+            Dictionary<(string ModName, string ModContent, ModEldritchInfluence Eldritch), bool> entries,
             string modName,
             string modContent,
-            bool isMap)
+            bool isMap,
+            ModEldritchInfluence eldritch)
         {
-            var key = (modName, modContent);
+            var key = (modName, modContent, eldritch);
             if (entries.TryGetValue(key, out bool existing))
                 entries[key] = existing || isMap;
             else
                 entries[key] = isMap;
         }
 
-        private sealed class ModEntryKeyComparer : IEqualityComparer<(string ModName, string ModContent)>
+        private sealed class ModEntryKeyComparer : IEqualityComparer<(string ModName, string ModContent, ModEldritchInfluence Eldritch)>
         {
             public static ModEntryKeyComparer Instance { get; } = new();
 
-            public bool Equals((string ModName, string ModContent) x, (string ModName, string ModContent) y) =>
+            public bool Equals((string ModName, string ModContent, ModEldritchInfluence Eldritch) x, (string ModName, string ModContent, ModEldritchInfluence Eldritch) y) =>
                 string.Equals(x.ModName, y.ModName, StringComparison.OrdinalIgnoreCase)
-                && string.Equals(x.ModContent, y.ModContent, StringComparison.OrdinalIgnoreCase);
+                && string.Equals(x.ModContent, y.ModContent, StringComparison.OrdinalIgnoreCase)
+                && x.Eldritch == y.Eldritch;
 
-            public int GetHashCode((string ModName, string ModContent) obj) =>
+            public int GetHashCode((string ModName, string ModContent, ModEldritchInfluence Eldritch) obj) =>
                 HashCode.Combine(
                     StringComparer.OrdinalIgnoreCase.GetHashCode(obj.ModName),
-                    StringComparer.OrdinalIgnoreCase.GetHashCode(obj.ModContent));
+                    StringComparer.OrdinalIgnoreCase.GetHashCode(obj.ModContent),
+                    obj.Eldritch);
+        }
+
+        private static bool ShouldIncludeEldritchImplicit(
+            LibDat2DatTable mods,
+            string?[] tagIds,
+            int row)
+        {
+            if (HasActiveSpawnTag(mods, tagIds, row, EldritchItemSpawnTags))
+                return true;
+
+            return HasActiveSpawnTag(mods, tagIds, row, MapSpawnTags);
+        }
+
+        private static string? ResolveCatalogModName(LibDat2DatTable mods, int row)
+        {
+            string? name = mods.GetString(row, "Name")?.Trim();
+            if (!string.IsNullOrWhiteSpace(name))
+                return name;
+
+            return mods.GetString(row, "Id")?.Trim();
         }
 
         private static bool IsMapDomain(int domain) => domain is 5 or 11 or 33;

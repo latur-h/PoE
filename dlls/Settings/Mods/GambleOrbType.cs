@@ -11,7 +11,8 @@ namespace PoE.dlls.Settings.Mods
         Scouring,
         Exalt,
         Vaal,
-        Eldritch,
+        EldritchExarch,
+        EldritchEater,
         Craft,
     }
 }

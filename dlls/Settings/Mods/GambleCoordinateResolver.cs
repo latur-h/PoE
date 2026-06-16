@@ -46,7 +46,8 @@ namespace PoE.dlls.Settings.Mods
             GambleOrbType.Scouring => "Scouring",
             GambleOrbType.Exalt => "Exalt",
             GambleOrbType.Vaal => "Vaal",
-            GambleOrbType.Eldritch => "Eldritch",
+            GambleOrbType.EldritchExarch => "Searing Exarch",
+            GambleOrbType.EldritchEater => "Eater of Worlds",
             GambleOrbType.Craft => "Craft",
             _ => type.ToString(),
         };
@@ -76,7 +77,7 @@ namespace PoE.dlls.Settings.Mods
             GambleType.Essence => GambleOrbType.Essence,
             GambleType.Map or GambleType.MapExalt => GambleOrbType.Alchemy,
             GambleType.Harvest => GambleOrbType.Craft,
-            GambleType.Eldritch => GambleOrbType.Eldritch,
+            GambleType.Eldritch => GambleOrbType.EldritchExarch,
             _ => null,
         };
 
@@ -84,6 +85,7 @@ namespace PoE.dlls.Settings.Mods
         {
             GambleType.Alt_Aug => GambleOrbType.Aug,
             GambleType.Map or GambleType.MapExalt => GambleOrbType.Scouring,
+            GambleType.Eldritch => GambleOrbType.EldritchEater,
             _ => null,
         };
 

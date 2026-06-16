@@ -14,10 +14,9 @@ namespace PoE.dlls.GameData
             ModSuggestionService service,
             Func<IModSuggestionStrategy>? getStrategy = null)
         {
-            if (ReferenceEquals(textBox.Tag, AttachedMarker))
+            if (textBox.Tag is AttachState)
                 return;
 
-            textBox.Tag = AttachedMarker;
             IModSuggestionStrategy Strategy() => getStrategy?.Invoke() ?? ItemModSuggestionStrategy.Instance;
 
             SuggestionPopup? popup = null;
@@ -31,11 +30,11 @@ namespace PoE.dlls.GameData
                     return;
 
                 popup = new SuggestionPopup(textBox, service, Strategy);
+                textBox.Tag = new AttachState { Popup = popup };
                 textBox.Disposed += (_, _) =>
                 {
                     popup.Dispose();
-                    if (ReferenceEquals(textBox.Tag, AttachedMarker))
-                        textBox.Tag = null;
+                    textBox.Tag = null;
                 };
             }
 
@@ -63,7 +62,16 @@ namespace PoE.dlls.GameData
             EnsurePopup();
         }
 
-        private static readonly object AttachedMarker = new();
+        public static void RequestRefresh(TextBox textBox)
+        {
+            if (textBox.Tag is AttachState state)
+                state.Popup.RequestRefresh();
+        }
+
+        private sealed class AttachState
+        {
+            public required SuggestionPopup Popup { get; init; }
+        }
 
         private sealed class SuggestionDropDownForm : Form
         {

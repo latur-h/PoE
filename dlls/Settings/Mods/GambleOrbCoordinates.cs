@@ -13,8 +13,27 @@ namespace PoE.dlls.Settings.Mods
         public Coordinates Scouring { get; set; } = new(0, 0);
         public Coordinates Exalt { get; set; } = new(0, 0);
         public Coordinates Vaal { get; set; } = new(0, 0);
-        public Coordinates Eldritch { get; set; } = new(0, 0);
+        public Coordinates EldritchExarch { get; set; } = new(0, 0);
+        public Coordinates EldritchEater { get; set; } = new(0, 0);
         public Coordinates Craft { get; set; } = new(0, 0);
+
+        // Legacy JSON field — migrated to EldritchExarch / EldritchEater on load.
+        public Coordinates Eldritch { get; set; } = new(0, 0);
+
+        public void MigrateLegacyEldritchOrb()
+        {
+            if (!IsSet(Eldritch))
+                return;
+
+            if (!IsSet(EldritchExarch))
+                EldritchExarch = Eldritch;
+            if (!IsSet(EldritchEater))
+                EldritchEater = Eldritch;
+
+            Eldritch = new Coordinates(0, 0);
+        }
+
+        private static bool IsSet(Coordinates c) => c.X != 0 || c.Y != 0;
 
         public Coordinates Get(GambleOrbType type) => type switch
         {
@@ -27,7 +46,8 @@ namespace PoE.dlls.Settings.Mods
             GambleOrbType.Scouring => Scouring,
             GambleOrbType.Exalt => Exalt,
             GambleOrbType.Vaal => Vaal,
-            GambleOrbType.Eldritch => Eldritch,
+            GambleOrbType.EldritchExarch => EldritchExarch,
+            GambleOrbType.EldritchEater => EldritchEater,
             GambleOrbType.Craft => Craft,
             _ => new Coordinates(0, 0),
         };
@@ -45,7 +65,8 @@ namespace PoE.dlls.Settings.Mods
                 case GambleOrbType.Scouring: Scouring = value; break;
                 case GambleOrbType.Exalt: Exalt = value; break;
                 case GambleOrbType.Vaal: Vaal = value; break;
-                case GambleOrbType.Eldritch: Eldritch = value; break;
+                case GambleOrbType.EldritchExarch: EldritchExarch = value; break;
+                case GambleOrbType.EldritchEater: EldritchEater = value; break;
                 case GambleOrbType.Craft: Craft = value; break;
             }
         }

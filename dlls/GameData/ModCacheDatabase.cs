@@ -31,7 +31,7 @@ namespace PoE.dlls.GameData
             }
         }
 
-        public void Recreate(IEnumerable<(string ModName, string ModContent, bool IsMap)> entries)
+        public void Recreate(IEnumerable<ModCatalogEntry> entries)
         {
             lock (_sync)
             {
@@ -52,22 +52,24 @@ namespace PoE.dlls.GameData
                 using var insert = _connection.CreateCommand();
                 insert.Transaction = transaction;
                 insert.CommandText = """
-                    INSERT OR IGNORE INTO mod_suggestions(mod_name, mod_content, is_map)
-                    VALUES ($name, $content, $isMap);
+                    INSERT OR IGNORE INTO mod_suggestions(mod_name, mod_content, is_map, eldritch_influence)
+                    VALUES ($name, $content, $isMap, $eldritch);
                     """;
                 insert.Parameters.Add("$name", SqliteType.Text);
                 insert.Parameters.Add("$content", SqliteType.Text);
                 insert.Parameters.Add("$isMap", SqliteType.Integer);
+                insert.Parameters.Add("$eldritch", SqliteType.Integer);
 
                 int written = 0;
-                foreach (var (modName, modContent, isMap) in entries)
+                foreach (var entry in entries)
                 {
-                    if (string.IsNullOrWhiteSpace(modName))
+                    if (string.IsNullOrWhiteSpace(entry.ModName))
                         continue;
 
-                    insert.Parameters["$name"].Value = modName.Trim();
-                    insert.Parameters["$content"].Value = modContent.Trim();
-                    insert.Parameters["$isMap"].Value = isMap ? 1 : 0;
+                    insert.Parameters["$name"].Value = entry.ModName.Trim();
+                    insert.Parameters["$content"].Value = entry.ModContent.Trim();
+                    insert.Parameters["$isMap"].Value = entry.IsMap ? 1 : 0;
+                    insert.Parameters["$eldritch"].Value = (int)entry.EldritchInfluence;
                     insert.ExecuteNonQuery();
                     written++;
 
@@ -159,6 +161,7 @@ namespace PoE.dlls.GameData
                     SELECT MIN(mod_name) AS mod_name, mod_content
                     FROM mod_suggestions
                     WHERE is_map = 0
+                      AND eldritch_influence = 0
                       AND (
                         (mod_content <> '' {contentWordChecks})
                         OR (mod_content = '' {nameWordChecks})
@@ -175,6 +178,72 @@ namespace PoE.dlls.GameData
                     """;
 
                 return ReadSuggestionItems(command);
+            }
+        }
+
+        public IReadOnlyList<ModSuggestionItem> SearchEldritchImplicit(
+            ModEldritchInfluence influence,
+            string term,
+            int limit = 50,
+            int offset = 0)
+        {
+            if (influence is ModEldritchInfluence.None)
+                return [];
+
+            string trimmed = term.Trim();
+            string[] words = ModSearchQuery.SplitWords(trimmed);
+            if (words.Length == 0 || trimmed.Length < 2)
+                return [];
+
+            lock (_sync)
+            {
+                EnsureOpen();
+                using var command = _connection!.CreateCommand();
+
+                var contentWordChecks = new StringBuilder();
+                for (int i = 0; i < words.Length; i++)
+                {
+                    string param = $"$w{i}";
+                    contentWordChecks.Append($" AND instr(lower(mod_content), lower({param})) > 0");
+                    command.Parameters.AddWithValue(param, words[i]);
+                }
+
+                command.Parameters.AddWithValue("$phrase", trimmed);
+                command.Parameters.AddWithValue("$limit", limit);
+                command.Parameters.AddWithValue("$offset", offset);
+                command.Parameters.AddWithValue("$eldritch", (int)influence);
+
+                command.CommandText = $"""
+                    SELECT MIN(mod_name) AS mod_name, mod_content
+                    FROM mod_suggestions
+                    WHERE eldritch_influence = $eldritch
+                      AND mod_content <> ''
+                      AND (1 = 1 {contentWordChecks})
+                    GROUP BY mod_content
+                    ORDER BY
+                        CASE WHEN instr(lower(mod_content), lower($phrase)) > 0 THEN 0 ELSE 1 END,
+                        instr(lower(mod_content), lower($w0)),
+                        length(mod_content),
+                        mod_content
+                    LIMIT $limit OFFSET $offset;
+                    """;
+
+                return ReadSuggestionItems(command);
+            }
+        }
+
+        public bool HasEldritchTaggedEntries(ModEldritchInfluence influence)
+        {
+            if (influence is ModEldritchInfluence.None)
+                return false;
+
+            lock (_sync)
+            {
+                EnsureOpen();
+                using var command = _connection!.CreateCommand();
+                command.CommandText = "SELECT EXISTS(SELECT 1 FROM mod_suggestions WHERE eldritch_influence = $eldritch);";
+                command.Parameters.AddWithValue("$eldritch", (int)influence);
+                return Convert.ToInt64(command.ExecuteScalar()) > 0;
             }
         }
 
@@ -217,6 +286,7 @@ namespace PoE.dlls.GameData
                             FROM mod_suggestions s
                             WHERE s.mod_name = grouped.mod_name
                               AND s.is_map = 1
+                              AND s.eldritch_influence = 0
                               AND s.mod_content <> ''
                             ORDER BY
                                 CASE WHEN instr(lower(s.mod_content), lower($phrase)) > 0 THEN 0 ELSE 1 END,
@@ -229,6 +299,7 @@ namespace PoE.dlls.GameData
                         SELECT mod_name
                         FROM mod_suggestions
                         WHERE is_map = 1
+                          AND eldritch_influence = 0
                           AND (
                             (1 = 1 {nameWordChecks})
                             OR (mod_content <> '' {contentWordChecks})
@@ -305,11 +376,13 @@ namespace PoE.dlls.GameData
                         mod_name TEXT NOT NULL,
                         mod_content TEXT NOT NULL,
                         is_map INTEGER NOT NULL DEFAULT 0,
-                        PRIMARY KEY (mod_name, mod_content)
+                        eldritch_influence INTEGER NOT NULL DEFAULT 0,
+                        PRIMARY KEY (mod_name, mod_content, eldritch_influence)
                     );
                     CREATE INDEX IF NOT EXISTS idx_mod_suggestions_name ON mod_suggestions(mod_name);
                     CREATE INDEX IF NOT EXISTS idx_mod_suggestions_content ON mod_suggestions(mod_content);
                     CREATE INDEX IF NOT EXISTS idx_mod_suggestions_map ON mod_suggestions(is_map);
+                    CREATE INDEX IF NOT EXISTS idx_mod_suggestions_eldritch ON mod_suggestions(eldritch_influence);
                     """;
                 command.ExecuteNonQuery();
             }
@@ -320,6 +393,7 @@ namespace PoE.dlls.GameData
             else
             {
                 EnsureMapColumn();
+                EnsureEldritchColumn();
             }
         }
 
@@ -374,6 +448,26 @@ namespace PoE.dlls.GameData
             alter.ExecuteNonQuery();
             _hasMapTaggedEntries = null;
             GameDataLog.Info("Mod cache upgraded with is_map column — refresh mod list to populate map tags.");
+        }
+
+        private void EnsureEldritchColumn()
+        {
+            using var command = _connection!.CreateCommand();
+            command.CommandText = "PRAGMA table_info(mod_suggestions);";
+            using var reader = command.ExecuteReader();
+            while (reader.Read())
+            {
+                if (string.Equals(reader.GetString(1), "eldritch_influence", StringComparison.OrdinalIgnoreCase))
+                    return;
+            }
+
+            using var alter = _connection.CreateCommand();
+            alter.CommandText = """
+                ALTER TABLE mod_suggestions ADD COLUMN eldritch_influence INTEGER NOT NULL DEFAULT 0;
+                CREATE INDEX IF NOT EXISTS idx_mod_suggestions_eldritch ON mod_suggestions(eldritch_influence);
+                """;
+            alter.ExecuteNonQuery();
+            GameDataLog.Info("Mod cache upgraded with eldritch_influence column — refresh mod list to populate eldritch implicits.");
         }
 
         private void Close()

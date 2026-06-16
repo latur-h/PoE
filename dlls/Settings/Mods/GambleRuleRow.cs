@@ -8,5 +8,6 @@ namespace PoE.dlls.Settings.Mods
         public ModifierType ModifierType { get; set; } = ModifierType.Any;
         public int Tier { get; set; } = 1;
         public string Content { get; set; } = string.Empty;
+        public EldritchInfluence? EldritchInfluence { get; set; }
     }
 }

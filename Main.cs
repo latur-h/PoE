@@ -350,6 +350,7 @@ namespace PoE
             gamblePresetBar.RefreshPresets();
             gambleRulesPanel.PurgeViewsExcept(store.Presets);
             gambleRulesPanel.Bind(_settings.Modifiers.GetActivePreset());
+            gambleRulesPanel.RefreshGambleTypeLayout();
             UpdateGambleBulkPanelVisibility();
         }
 

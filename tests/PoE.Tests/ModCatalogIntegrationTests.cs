@@ -30,7 +30,7 @@ public class ModCatalogIntegrationTests
         IReadOnlyList<(string Path, byte[] Bytes)> statFiles = PoEDataFileLocator.ReadStatDescriptionFiles(archive);
         Assert.NotEmpty(statFiles);
 
-        HashSet<(string ModName, string ModContent, bool IsMap)> entries = ModCatalogBuilder.Build(
+        HashSet<ModCatalogEntry> entries = ModCatalogBuilder.Build(
             schemaPath,
             modsBytes,
             tagsBytes,
@@ -52,6 +52,19 @@ public class ModCatalogIntegrationTests
         Assert.DoesNotContain(
             entries,
             e => e.IsMap && e.ModContent.Contains("wielding a Staff", StringComparison.OrdinalIgnoreCase));
+
+        int exarchRows = entries.Count(e => e.EldritchInfluence == ModEldritchInfluence.SearingExarch);
+        int eaterRows = entries.Count(e => e.EldritchInfluence == ModEldritchInfluence.EaterOfWorlds);
+        Assert.True(exarchRows > 0, $"Expected Searing Exarch implicit rows, got 0 of {entries.Count}.");
+        Assert.True(eaterRows > 0, $"Expected Eater of Worlds implicit rows, got 0 of {entries.Count}.");
+        Assert.Contains(
+            entries,
+            e => e.EldritchInfluence == ModEldritchInfluence.SearingExarch
+                 && e.ModContent.Contains("Action Speed", StringComparison.OrdinalIgnoreCase));
+        Assert.Contains(
+            entries,
+            e => e.EldritchInfluence == ModEldritchInfluence.EaterOfWorlds
+                 && e.ModContent.Contains("Arcane Surge", StringComparison.OrdinalIgnoreCase));
     }
 
     [Fact]

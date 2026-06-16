@@ -13,6 +13,7 @@ public class ModSuggestionStrategyTests
     [InlineData(GambleType.Alt, typeof(ItemModSuggestionStrategy))]
     [InlineData(GambleType.Chaos, typeof(ItemModSuggestionStrategy))]
     [InlineData(GambleType.Harvest, typeof(ItemModSuggestionStrategy))]
+    [InlineData(GambleType.Eldritch, typeof(EldritchModSuggestionStrategy))]
     public void Resolver_picks_strategy_by_gamble_type(GambleType type, Type expectedStrategyType)
     {
         IModSuggestionStrategy strategy = ModSuggestionStrategyResolver.For(type);

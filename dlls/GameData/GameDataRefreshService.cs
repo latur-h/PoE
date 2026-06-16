@@ -70,7 +70,7 @@ namespace PoE.dlls.GameData
             foreach (var (path, bytes) in statDescriptionFiles)
                 GameDataLog.Info($"Read {path} ({FormatBytes(bytes.Length)}).");
 
-            HashSet<(string ModName, string ModContent, bool IsMap)> uniqueEntries;
+            HashSet<ModCatalogEntry> uniqueEntries;
             try
             {
                 uniqueEntries = ModCatalogBuilder.Build(
@@ -91,7 +91,9 @@ namespace PoE.dlls.GameData
             int nameRows = uniqueEntries.Count(e => string.IsNullOrEmpty(e.ModContent));
             int contentRows = uniqueEntries.Count - nameRows;
             int mapRows = uniqueEntries.Count(e => e.IsMap);
-            GameDataLog.Info($"Extracted {nameRows:N0} name rows and {contentRows:N0} stat-line rows ({uniqueEntries.Count:N0} total suggestions, {mapRows:N0} map-tagged).");
+            int exarchRows = uniqueEntries.Count(e => e.EldritchInfluence == ModEldritchInfluence.SearingExarch);
+            int eaterRows = uniqueEntries.Count(e => e.EldritchInfluence == ModEldritchInfluence.EaterOfWorlds);
+            GameDataLog.Info($"Extracted {nameRows:N0} name rows and {contentRows:N0} stat-line rows ({uniqueEntries.Count:N0} total suggestions, {mapRows:N0} map-tagged, {exarchRows:N0} exarch, {eaterRows:N0} eater).");
             if (mapRows == 0)
                 GameDataLog.Info("No map-tagged modifiers were extracted — refresh after updating game files, or check Logs for filter issues.");
 

@@ -35,6 +35,7 @@ namespace PoE.dlls.Settings.Mods
         {
             modifiers.Items ??= new();
             modifiers.Orbs ??= new();
+            modifiers.Orbs.MigrateLegacyEldritchOrb();
 
             foreach (GambleType type in Enum.GetValues<GambleType>())
             {

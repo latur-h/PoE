@@ -15,9 +15,19 @@ namespace PoE.dlls.Gamble.UI
         private const int PriorityColumnWidth = 72;
         private const int TypeColumnX = PriorityColumnWidth + ColumnGap;
         private const int TypeColumnWidth = 121;
+        private const int InfluenceColumnWidth = 158;
         private const int TierColumnX = TypeColumnX + TypeColumnWidth + ColumnGap;
         private const int TierColumnWidth = 59;
-        private const int ContentColumnX = TierColumnX + TierColumnWidth + ColumnGap;
+        private const int EldritchContentColumnX = TypeColumnX + InfluenceColumnWidth + ColumnGap;
+
+        private static int ContentColumnX(bool eldritch) =>
+            eldritch ? EldritchContentColumnX : TierColumnX + TierColumnWidth + ColumnGap;
+
+        private readonly Panel _header;
+        private readonly Label _headerType;
+        private readonly Label _headerInfluence;
+        private readonly Label _headerTier;
+        private readonly Label _headerContent;
 
         private static readonly Font UiFont = new("Segoe UI", 12F, FontStyle.Regular, GraphicsUnit.Point);
         private static readonly string[] ModifierTypeNames = Enum.GetNames<ModifierType>();
@@ -49,10 +59,17 @@ namespace PoE.dlls.Gamble.UI
                 BackColor = StaticColors.BackGround,
             };
 
+            _header = header;
+            _headerType = CreateHeaderLabel("Type", TypeColumnX, TypeColumnWidth);
+            _headerInfluence = CreateHeaderLabel("Influence", TypeColumnX, InfluenceColumnWidth);
+            _headerTier = CreateHeaderLabel("Tier", TierColumnX, TierColumnWidth);
+            _headerContent = CreateHeaderLabel("Modifier content", ContentColumnX(false), 287);
+
             header.Controls.Add(CreateHeaderLabel("Priority", 0, PriorityColumnWidth));
-            header.Controls.Add(CreateHeaderLabel("Type", TypeColumnX, TypeColumnWidth));
-            header.Controls.Add(CreateHeaderLabel("Tier", TierColumnX, TierColumnWidth));
-            header.Controls.Add(CreateHeaderLabel("Modifier content", ContentColumnX, 287));
+            header.Controls.Add(_headerType);
+            header.Controls.Add(_headerInfluence);
+            header.Controls.Add(_headerTier);
+            header.Controls.Add(_headerContent);
 
             _addButton = new Button
             {
@@ -66,7 +83,7 @@ namespace PoE.dlls.Gamble.UI
                 TabStop = false,
             };
             _addButton.FlatAppearance.BorderColor = StaticColors.ForeGround;
-            _addButton.Click += (_, _) => AddRow(new GambleRuleRow());
+            _addButton.Click += (_, _) => AddRow(CreateDefaultRow());
 
             _rowsHost = new Panel
             {
@@ -93,12 +110,41 @@ namespace PoE.dlls.Gamble.UI
             Controls.Add(header);
         }
 
+        public void RefreshGambleTypeLayout()
+        {
+            bool eldritch = IsEldritchMode();
+            _headerType.Visible = !eldritch;
+            _headerInfluence.Visible = eldritch;
+            _headerTier.Visible = !eldritch;
+            _headerContent.Location = new Point(ContentColumnX(eldritch), 4);
+
+            foreach (var view in _views.Values)
+            {
+                foreach (var row in view.Rows)
+                    row.ApplyEldritchMode(eldritch);
+            }
+
+            LayoutActiveView();
+        }
+
+        private GambleRuleRow CreateDefaultRow()
+        {
+            var row = new GambleRuleRow();
+            if (IsEldritchMode())
+                row.EldritchInfluence = EldritchInfluence.SearingExarch;
+
+            return row;
+        }
+
+        private bool IsEldritchMode() => _getGambleType?.Invoke() == GambleType.Eldritch;
+
         public void Bind(GamblePreset preset)
         {
             if (_visiblePreset is not null && !ReferenceEquals(_visiblePreset, preset))
                 Commit();
 
             ShowPreset(preset);
+            RefreshGambleTypeLayout();
         }
 
         public void PurgeViewsExcept(IEnumerable<GamblePreset> keepPresets)
@@ -198,7 +244,7 @@ namespace PoE.dlls.Gamble.UI
 
         private GambleRuleRowControl CreateRowControl(Panel host, GambleRuleRow rule, List<GambleRuleRowControl> rows)
         {
-            var row = new GambleRuleRowControl(rule);
+            var row = new GambleRuleRowControl(rule, IsEldritchMode);
             row.RemoveRequested += (_, _) => RemoveRow(row);
             row.Changed += (_, _) =>
             {
@@ -217,7 +263,16 @@ namespace PoE.dlls.Gamble.UI
             if (_modSuggestions is null)
                 return;
 
-            ModSuggestionAutocomplete.Attach(row.ContentTextBox, _modSuggestions, GetSuggestionStrategy);
+            ModSuggestionAutocomplete.Attach(row.ContentTextBox, _modSuggestions, () => ResolveSuggestionStrategy(row));
+        }
+
+        private IModSuggestionStrategy ResolveSuggestionStrategy(GambleRuleRowControl row)
+        {
+            GambleType type = _getGambleType?.Invoke() ?? GambleType.Alt;
+            if (type == GambleType.Eldritch)
+                return EldritchModSuggestionStrategy.For(row.GetEldritchInfluence());
+
+            return ModSuggestionStrategyResolver.For(type);
         }
 
         private IModSuggestionStrategy GetSuggestionStrategy() =>
@@ -349,9 +404,17 @@ namespace PoE.dlls.Gamble.UI
 
         private sealed class GambleRuleRowControl : Panel
         {
+            private static readonly string[] InfluenceLabels =
+            [
+                "Searing Exarch",
+                "Eater of Worlds",
+            ];
+
+            private readonly Func<bool> _isEldritchMode;
             private GambleRuleRow _rule;
             private readonly FlatTextBox _priority;
             private readonly FlatComboBox _type;
+            private readonly FlatComboBox _influence;
             private readonly FlatTextBox _tier;
             private readonly FlatTextBox _content;
             private readonly Label _remove;
@@ -359,8 +422,9 @@ namespace PoE.dlls.Gamble.UI
             public event EventHandler? RemoveRequested;
             public event EventHandler? Changed;
 
-            public GambleRuleRowControl(GambleRuleRow rule)
+            public GambleRuleRowControl(GambleRuleRow rule, Func<bool> isEldritchMode)
             {
+                _isEldritchMode = isEldritchMode;
                 _rule = rule;
                 BackColor = StaticColors.BackGround;
                 Height = 34;
@@ -389,6 +453,15 @@ namespace PoE.dlls.Gamble.UI
                     Changed?.Invoke(this, EventArgs.Empty);
                 };
 
+                _influence = new FlatComboBox
+                {
+                    Location = new Point(TypeColumnX, 2),
+                    Size = new Size(InfluenceColumnWidth, 30),
+                    Font = UiFont,
+                };
+                _influence.Items.AddRange(InfluenceLabels);
+                _influence.SelectedIndex = rule.EldritchInfluence == EldritchInfluence.EaterOfWorlds ? 1 : 0;
+
                 _tier = CreateTextBox(new Point(TierColumnX, 2), new Size(TierColumnWidth, 30), HorizontalAlignment.Center);
                 _tier._textBox.Text = rule.Tier.ToString();
                 _tier._textBox.KeyUp += (_, _) =>
@@ -398,12 +471,22 @@ namespace PoE.dlls.Gamble.UI
                     Changed?.Invoke(this, EventArgs.Empty);
                 };
 
-                _content = CreateTextBox(new Point(ContentColumnX, 2), new Size(287, 30), HorizontalAlignment.Left);
+                _content = CreateTextBox(new Point(ContentColumnX(false), 2), new Size(287, 30), HorizontalAlignment.Left);
                 _content._textBox.Text = rule.Content;
                 _content._textBox.KeyUp += (_, _) =>
                 {
                     _rule.Content = _content._textBox.Text;
                     Changed?.Invoke(this, EventArgs.Empty);
+                };
+
+                _influence.SelectedIndexChanged += (_, _) =>
+                {
+                    _rule.EldritchInfluence = _influence.SelectedIndex == 1
+                        ? EldritchInfluence.EaterOfWorlds
+                        : EldritchInfluence.SearingExarch;
+                    Changed?.Invoke(this, EventArgs.Empty);
+                    if (_isEldritchMode())
+                        ModSuggestionAutocomplete.RequestRefresh(_content._textBox);
                 };
 
                 _remove = new Label
@@ -421,9 +504,25 @@ namespace PoE.dlls.Gamble.UI
 
                 Controls.Add(_priority);
                 Controls.Add(_type);
+                Controls.Add(_influence);
                 Controls.Add(_tier);
                 Controls.Add(_content);
                 Controls.Add(_remove);
+
+                ApplyEldritchMode(_isEldritchMode());
+            }
+
+            internal EldritchInfluence GetEldritchInfluence() =>
+                _influence.SelectedIndex == 1
+                    ? EldritchInfluence.EaterOfWorlds
+                    : EldritchInfluence.SearingExarch;
+
+            internal void ApplyEldritchMode(bool eldritch)
+            {
+                _type.Visible = !eldritch;
+                _influence.Visible = eldritch;
+                _tier.Visible = !eldritch;
+                _content.Location = new Point(ContentColumnX(eldritch), 2);
             }
 
             internal TextBox ContentTextBox => _content._textBox;
@@ -434,6 +533,9 @@ namespace PoE.dlls.Gamble.UI
                 ModifierType = _rule.ModifierType,
                 Tier = _rule.Tier,
                 Content = _content._textBox.Text,
+                EldritchInfluence = _isEldritchMode()
+                    ? (_influence.SelectedIndex == 1 ? EldritchInfluence.EaterOfWorlds : EldritchInfluence.SearingExarch)
+                    : _rule.EldritchInfluence,
             };
 
             public void SetWidth(int width)
