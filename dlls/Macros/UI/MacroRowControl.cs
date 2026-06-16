@@ -48,6 +48,7 @@ namespace PoE.dlls.Macros.UI
         private readonly MacroKeyFieldBinder _triggerKeyBinder;
         private readonly MacroKeyFieldBinder _toggleKeyBinder;
         private readonly System.Windows.Forms.Timer _fireValidateDebounce;
+        private bool _suppressActiveCheckbox;
 
         public event EventHandler? RemoveRequested;
         public event EventHandler? Changed;
@@ -71,6 +72,9 @@ namespace PoE.dlls.Macros.UI
             };
             _active.CheckedChanged += (_, _) =>
             {
+                if (_suppressActiveCheckbox)
+                    return;
+
                 _trigger.Active = _active.Checked;
                 Changed?.Invoke(this, EventArgs.Empty);
             };
@@ -192,7 +196,19 @@ namespace PoE.dlls.Macros.UI
         public void SetActive(bool active)
         {
             _trigger.Active = active;
-            _active.Checked = active;
+
+            if (_active.Checked == active)
+                return;
+
+            _suppressActiveCheckbox = true;
+            try
+            {
+                _active.Checked = active;
+            }
+            finally
+            {
+                _suppressActiveCheckbox = false;
+            }
         }
 
         public void RequestCoordinateCapture()

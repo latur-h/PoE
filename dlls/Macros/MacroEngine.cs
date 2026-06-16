@@ -13,6 +13,7 @@ namespace PoE.dlls.Macros
     public sealed class MacroEngine
     {
         private const int PollIntervalMs = 5;
+        private const int ToggleDebounceMs = 300;
 
         private readonly InputSimulatorHost _inputHost;
         private readonly object _stateLock = new();
@@ -20,6 +21,7 @@ namespace PoE.dlls.Macros
         private CancellationTokenSource? _pollCts;
         private readonly Dictionary<Guid, bool> _triggerWasDown = new();
         private readonly Dictionary<Guid, long> _lastCycleFireTicks = new();
+        private readonly Dictionary<Guid, long> _lastToggleTicks = new();
         private readonly Dictionary<Guid, long> _lockUntilTicks = new();
         private readonly HashSet<Guid> _cycleInProgress = new();
 
@@ -77,9 +79,24 @@ namespace PoE.dlls.Macros
             SettingsChanged?.Invoke();
         }
 
+        public bool IsCycleInProgress(Guid triggerId) => _cycleInProgress.Contains(triggerId);
+
         public void ToggleTriggerActive(MacroTrigger trigger)
         {
-            trigger.Active = !trigger.Active;
+            long now = Environment.TickCount64;
+
+            lock (_stateLock)
+            {
+                if (_lastToggleTicks.TryGetValue(trigger.Id, out long lastToggle)
+                    && now - lastToggle < ToggleDebounceMs)
+                {
+                    return;
+                }
+
+                _lastToggleTicks[trigger.Id] = now;
+                trigger.Active = !trigger.Active;
+            }
+
             SettingsChanged?.Invoke();
         }
 

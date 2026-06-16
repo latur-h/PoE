@@ -134,6 +134,58 @@ public class MacroSettingsHelperTests
     }
 }
 
+public class MacroEngineToggleTests
+{
+    [Fact]
+    public void ToggleTriggerActive_ignores_duplicate_invocation_within_debounce_window()
+    {
+        var engine = new MacroEngine(new PoE.dlls.Automation.InputSimulatorHost());
+        var trigger = new MacroTrigger { Id = Guid.NewGuid(), Active = false };
+        var settings = new MacroSettings
+        {
+            GlobalProfile = new MacroProfile
+            {
+                Name = MacroProfile.GlobalName,
+                Triggers = [trigger],
+            },
+        };
+
+        engine.ApplySettings(settings);
+        MacroTrigger? runtime = engine.FindTrigger(trigger.Id);
+        Assert.NotNull(runtime);
+
+        engine.ToggleTriggerActive(runtime);
+        engine.ToggleTriggerActive(runtime);
+
+        Assert.True(runtime.Active);
+    }
+
+    [Fact]
+    public void ToggleTriggerActive_allows_second_invocation_after_debounce_window()
+    {
+        var engine = new MacroEngine(new PoE.dlls.Automation.InputSimulatorHost());
+        var trigger = new MacroTrigger { Id = Guid.NewGuid(), Active = false };
+        var settings = new MacroSettings
+        {
+            GlobalProfile = new MacroProfile
+            {
+                Name = MacroProfile.GlobalName,
+                Triggers = [trigger],
+            },
+        };
+
+        engine.ApplySettings(settings);
+        MacroTrigger? runtime = engine.FindTrigger(trigger.Id);
+        Assert.NotNull(runtime);
+
+        engine.ToggleTriggerActive(runtime);
+        Thread.Sleep(350);
+        engine.ToggleTriggerActive(runtime);
+
+        Assert.False(runtime.Active);
+    }
+}
+
 public class MacroColorHelperTests
 {
     [Theory]

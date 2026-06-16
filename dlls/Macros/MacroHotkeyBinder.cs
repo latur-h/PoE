@@ -44,18 +44,39 @@ namespace PoE.dlls.Macros
                 string id = ToggleHotkeyPrefix + trigger.Id;
                 Guid triggerId = trigger.Id;
 
+                string toggleBinding = ToToggleHotkeyBinding(trigger.ToggleKey);
+
                 _hotkeys.Register(id, () =>
                 {
+                    if (_engine.IsCycleInProgress(triggerId))
+                        return Task.CompletedTask;
+
                     var resolved = _engine.FindTrigger(triggerId);
                     if (resolved is null)
                         return Task.CompletedTask;
 
                     _engine.ToggleTriggerActive(resolved);
                     return Task.CompletedTask;
-                }, trigger.ToggleKey);
+                }, toggleBinding);
 
                 _registeredToggleIds.Add(id);
             }
+        }
+
+        private static string ToToggleHotkeyBinding(string toggleKey)
+        {
+            if (string.IsNullOrWhiteSpace(toggleKey))
+                return toggleKey;
+
+            toggleKey = toggleKey.Trim();
+            if (toggleKey.EndsWith(" Down", StringComparison.OrdinalIgnoreCase)
+                || toggleKey.EndsWith(" Up", StringComparison.OrdinalIgnoreCase)
+                || toggleKey.EndsWith(" Press", StringComparison.OrdinalIgnoreCase))
+            {
+                return toggleKey;
+            }
+
+            return $"{toggleKey} Down";
         }
 
         public static void RegisterEnableHotkey(GlobalHotKeyManager hotkeys, MacroEngine engine, string enableKey)
