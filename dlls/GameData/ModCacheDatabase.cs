@@ -1,4 +1,5 @@
 using Microsoft.Data.Sqlite;
+using PoE.dlls.Gamble;
 using System.Text;
 
 namespace PoE.dlls.GameData
@@ -16,6 +17,8 @@ namespace PoE.dlls.GameData
             Directory.CreateDirectory(folder);
             _dbPath = Path.Combine(folder, "modcache.sqlite");
         }
+
+        internal ModCacheDatabase(string dbPath) => _dbPath = dbPath;
 
         public bool HasEntries
         {
@@ -229,6 +232,40 @@ namespace PoE.dlls.GameData
                     """;
 
                 return ReadSuggestionItems(command);
+            }
+        }
+
+        public bool TryFindModTemplate(string skeleton, GambleType gambleType, out string template)
+        {
+            template = string.Empty;
+            if (string.IsNullOrWhiteSpace(skeleton))
+                return false;
+
+            string eldritchFilter = gambleType == GambleType.Eldritch
+                ? "eldritch_influence > 0"
+                : "eldritch_influence = 0";
+
+            lock (_sync)
+            {
+                EnsureOpen();
+                using var command = _connection!.CreateCommand();
+                command.CommandText = $"""
+                    SELECT mod_content
+                    FROM mod_suggestions
+                    WHERE mod_content <> ''
+                      AND is_map = 0
+                      AND {eldritchFilter}
+                      AND lower(mod_content) = lower($skeleton)
+                    LIMIT 1;
+                    """;
+                command.Parameters.AddWithValue("$skeleton", skeleton.Trim());
+
+                object? result = command.ExecuteScalar();
+                if (result is not string content || string.IsNullOrWhiteSpace(content))
+                    return false;
+
+                template = content;
+                return true;
             }
         }
 

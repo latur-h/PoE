@@ -1,6 +1,7 @@
 using System.Globalization;
 using System.Text;
 using System.Text.RegularExpressions;
+using PoE.dlls.GameData;
 using PoE.dlls.Gamble.Modifiers;
 
 namespace PoE.dlls.Gamble
@@ -18,6 +19,24 @@ namespace PoE.dlls.Gamble
         private static readonly Regex RangeNumberRegex = new(
             @"[-+]?\d+",
             RegexOptions.Compiled);
+
+        [ThreadStatic]
+        private static ModCacheDatabase? t_database;
+
+        [ThreadStatic]
+        private static GambleType? t_gambleType;
+
+        internal static void SetCatalogContext(ModCacheDatabase? database, GambleType gambleType)
+        {
+            t_database = database;
+            t_gambleType = gambleType;
+        }
+
+        internal static void ClearCatalogContext()
+        {
+            t_database = null;
+            t_gambleType = null;
+        }
 
         /// <summary>
         /// Normalizes clipboard mod text: drops tier roll ranges in parentheses and keeps the
@@ -53,8 +72,16 @@ namespace PoE.dlls.Gamble
             if (string.IsNullOrEmpty(ruleContent))
                 return false;
 
-            string normalized = NormalizeItemModContent(itemModContent);
-            return CreateRulePattern(ruleContent).IsMatch(normalized);
+            if (UsesCatalogMatching()
+                && t_database is not null
+                && t_gambleType is GambleType gambleType)
+            {
+                string skeleton = ModTemplateNormalizer.ToSkeleton(ruleContent);
+                if (t_database.TryFindModTemplate(skeleton, gambleType, out string? template))
+                    return ModTemplateMatcher.TryMatch(ruleContent, template, itemModContent);
+            }
+
+            return IsLegacyRegexMatch(ruleContent, itemModContent);
         }
 
         public static bool MatchesModRule(Rule rule, Modifier mod, bool matchNameToo = false)
@@ -71,17 +98,28 @@ namespace PoE.dlls.Gamble
             return matchNameToo && IsContentMatch(rule.Content, mod.Name);
         }
 
+        private static bool UsesCatalogMatching() =>
+            t_gambleType is not (
+                GambleType.Map
+                or GambleType.MapExalt
+                or GambleType.MapT17
+                or null);
+
+        private static bool IsLegacyRegexMatch(string ruleContent, string itemModContent)
+        {
+            string normalized = NormalizeItemModContent(itemModContent);
+            return CreateRulePattern(ruleContent).IsMatch(normalized);
+        }
+
         private static string ReplaceWithHighestNonRangeValue(Match match)
         {
             int leading = int.Parse(match.Groups[1].Value, CultureInfo.InvariantCulture);
             var rangeValues = ParseRangeNumbers(match.Groups[2].Value);
             var rangeSet = new HashSet<int>(rangeValues);
 
-            // Rolled value sits before the range; use it when it is not a range bound.
             if (!rangeSet.Contains(leading))
                 return leading.ToString(CultureInfo.InvariantCulture);
 
-            // Rare overlap: pick the highest number in this token that is not a range bound.
             int best = leading;
             foreach (int value in rangeValues)
             {

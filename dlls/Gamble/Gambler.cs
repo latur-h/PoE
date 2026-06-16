@@ -1,4 +1,5 @@
 ﻿using PoE.dlls.Automation;
+using PoE.dlls.GameData;
 using PoE.dlls.Gamble;
 using PoE.dlls.Gamble.Bulk;
 using PoE.dlls.Gamble.Modes;
@@ -15,6 +16,9 @@ namespace PoE.dlls.Gamba
         private CancellationTokenSource? _cts;
         private CancellationToken _token;
 
+        private readonly GambleType _gambleType;
+        private readonly ModCacheDatabase? _modCacheDatabase;
+
         public Gambler(
             Main _main,
             InputSimulatorHost inputHost,
@@ -26,9 +30,12 @@ namespace PoE.dlls.Gamba
             Coordinates secondXY,
             Coordinates thirdXY,
             List<Rule> rules,
-            MapGambleSession? mapSession = null)
+            MapGambleSession? mapSession = null,
+            ModCacheDatabase? modCacheDatabase = null)
         {
             _inputHost = inputHost;
+            _gambleType = type;
+            _modCacheDatabase = modCacheDatabase;
             GamblerLog.Info("Initialize 'Gambler'...");
 
             _cts = new CancellationTokenSource();
@@ -83,10 +90,12 @@ namespace PoE.dlls.Gamba
 
             try
             {
+                GambleModContentMatcher.SetCatalogContext(_modCacheDatabase, _gambleType);
                 await gamba.Gamble();
             }
             finally
             {
+                GambleModContentMatcher.ClearCatalogContext();
                 GambleInputReleaseHelper.ReleaseAll(_inputHost);
                 _cts?.Dispose();
                 _cts = null;

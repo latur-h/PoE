@@ -184,7 +184,7 @@ namespace PoE
             }
 
             Gambler = new Gambler(this, _inputHost, TimeSpan.FromMilliseconds(_settings.Modifiers.Delay), _settings.Modifiers.Speed,
-                gambleType, coords.Item, coords.Base, coords.Second, coords.Third, rules, mapSession);
+                gambleType, coords.Item, coords.Base, coords.Second, coords.Third, rules, mapSession, _modCacheDatabase);
 
             await Gambler.StartGambling();
 

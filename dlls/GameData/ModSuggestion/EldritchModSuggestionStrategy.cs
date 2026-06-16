@@ -16,7 +16,8 @@ namespace PoE.dlls.GameData
 
         public string FormatDisplay(ModSuggestionItem item, string searchTerm) => item.ModContent;
 
-        public string FormatInsert(ModSuggestionItem item, string searchTerm) => item.ModContent;
+        public string FormatInsert(ModSuggestionItem item, string searchTerm) =>
+            ModTemplateNormalizer.ToHashTemplate(item.ModContent);
 
         public int SuggestionPopupMinWidth => 360;
 

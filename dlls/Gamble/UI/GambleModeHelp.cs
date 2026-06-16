@@ -8,6 +8,22 @@ namespace PoE.dlls.Gamble.UI
 
     public static class GambleModeHelp
     {
+        private static GambleModeHelpSection ItemModContentSection(string matchTarget) => Section("Content",
+            matchTarget + "\r\n\r\n" +
+            "Autocomplete: type in Content to search the mod list; picking a suggestion inserts a # template — add operators or exact numbers as needed.\r\n\r\n" +
+            "Numbers and comparison:\r\n" +
+            "• # — any value at that position\r\n" +
+            "• 65 — exact match only (same as =65)\r\n" +
+            "• >=60, <=-9, >5, <10 — minimum or maximum thresholds (useful for hitting a roll cap)\r\n" +
+            "• Mix wildcards and thresholds: Adds # to >=15 Physical Damage\r\n\r\n" +
+            "When your rule matches a known mod template in the cache (numbers and operators normalized to #), structured comparison is used. Otherwise rules with # fall back to regex (# matches digits).\r\n\r\n" +
+            "Examples:\r\n" +
+            "  #% increased Physical Damage\r\n" +
+            "  65% increased Physical Damage\r\n" +
+            "  >=60% increased Physical Damage\r\n" +
+            "  Adds >=5 to >=15 Physical Damage\r\n" +
+            "  <= -9% to all maximum Resistances");
+
         private static GambleModeHelpSection MoreStatRulesSection() => Section("More stat matching (format B)",
             "Use when the map header has lines like:\r\n" +
             "More Currency: +47% (augmented)\r\n\r\n" +
@@ -62,9 +78,8 @@ namespace PoE.dlls.Gamble.UI
             Section("Type & Tier",
                 "• Type — Prefix, Suffix, Implicit, or Any\r\n" +
                 "• Tier — maximum tier allowed (lower number = better mod)"),
-            Section("Content",
-                "Regex matched against the mod description line (text under the { Prefix … } header), not the crafted name in quotes.\r\n\r\n" +
-                "Example: Priority 1, Prefix, Tier 1, Content: adds \\d+ to \\d+ physical damage"),
+            ItemModContentSection(
+                "Matched against the mod description line (text under the { Prefix … } header), not the crafted name in quotes."),
             Section("Enchants",
                 "Lines marked (enchant) count as Implicit mods and follow the same rules."),
             Section("Success",
@@ -87,8 +102,8 @@ namespace PoE.dlls.Gamble.UI
                 "Same as Alt: 1+ required, fractional optional (not 0)."),
             Section("Type & Tier",
                 "Same filters as Alt."),
-            Section("Content",
-                "Regex tested against the mod description or the mod name — either can satisfy the rule."),
+            ItemModContentSection(
+                "Tested against the mod description or the mod name — either can satisfy the rule."),
             Section("Success",
                 "Required rules satisfied; optional rules satisfied when present."),
         ]);
@@ -108,8 +123,8 @@ namespace PoE.dlls.Gamble.UI
             Section("Type & Tier",
                 "• Type — Prefix, Suffix, Implicit, or Any\r\n" +
                 "• Tier — maximum tier allowed"),
-            Section("Content",
-                "Regex on the mod description line (e.g. to maximum life, fire resistance)."),
+            ItemModContentSection(
+                "Matched against the mod description line (e.g. to maximum life, fire resistance)."),
             Section("Success",
                 "All required rules match; optional rules satisfied when configured."),
         ]);
@@ -128,8 +143,8 @@ namespace PoE.dlls.Gamble.UI
                 "• 0 is not optional"),
             Section("Type & Tier",
                 "Type and Tier filters apply (same as Chaos)."),
-            Section("Content",
-                "Regex on mod description (e.g. to strength on a suffix row)."),
+            ItemModContentSection(
+                "Matched against the mod description line (e.g. to strength on a suffix row)."),
             Section("Success",
                 "All required rules match; optional rules satisfied when configured."),
         ]);
@@ -176,7 +191,8 @@ namespace PoE.dlls.Gamble.UI
             Section("Exclude (main workflow)",
                 "Content is regex on mod names (e.g. Splitting, of Toughness).\r\n" +
                 "One row can block many mods: reflect|cannot regenerate|twinned\r\n" +
-                "Do not list mods you want in exclude — a hit fails the roll."),
+                "Do not list mods you want in exclude — a hit fails the roll.\r\n\r\n" +
+                "Map mod rows use name regex only — comparison operators (>=, <=) and # templates are for item gamble modes, not Map/Map Exalt/Map T17."),
             Section("Include (optional)",
                 "Regex on mod name when you need a specific prefix/suffix present. With no include rows, passing exclude + stats is enough."),
             Section("Success",
@@ -253,8 +269,8 @@ namespace PoE.dlls.Gamble.UI
                 "• Between 0 and 1 — Optional"),
             Section("Type & Tier",
                 "Both apply — same as Chaos/Essence."),
-            Section("Content",
-                "Regex on mod description (typical reforge outcome lines)."),
+            ItemModContentSection(
+                "Matched against the mod description line (typical reforge outcome lines)."),
             Section("Success",
                 "All required rules match; optional rules satisfied when configured."),
         ]);
@@ -271,9 +287,9 @@ namespace PoE.dlls.Gamble.UI
                 "• Between 0 and 1 — Optional"),
             Section("Rules",
                 "Each rule targets one influence (Searing Exarch or Eater of Worlds). Only the matching implicit line is checked.\r\n" +
-                "Tier and Type columns are hidden — only implicit content regex applies."),
-            Section("Content",
-                "Examples: damage penetration, item quantity, reservation efficiency lines."),
+                "Tier and Type columns are hidden — only implicit content matching applies."),
+            ItemModContentSection(
+                "Matched against the implicit line for the row's influence. Examples: damage penetration, item quantity, reservation efficiency."),
             Section("Success",
                 "Both influence groups pass their required rules; optional rules satisfied when configured."),
         ]);
