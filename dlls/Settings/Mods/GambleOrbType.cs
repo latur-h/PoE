@@ -10,6 +10,7 @@ namespace PoE.dlls.Settings.Mods
         Alchemy,
         Scouring,
         Exalt,
+        Vaal,
         Eldritch,
         Craft,
     }

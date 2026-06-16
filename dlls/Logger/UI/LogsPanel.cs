@@ -32,7 +32,6 @@ namespace PoE.dlls.Logger.UI
 
         private List<LogEntry> _filtered = [];
         private LevelFilter _levelFilterValue = LevelFilter.InfoPlus;
-        private bool _followTail = true;
 
         public LogsPanel(LogBuffer buffer)
         {
@@ -180,15 +179,13 @@ namespace PoE.dlls.Logger.UI
                 .Where(e => e.MatchesSearch(search))
                 .ToList();
 
-            bool wasAtTail = IsAtTail();
             _listView.VirtualListSize = _filtered.Count;
             _listView.Invalidate();
             UpdateMessageColumnWidth();
 
             _countLabel.Text = $"{_filtered.Count} / {_buffer.Count}";
 
-            if (_followTail && (wasAtTail || _filtered.Count <= 1))
-                ScrollToTail();
+            ScrollToTail();
         }
 
         private void OnRetrieveVirtualItem(object? sender, RetrieveVirtualItemEventArgs e)
@@ -256,28 +253,32 @@ namespace PoE.dlls.Logger.UI
             Clipboard.SetText(string.Join(Environment.NewLine, lines));
         }
 
-        private bool IsAtTail()
-        {
-            if (_filtered.Count == 0)
-                return true;
-
-            return _listView.Items.Count == 0 ||
-                   _listView.TopItem?.Index >= _filtered.Count - 3;
-        }
-
         private void ScrollToTail()
         {
             if (_filtered.Count == 0)
                 return;
 
-            try
+            int lastIndex = _filtered.Count - 1;
+
+            void Scroll()
             {
-                _listView.EnsureVisible(_filtered.Count - 1);
+                if (lastIndex >= _listView.VirtualListSize)
+                    return;
+
+                try
+                {
+                    _listView.EnsureVisible(lastIndex);
+                }
+                catch
+                {
+                    // Virtual list may not have materialized the row yet.
+                }
             }
-            catch
-            {
-                // Virtual list may not have materialized the row yet.
-            }
+
+            if (InvokeRequired)
+                BeginInvoke(Scroll);
+            else
+                Scroll();
         }
 
         private void UpdateMessageColumnWidth()

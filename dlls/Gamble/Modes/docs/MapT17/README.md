@@ -81,3 +81,17 @@ Same rules as [Map](Map/README.md#stat-format-b-more--augmented-matching). Summa
 | Item class check | Yes | Yes (shared evaluator) |
 | `More … (augmented)` stats | Yes | Yes |
 | Third coordinate | Scour | — |
+
+---
+
+## Part 3 — Bulk inventory grid
+
+Same bulk engine as [Map](Map/README.md#part-3--bulk-inventory-grid) (`MapBulkGambler`). Differences for Map T17:
+
+| Step | Behaviour |
+|------|-----------|
+| Precheck | Assign **Chaos**, **Vaal**, **StashBroken**, or **Done** per slot (no scour/alch) |
+| Chaos batch | Chaos orb once + Shift; per slot: refresh+assign, skip unless Chaos action, one slam |
+| Corrupted maps | Evaluate only — no orbs; fail rules → stash queue |
+
+See Map doc for grid setup, Vaal corrupt, and deferred stash behaviour.

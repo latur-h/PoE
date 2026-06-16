@@ -1,31 +1,46 @@
 Item Class: Maps
 Rarity: Rare
-Savage Journey
+Miracle Portent
 Map (Tier 16)
 --------
-Item Quantity: +72% (augmented)
-Item Rarity: +43% (augmented)
-Monster Pack Size: +28% (augmented)
+Item Quantity: +101% (augmented)
+Item Rarity: +60% (augmented)
+Monster Pack Size: +39% (augmented)
+More Divination Cards: +50% (augmented)
+Quality (Divination Cards): +20% (augmented)
 --------
 Item Level: 85
 --------
 Monster Level: 83
 --------
+Delirium Reward Type: Currency (enchant)
+Delirium Reward Type: Currency (enchant)
+Delirium Reward Type: Currency (enchant)
+Delirium Reward Type: Currency (enchant)
+Players in Area are 80% Delirious (enchant)
 Area contains an Empowered Mirage which covers the entire Map (enchant)
 --------
-{ Prefix Modifier "Shocking" (Tier: 1) — Damage, Physical, Elemental, Lightning }
-Monsters deal 97(90-110)% extra Physical Damage as Lightning
-{ Prefix Modifier "Conflagrating" (Tier: 1) — Elemental, Fire, Ailment }
-All Monster Damage from Hits always Ignites — Unscalable Value
-(Ignite deals Fire Damage over time, based on the base Fire Damage of the Skill, for 4 seconds)
-{ Prefix Modifier "Ceremonial" (Tier: 1) }
-Area contains many Totems — Unscalable Value
-{ Suffix Modifier "of Enfeeblement" (Tier: 1) — Caster, Curse }
-Players are Cursed with Enfeeble
-(Enfeeble is a Hex which reduces the targets' Accuracy Rating by 10% and Damage by 15%, or 9% on Rare or Unique targets. It lasts 8 seconds)
-{ Suffix Modifier "of Endurance" (Tier: 1) }
-Monsters gain an Endurance Charge on Hit
-{ Suffix Modifier "of Bloodlines" (Tier: 1) }
-27(20-30)% increased Magic Monsters
+{ Prefix Modifier "Antagonist's" (Tier: 1) }
+20(20-30)% increased number of Rare Monsters
+{ Prefix Modifier "Unstoppable" (Tier: 1) — Speed }
+Monsters cannot be Taunted — Unscalable Value
+Monsters' Action Speed cannot be modified to below Base Value
+Monsters' Movement Speed cannot be modified to below Base Value — Unscalable Value
+{ Prefix Modifier "Hexwarded" (Tier: 1) — Caster, Curse }
+60% less effect of Curses on Monsters
+{ Prefix Modifier "Impaling" (Tier: 1) }
+Monsters' Attacks have 60% chance to Impale on Hit
+(When an Impaled enemy is hit, the Impale reflects 10% of the physical damage of the Impaling hit to that enemy. Impale lasts for 5 hits or 8 seconds)
+{ Suffix Modifier "of Blinding" (Tier: 1) }
+Monsters Blind on Hit
+(Being Blinded causes 20% less Accuracy Rating and Evasion Rating, for 4 seconds)
+{ Suffix Modifier "of Imprecision" (Tier: 1) }
+Players have 25% less Accuracy Rating
+{ Suffix Modifier "of Congealment" (Tier: 1) }
+Monsters cannot be Leeched from
+{ Suffix Modifier "of Toughness" (Tier: 1) — Damage, Critical }
+Monsters take 37(36-40)% reduced Extra Damage from Critical Strikes
 --------
 Travel to a Map of this tier or lower by using this in a personal Map Device. Maps can only be used once. 
+--------
+Corrupted

@@ -10,7 +10,7 @@ namespace PoE
         private Panel? _separatorFlaskGameData;
         private Panel? _separatorGameDataInput;
 
-        private const int SettingsGambleHeight = 158;
+        private const int SettingsGambleHeight = 190;
         private const int SettingsFlaskHeight = 158;
         private const int SettingsGameDataHeight = 132;
         private const int SettingsInputHeight = 62;
@@ -31,6 +31,8 @@ namespace PoE
             {
                 if (tabControl_Main.SelectedTab == tabPage_Macros)
                     LayoutMacrosTab();
+                else if (tabControl_Main.SelectedTab == tabPage_Gamble)
+                    LayoutGambleTab();
             };
             Resize += (_, _) =>
             {
@@ -139,7 +141,7 @@ namespace PoE
 
         private void LayoutGambleTab()
         {
-            if (gamblePresetBar is null || gambleRulesPanel is null)
+            if (!_gambleTabUiReady || gamblePresetBar is null || gambleRulesPanel is null)
                 return;
 
             const int margin = 7;
@@ -167,18 +169,63 @@ namespace PoE
                 _gambleTypeHelpIcon.Location = new Point(
                     comboBox_GambleType.Right + iconGap,
                     rowY + (rowHeight - _gambleTypeHelpIcon.Height) / 2);
-                _gambleTypeHelpIcon.BringToFront();
             }
 
-            label_GambleType.BringToFront();
-            comboBox_GambleType.BringToFront();
+            int bulkOffset = _showGambleBulkPanel ? GambleBulkPanelHeight + margin : 0;
 
-            int contentTop = rowY + rowHeight + margin;
+            if (_groupBox_GambleBulk is not null && _showGambleBulkPanel)
+            {
+                int bulkY = rowY + rowHeight + margin;
+                _groupBox_GambleBulk.Location = new Point(margin, bulkY);
+                _groupBox_GambleBulk.Size = new Size(width - margin * 2, GambleBulkPanelHeight);
+
+                if (_checkBox_BulkInventory is not null)
+                    _checkBox_BulkInventory.Location = new Point(10, 24);
+                if (_checkBox_CorruptOnSuccess is not null)
+                    _checkBox_CorruptOnSuccess.Location = new Point(10, 50);
+                if (_label_GambleGridStatus is not null)
+                {
+                    _label_GambleGridStatus.Location = new Point(10, 76);
+                    _label_GambleGridStatus.MaximumSize = new Size(width - 24, 0);
+                }
+
+                if (_label_GambleCellAnchor is not null)
+                    _label_GambleCellAnchor.Location = new Point(220, 26);
+                if (_button_GambleCellAnchorRec is not null)
+                    _button_GambleCellAnchorRec.Location = new Point(262, 22);
+                if (_textBox_GambleCellAnchor is not null)
+                    _textBox_GambleCellAnchor.Location = new Point(316, 22);
+
+                if (_label_GambleNextX is not null)
+                    _label_GambleNextX.Location = new Point(220, 58);
+                if (_textBox_GambleNextX is not null)
+                    _textBox_GambleNextX.Location = new Point(278, 54);
+                if (_label_GambleNextY is not null)
+                    _label_GambleNextY.Location = new Point(338, 58);
+                if (_textBox_GambleNextY is not null)
+                    _textBox_GambleNextY.Location = new Point(396, 54);
+                if (_button_GambleNextCellRec is not null)
+                    _button_GambleNextCellRec.Location = new Point(454, 54);
+            }
+
+            int contentTop = rowY + rowHeight + margin + bulkOffset;
             gamblePresetBar.Location = new Point(margin, contentTop);
             gamblePresetBar.Width = width - margin * 2;
 
             gambleRulesPanel.Location = new Point(margin, contentTop + gamblePresetBar.Height + 4);
             gambleRulesPanel.Size = new Size(width - margin * 2, Math.Max(120, height - gambleRulesPanel.Top - margin));
+
+            if (_groupBox_GambleBulk is not null)
+            {
+                _groupBox_GambleBulk.Visible = _showGambleBulkPanel;
+                _groupBox_GambleBulk.SendToBack();
+            }
+
+            label_GambleType.BringToFront();
+            comboBox_GambleType.BringToFront();
+            _gambleTypeHelpIcon?.BringToFront();
+            gamblePresetBar.BringToFront();
+            gambleRulesPanel.BringToFront();
         }
 
         private void LayoutMacrosTab()

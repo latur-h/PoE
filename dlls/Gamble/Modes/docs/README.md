@@ -17,6 +17,8 @@ Each gamble type lives in its own module under `dlls/Gamble/Modes/` and implemen
 | [Harvest](Harvest/README.md) | Item, Harvest button | Reforge UI click | Mod **content** | Required ≥1, optional fractional |
 | [Eldritch](Eldritch/README.md) | Item, Eldritch orb | Shift+click orb | **Implicit** content only | Required ≥1, optional fractional |
 
+**Bulk inventory** (Map, Map Exalt, Map T17): grid of map slots with batched orb use, refresh-before-slam, optional Vaal corrupt, deferred stash for broken/corrupted-fail maps. See [Map — Part 3](Map/README.md#part-3--bulk-inventory-grid).
+
 ## Shared technical notes
 
 - **Clipboard**: `Ctrl+Alt+C` copy, read as plain text, then cleared.

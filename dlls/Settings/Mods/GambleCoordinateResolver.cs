@@ -45,6 +45,7 @@ namespace PoE.dlls.Settings.Mods
             GambleOrbType.Alchemy => "Alchemy",
             GambleOrbType.Scouring => "Scouring",
             GambleOrbType.Exalt => "Exalt",
+            GambleOrbType.Vaal => "Vaal",
             GambleOrbType.Eldritch => "Eldritch",
             GambleOrbType.Craft => "Craft",
             _ => type.ToString(),

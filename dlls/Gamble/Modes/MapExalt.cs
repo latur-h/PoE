@@ -1,8 +1,9 @@
 using PoE.dlls.Gamble.Modifiers;
 using PoE.dlls.InteropServices;
 using PoE.dlls.Logger;
-using Poss.Win.Automation.Input;
 using PoE.dlls.Automation;
+using PoE.dlls.Gamba;
+using PoE.dlls.Gamble;
 
 namespace PoE.dlls.Gamble.Modes
 {
@@ -31,6 +32,9 @@ namespace PoE.dlls.Gamble.Modes
         private bool _isShiftHeld;
         private bool _alchemyPrimed;
 
+        private readonly Coordinates _exalt;
+        private readonly MapGambleSession _session;
+
         public MapExalt(
             Main main,
             InputSimulatorHost inputHost,
@@ -41,7 +45,8 @@ namespace PoE.dlls.Gamble.Modes
             Coordinates alchemy,
             Coordinates scouring,
             Coordinates exalt,
-            List<Rule> rules)
+            List<Rule> rules,
+            MapGambleSession session)
         {
             _main = main;
             this.inputHost = inputHost;
@@ -53,9 +58,8 @@ namespace PoE.dlls.Gamble.Modes
             this.alchemy = alchemy;
             _exalt = exalt;
             this.rules = rules;
+            _session = session;
         }
-
-        private readonly Coordinates _exalt;
 
         public async Task Gamble()
         {
@@ -95,7 +99,26 @@ namespace PoE.dlls.Gamble.Modes
                     {
                         if (evaluation.RulesPassed)
                         {
-                            GamblerLog.Success();
+                            var corruptResult = await MapCorruptHelper.TryFinishWithOptionalCorruptAsync(
+                                _main,
+                                inputHost,
+                                _token,
+                                delay,
+                                speed,
+                                item,
+                                _session.Vaal,
+                                _session.CorruptOnSuccess,
+                                rules);
+
+                            if (_token.IsCancellationRequested)
+                            {
+                                GamblerLog.Cancelled();
+                                return;
+                            }
+
+                            if (corruptResult == true)
+                                GamblerLog.Success();
+
                             return;
                         }
 
@@ -111,7 +134,7 @@ namespace PoE.dlls.Gamble.Modes
             }
             finally
             {
-                ReleaseShift();
+                GambleInputReleaseHelper.ReleaseAll(inputHost);
             }
         }
 
@@ -201,11 +224,9 @@ namespace PoE.dlls.Gamble.Modes
 
         private void ReleaseShift()
         {
-            if (!_isShiftHeld)
-                return;
-
-            inputHost.Simulator.Send("Shift Up");
+            GambleInputReleaseHelper.ReleaseAll(inputHost);
             _isShiftHeld = false;
+            _alchemyPrimed = false;
         }
 
         private async Task ScouringAlchemyOnItem()

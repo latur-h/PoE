@@ -2,6 +2,7 @@ using PoE.dlls.Automation;
 using PoE.dlls.Flasks;
 using PoE.dlls.Flasks.Base;
 using PoE.dlls.Gamba;
+using PoE.dlls.Gamble.Bulk;
 using PoE.dlls.Gamble;
 using PoE.dlls.Macros;
 using PoE.dlls.Settings;
@@ -25,6 +26,7 @@ namespace PoE
             _hotkeys.Register("Stop Drinking", StopDrinking, _settings.FlaskControls.StopKey);
 
             _hotkeys.Register("Gambler get coordinates", GamblerGetCoordinates, _settings.Modifiers.GetCoorinatesKey);
+            _hotkeys.Register("Gambler grid pick", GamblerGridPick, _settings.Modifiers.GamblerGridPickKey);
             _hotkeys.Register("Gambler start", GamblerStart, _settings.Modifiers.GamblerStart);
             _hotkeys.Register("Gambler stop", GamblerStop, _settings.Modifiers.GamblerStop);
 
@@ -114,6 +116,9 @@ namespace PoE
                 if (TryApplyMacroCoordinateCapture())
                     return;
 
+                if (TryApplyBulkAnchorCapture())
+                    return;
+
                 TryApplyRecordedCoordinate();
             });
 
@@ -156,8 +161,30 @@ namespace PoE
                 _settings.Modifiers.Items,
                 _settings.Modifiers.Orbs);
 
+            MapGambleSession? mapSession = null;
+            var gambleType = _settings.Modifiers.GambleType;
+            if (gambleType is GambleType.Map or GambleType.MapExalt or GambleType.MapT17)
+            {
+                var bulk = _settings.Modifiers.MapBulk;
+                IReadOnlyList<Coordinates>? bulkCells = null;
+                if (bulk.BulkInventory && bulk.IsConfigured)
+                {
+                    bulkCells = GambleGridCalculator.BuildCellCenters(bulk);
+                    if (bulkCells.Count == 0)
+                        return;
+                }
+
+                mapSession = new MapGambleSession(
+                    bulk.CorruptOnSuccess,
+                    _settings.Modifiers.Orbs.Vaal,
+                    _settings.Modifiers.Orbs.Exalt,
+                    _settings.Modifiers.Orbs.Chaos,
+                    bulkCells,
+                    bulk);
+            }
+
             Gambler = new Gambler(this, _inputHost, TimeSpan.FromMilliseconds(_settings.Modifiers.Delay), _settings.Modifiers.Speed,
-                _settings.Modifiers.GambleType, coords.Item, coords.Base, coords.Second, coords.Third, rules);
+                gambleType, coords.Item, coords.Base, coords.Second, coords.Third, rules, mapSession);
 
             await Gambler.StartGambling();
 

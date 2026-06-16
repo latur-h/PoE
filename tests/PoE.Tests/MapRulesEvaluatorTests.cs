@@ -78,4 +78,45 @@ public class MapRulesEvaluatorTests
 
         Assert.Equal(2, MapRulesEvaluator.CountAffixMods(modifiers));
     }
+
+    [Fact]
+    public void IsCorrupted_detects_corrupted_flag_at_end_of_clipboard()
+    {
+        const string corruptedMap = """
+            Item Class: Maps
+            Rarity: Rare
+            Miracle Portent
+            Map (Tier 16)
+            --------
+            Travel to a Map of this tier or lower by using this in a personal Map Device. Maps can only be used once.
+            --------
+            Corrupted
+            """;
+
+        Assert.True(MapRulesEvaluator.IsCorrupted(corruptedMap));
+        Assert.False(MapRulesEvaluator.IsCorrupted(SixModMapWithAugmentedStats));
+    }
+
+    [Fact]
+    public void Evaluate_sets_IsCorrupted_on_corrupted_maps()
+    {
+        const string corruptedMap = """
+            Item Class: Maps
+            Rarity: Rare
+            Miracle Portent
+            Map (Tier 16)
+            --------
+            { Prefix Modifier "Antagonist's" (Tier: 1) }
+            20% increased number of Rare Monsters
+            --------
+            Travel to a Map of this tier or lower by using this in a personal Map Device. Maps can only be used once.
+            --------
+            Corrupted
+            """;
+
+        var result = MapRulesEvaluator.Evaluate(corruptedMap, [], logMods: false);
+
+        Assert.True(result.IsMap);
+        Assert.True(result.IsCorrupted);
+    }
 }

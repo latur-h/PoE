@@ -53,6 +53,7 @@ namespace PoE.dlls.Macros
             AddKey(usages, settings.FlaskControls.StopKey, "Flasks: stop");
 
             AddKey(usages, settings.Modifiers.GetCoorinatesKey, "Gamble: get coordinates");
+            AddKey(usages, settings.Modifiers.GamblerGridPickKey, "Gamble: grid pick");
             AddKey(usages, settings.Modifiers.GamblerStart, "Gamble: start");
             AddKey(usages, settings.Modifiers.GamblerStop, "Gamble: stop");
 

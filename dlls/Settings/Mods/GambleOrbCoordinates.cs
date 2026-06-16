@@ -12,6 +12,7 @@ namespace PoE.dlls.Settings.Mods
         public Coordinates Alchemy { get; set; } = new(0, 0);
         public Coordinates Scouring { get; set; } = new(0, 0);
         public Coordinates Exalt { get; set; } = new(0, 0);
+        public Coordinates Vaal { get; set; } = new(0, 0);
         public Coordinates Eldritch { get; set; } = new(0, 0);
         public Coordinates Craft { get; set; } = new(0, 0);
 
@@ -25,6 +26,7 @@ namespace PoE.dlls.Settings.Mods
             GambleOrbType.Alchemy => Alchemy,
             GambleOrbType.Scouring => Scouring,
             GambleOrbType.Exalt => Exalt,
+            GambleOrbType.Vaal => Vaal,
             GambleOrbType.Eldritch => Eldritch,
             GambleOrbType.Craft => Craft,
             _ => new Coordinates(0, 0),
@@ -42,6 +44,7 @@ namespace PoE.dlls.Settings.Mods
                 case GambleOrbType.Alchemy: Alchemy = value; break;
                 case GambleOrbType.Scouring: Scouring = value; break;
                 case GambleOrbType.Exalt: Exalt = value; break;
+                case GambleOrbType.Vaal: Vaal = value; break;
                 case GambleOrbType.Eldritch: Eldritch = value; break;
                 case GambleOrbType.Craft: Craft = value; break;
             }

@@ -2,10 +2,10 @@ using PoE.dlls.Automation;
 using PoE.dlls.Flasks;
 using PoE.dlls.Flasks.Base;
 using PoE.dlls.Gamble;
+using PoE.dlls.Gamble.UI;
 using PoE.dlls.Gamble.Modifiers;
 using PoE.dlls.GameData;
 using PoE.dlls.InteropServices;
-using PoE.dlls.Gamble.UI;
 using PoE.dlls.KeyBindings;
 using PoE.dlls.Logger;
 using PoE.dlls.Logger.UI;
@@ -247,6 +247,7 @@ namespace PoE
 
             InitializeGamblePresetBar();
             InitializeGambleRulesPanel();
+            InitializeGambleBulkUi();
             InitializeGameDataSettingsUi();
             InitializeInputSettingsUi();
             InitializeSettingsSeparators();
@@ -258,6 +259,9 @@ namespace PoE
 
             comboBox_GambleType.SelectedIndexChanged += (s, e) =>
             {
+                if (!_gambleTabUiReady)
+                    return;
+
                 gambleRulesPanel.Commit();
 
                 int index = comboBox_GambleType.SelectedIndex;
@@ -271,7 +275,6 @@ namespace PoE
 
             comboBox_GambleType.SelectedIndex = GambleTypeNames.IndexOf(_settings.Modifiers.GambleType);
             _settings.Modifiers.RefreshEditAdapter();
-            LoadGambleModeIntoUi();
             textBox_GamblerDelay._textBox.Text = _settings.Modifiers.Delay.ToString();
             textBox_GambleSpeed._textBox.Text = _settings.Modifiers.Speed.ToString();
             textBox_FlaskDelay._textBox.Text = _settings.FlaskControls.Delay.ToString();
@@ -328,10 +331,11 @@ namespace PoE
 
             SetupSettingsHints();
 
+            FinalizeGambleTabUi();
+
             ApplySavedWindowSize();
 
             LayoutMainTab();
-            LayoutGambleTab();
             LayoutOrbsTab();
             LayoutMacrosTab();
             LayoutSettingsTab();
@@ -346,7 +350,7 @@ namespace PoE
             gamblePresetBar.RefreshPresets();
             gambleRulesPanel.PurgeViewsExcept(store.Presets);
             gambleRulesPanel.Bind(_settings.Modifiers.GetActivePreset());
-            LayoutGambleTab();
+            UpdateGambleBulkPanelVisibility();
         }
 
         private void InitializeGamblePresetBar()
@@ -391,6 +395,8 @@ namespace PoE
                 comboBox_GambleType,
                 "How this gamble mode works",
                 () => GambleModeHelpDialog.ShowForMode(this, _settings.Modifiers.GambleType));
+
+            SetupGambleBulkHints(toolTip_Gamble);
         }
 
         private void SetupSettingsHints()
@@ -399,6 +405,11 @@ namespace PoE
 
             SettingsHintHelper.Attach(toolTip_Settings, groupBox_GambleSettings, label_GamblerGetCoorinatesKey, textBox_GamblerGetCoordinatesKey,
                 "Hotkey to capture the mouse position for the active Rec slot on the Orbs tab (items and orbs are shared across gamble modes).");
+            if (_label_GamblerGridPickKey is not null && _textBox_GamblerGridPickKey is not null)
+            {
+                SettingsHintHelper.Attach(toolTip_Settings, groupBox_GambleSettings, _label_GamblerGridPickKey, _textBox_GamblerGridPickKey,
+                    GambleBulkHelp.Short.GridArea + " Full details: Gamble tab → ? help.");
+            }
             SettingsHintHelper.Attach(toolTip_Settings, groupBox_GambleSettings, label_GamblerStartKey, textBox_GamblerStartKey,
                 "Hotkey to start the selected gamble routine.");
             SettingsHintHelper.Attach(toolTip_Settings, groupBox_GambleSettings, label_GamblerStopKey, textBox_GamblerStopKey,
@@ -435,6 +446,8 @@ namespace PoE
             InitFlaskKey(_settings.Flasks["5"], textBox_Flask5);
 
             InitHotkeySetting(ref _settings.Modifiers.GetCoorinatesKey, textBox_GamblerGetCoordinatesKey);
+            if (_textBox_GamblerGridPickKey is not null)
+                InitHotkeySetting(ref _settings.Modifiers.GamblerGridPickKey, _textBox_GamblerGridPickKey);
             InitHotkeySetting(ref _settings.Modifiers.GamblerStart, textBox_GamblerStartKey);
             InitHotkeySetting(ref _settings.Modifiers.GamblerStop, textBox_GamblerStopKey);
 

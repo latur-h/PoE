@@ -27,7 +27,7 @@ namespace PoE.dlls.Gamble.UI
         private static GambleModeHelpSection OrbsTabCoordinatesSection(string modeUses) => Section("Coordinates",
             "Orbs tab — shared stash positions for all gamble modes.\r\n\r\n" +
             "Items: Default item (most modes), Harvest item, Essence item.\r\n" +
-            "Orbs: Alt, Aug, Chaos, Chromatic, Essence, Alchemy, Scouring, Exalt, Eldritch, Craft.\r\n\r\n" +
+            "Orbs: Alt, Aug, Chaos, Chromatic, Essence, Alchemy, Scouring, Exalt, Vaal, Eldritch, Craft.\r\n\r\n" +
             "This mode uses: " + modeUses);
 
         public static GambleModeHelpContent For(GambleType type) => type switch
@@ -163,7 +163,7 @@ namespace PoE.dlls.Gamble.UI
                 "1. Copy the map and evaluate rules.\r\n" +
                 "2. Right-click Alchemy on the map once (make it rare).\r\n" +
                 "3. Loop with Shift held: Alt+click Scouring (remove mods) → click Alchemy (reroll) → copy → evaluate."),
-            OrbsTabCoordinatesSection("Default item, Alchemy orb, Scouring orb"),
+            OrbsTabCoordinatesSection("Default item, Alchemy orb, Scouring orb, Vaal orb (optional corrupt)"),
             Section("Priority",
                 "• 0 (or any value between -1 and 1) — Map stat threshold in Content (see below)\r\n" +
                 "• 1 or higher — Include: mod name must match\r\n" +
@@ -181,6 +181,12 @@ namespace PoE.dlls.Gamble.UI
                 "Regex on mod name when you need a specific prefix/suffix present. With no include rows, passing exclude + stats is enough."),
             Section("Success",
                 "Stats pass, no exclude hit, and include logic passes (if used)."),
+            GambleBulkHelp.DetailedBulkInventory(),
+            GambleBulkHelp.DetailedGridArea(),
+            GambleBulkHelp.DetailedFirstCell(),
+            GambleBulkHelp.DetailedNextStep(),
+            GambleBulkHelp.DetailedCorruptOnSuccess(),
+            GambleBulkHelp.DetailedCorruptedMaps(),
         ]);
 
         private static GambleModeHelpContent MapT17 => new("Map T17 — Elevated map rolling",
@@ -191,7 +197,7 @@ namespace PoE.dlls.Gamble.UI
                 "1. Copy the map and evaluate.\r\n" +
                 "2. If not satisfied: right-click Chaos, hold Shift, spam Chaos on the map with copy between clicks.\r\n" +
                 "No Scouring/Alchemy cycle (unlike standard Map mode)."),
-            OrbsTabCoordinatesSection("Default item, Chaos orb"),
+            OrbsTabCoordinatesSection("Default item, Chaos orb, Vaal orb (optional corrupt)"),
             Section("Mod rules",
                 "Same as Map mode: exclude on mod names (priority ≤ -1), optional include (priority ≥ 1). Type and Tier are ignored."),
             Section("Stat format A (compact)",
@@ -199,6 +205,12 @@ namespace PoE.dlls.Gamble.UI
             MoreStatRulesSection(),
             Section("Success",
                 "All stat rules pass, mod include/exclude logic passes, and the map has modifier blocks present."),
+            GambleBulkHelp.DetailedBulkInventory(),
+            GambleBulkHelp.DetailedGridArea(),
+            GambleBulkHelp.DetailedFirstCell(),
+            GambleBulkHelp.DetailedNextStep(),
+            GambleBulkHelp.DetailedCorruptOnSuccess(),
+            GambleBulkHelp.DetailedCorruptedMaps(),
         ]);
 
         private static GambleModeHelpContent MapExalt => new("Map Exalt — Six-mod map rolling",
@@ -211,7 +223,7 @@ namespace PoE.dlls.Gamble.UI
                 "3. If rare and fewer than 6 mods: Exalt slam on the map, then copy and re-check.\r\n" +
                 "4. If an exclude rule matches or the map has 6 mods but rules fail: Scouring + Alchemy and restart.\r\n" +
                 "5. Stop when the map is rare, has 6 mods, and all rules pass."),
-            OrbsTabCoordinatesSection("Default item, Alchemy orb, Scouring orb, Exalt orb"),
+            OrbsTabCoordinatesSection("Default item, Alchemy orb, Scouring orb, Exalt orb, Vaal orb (optional corrupt)"),
             Section("Rules",
                 "Same as Map mode: stat rows (priority between -1 and 1), exclude (priority ≤ -1), optional include (priority ≥ 1). Type and Tier are ignored for map mod rows."),
             Section("Stat format A (compact)",
@@ -219,6 +231,12 @@ namespace PoE.dlls.Gamble.UI
             MoreStatRulesSection(),
             Section("Success",
                 "Map is rare, has exactly 6 mods, stats pass, no exclude hit, and include logic passes (if used)."),
+            GambleBulkHelp.DetailedBulkInventory(),
+            GambleBulkHelp.DetailedGridArea(),
+            GambleBulkHelp.DetailedFirstCell(),
+            GambleBulkHelp.DetailedNextStep(),
+            GambleBulkHelp.DetailedCorruptOnSuccess(),
+            GambleBulkHelp.DetailedCorruptedMaps(),
         ]);
 
         private static GambleModeHelpContent Harvest => new("Harvest — Harvest crafting",

@@ -25,6 +25,8 @@ Rule-driven automation for common crafting loops. Each mode uses coordinates fro
 | Harvest | Harvest reforge UI |
 | Eldritch | Eldritch orb on implicits |
 
+**Bulk inventory** (Map, Map Exalt, Map T17): roll every map in a configured grid instead of a single item coordinate. Set grid area (Settings → Grid hotkey), first cell, and Next X / Next Y step on the Gamble tab. Each cycle batches scour/alch, exalt or chaos, optional Vaal corrupt, and stashes broken or already-corrupted maps that fail rules. See `dlls/Gamble/Modes/docs/` for mode details.
+
 Presets and up to 100 rules per gamble type. Modifier **Content** fields support autocomplete from cached game data (GGPK).
 
 ### Orbs — Coordinates

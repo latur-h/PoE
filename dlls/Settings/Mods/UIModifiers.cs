@@ -9,8 +9,11 @@ namespace PoE.dlls.Settings.Mods
         public GambleType GambleType { get; set; } = GambleType.Alt;
 
         public string GetCoorinatesKey = "F6";
+        public string GamblerGridPickKey = "F9";
         public string GamblerStart = "F7";
         public string GamblerStop = "F8";
+
+        public GambleMapBulkSettings MapBulk { get; set; } = new();
         public int Delay { get; set; } = 40;
         public double Speed { get; set; } = 10.0;
 

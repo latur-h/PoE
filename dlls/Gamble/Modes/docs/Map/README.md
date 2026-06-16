@@ -141,6 +141,8 @@ Typical god-roll: one include row for a specific prefix name you must have, plus
 
 Clipboard must contain `Item Class: Maps` or `Item Class: Expedition Logbooks`. Otherwise gambling cancels.
 
+Maps with a **`Corrupted`** line at the end of the clipboard are detected (`MapRulesResult.IsCorrupted`). In **bulk** mode these slots are evaluated only — no scour/alch/vaal; pass = keep, fail = stash queue.
+
 ### Success
 
 - Stats (if configured) meet mins.
@@ -166,6 +168,7 @@ Clipboard must contain `Item Class: Maps` or `Item Class: Expedition Logbooks`. 
 
 ### Important implementation details
 
+- **`IsCorrupted`**: `^Corrupted\s*$` line at end of clipboard text (`MapRulesEvaluator.IsCorrupted`).
 - Matching uses **`mod.Name` only**, not mod content text or tier from UI.
 - **Include counting** is nested `foreach (mod) foreach (includeRule)` — multiple mods matching the same include rule increment multiple times. With **zero** include rules, `includeCount` and `include.Count` are both 0 → mod check passes (exclude-only setups).
 - Stat regexes are substring-based (`quantity:` matches inside `Item Quantity:`).
@@ -175,3 +178,36 @@ Clipboard must contain `Item Class: Maps` or `Item Class: Expedition Logbooks`. 
 
 - `GambleType.Map` → `Gambler` passes `item`, `baseXY`, `secondXY`.
 - Stat struct `dlls/Gamble/Modifiers/Map.cs` exists but thresholds are driven by rule Content string, not that struct.
+
+---
+
+## Part 3 — Bulk inventory grid
+
+**Source:** `dlls/Gamble/Bulk/MapBulkGambler.cs`  
+**UI:** Gamble tab → **Bulk inventory** checkbox (Map, Map Exalt, and Map T17 only)
+
+### Grid setup
+
+| Setting | How to set |
+|---------|------------|
+| Grid area | Settings → **Grid** hotkey, then LMB drag from first map top-left to last map bottom-right |
+| First cell | Rec + **F6** (Position hotkey) on the **center** of the top-left map |
+| Next X / Next Y | Pixel step between map centers; Rec + F6 on the next map (right or below) auto-fills deltas. Next Y = 0 for a single row |
+
+### Cycle (per loop)
+
+1. **Precheck** — copy every active slot, evaluate, assign next action.
+2. **Scour + Alchemy batch** — Alchemy orb RMB once + Shift; Alt+LMB scour then LMB alch per slot that needs it; refresh+assign after each step.
+3. **Exalt batch** (Map Exalt only) — Exalt orb once + Shift; per slot: move, refresh+assign, skip if not Exalt (e.g. already 6 mods), one slam, refresh+assign.
+4. **Vaal batch** (optional **Corrupt on success**) — Vaal orb once + Shift; LMB corrupt; refresh rules; broken maps are **queued for stash**, not stashed while the orb is held.
+5. **Stash broken** — release Shift and all keys/orbs, then Ctrl+LMB each queued map into stash.
+
+Empty slots (clipboard copy fails twice) are skipped for the session.
+
+### Already-corrupted maps
+
+If the clipboard ends with a `Corrupted` line, the slot is **never** slammed with currency. Rules are evaluated; pass = finished (kept), fail = stash queue.
+
+### Optional corrupt
+
+When **Corrupt on success (Vaal)** is enabled and the Vaal orb is configured, maps that pass rules are corrupted in the Vaal batch. Maps that break after corrupt are stashed in step 5 (after the orb is released).

@@ -16,6 +16,7 @@ namespace PoE.dlls.Gamble.Modes
     public readonly record struct MapRulesResult(
         bool IsMap,
         bool IsRare,
+        bool IsCorrupted,
         int ModCount,
         int AffixModCount,
         MapRuleFailure Failure,
@@ -34,6 +35,10 @@ namespace PoE.dlls.Gamble.Modes
             @"Rarity:\s*Rare",
             RegexOptions.IgnoreCase | RegexOptions.Compiled);
 
+        private static readonly Regex CorruptedRegex = new(
+            @"(?m)^Corrupted\s*$",
+            RegexOptions.IgnoreCase | RegexOptions.Compiled);
+
         private static readonly Regex CompactStatRuleRegex = new(
             @"q\d+r\d+ps\d+",
             RegexOptions.IgnoreCase | RegexOptions.Singleline | RegexOptions.Compiled);
@@ -44,21 +49,24 @@ namespace PoE.dlls.Gamble.Modes
 
         public static bool IsRare(string itemContent) => RarityRareRegex.IsMatch(itemContent);
 
+        public static bool IsCorrupted(string itemContent) => CorruptedRegex.IsMatch(itemContent);
+
         public static MapRulesResult Evaluate(string itemContent, IReadOnlyList<Rule> rules, bool logMods = true)
         {
             if (!MapClassRegex.IsMatch(itemContent))
-                return new MapRulesResult(false, false, 0, 0, MapRuleFailure.None, false);
+                return new MapRulesResult(false, false, false, 0, 0, MapRuleFailure.None, false);
 
             bool isRare = IsRare(itemContent);
+            bool isCorrupted = IsCorrupted(itemContent);
             var modifiers = ParseModifiers(itemContent, logMods);
             int modCount = modifiers.Count;
             int affixModCount = CountAffixMods(modifiers);
 
             if (modCount == 0)
-                return new MapRulesResult(true, isRare, 0, 0, MapRuleFailure.NoMods, false);
+                return new MapRulesResult(true, isRare, isCorrupted, 0, 0, MapRuleFailure.NoMods, false);
 
             if (!CheckStats(itemContent, rules))
-                return new MapRulesResult(true, isRare, modCount, affixModCount, MapRuleFailure.Stats, false);
+                return new MapRulesResult(true, isRare, isCorrupted, modCount, affixModCount, MapRuleFailure.Stats, false);
 
             var include = rules.Where(x => x.Priority >= 1).ToList();
             var exclude = rules.Where(x => x.Priority <= -1).ToList();
@@ -69,7 +77,7 @@ namespace PoE.dlls.Gamble.Modes
                 foreach (var rule in exclude)
                 {
                     if (Regex.IsMatch(mod.Name, rule.Content, RegexOptions.IgnoreCase))
-                        return new MapRulesResult(true, isRare, modCount, affixModCount, MapRuleFailure.Exclude, false);
+                        return new MapRulesResult(true, isRare, isCorrupted, modCount, affixModCount, MapRuleFailure.Exclude, false);
                 }
 
                 foreach (var rule in include)
@@ -83,6 +91,7 @@ namespace PoE.dlls.Gamble.Modes
             return new MapRulesResult(
                 true,
                 isRare,
+                isCorrupted,
                 modCount,
                 affixModCount,
                 rulesPassed ? MapRuleFailure.None : MapRuleFailure.Include,

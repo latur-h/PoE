@@ -103,8 +103,23 @@ All stat and mod checks run through `MapRulesEvaluator` (also used by Map, MapT1
 - Content matching `q\d+r\d+ps\d+` → compact stat check.
 - Content matching `Label:NN;` segments → More augmented check.
 
-Mod matching uses **`mod.Name` only** for include/exclude.
+Mod matching uses **`mod.Name` only** for include/exclude. **`IsCorrupted`** is set when the clipboard ends with a `Corrupted` line.
 
 ### Related types
 
 - `GambleType.MapExalt` → `Gambler` passes `item`, `base` (Alchemy), `second` (Scouring), `third` (Exalt).
+
+---
+
+## Part 3 — Bulk inventory grid
+
+Same bulk engine as [Map](Map/README.md#part-3--bulk-inventory-grid) (`MapBulkGambler`). Differences for Map Exalt:
+
+| Step | Behaviour |
+|------|-----------|
+| Precheck | Assign **ScourAlchemy**, **Exalt**, **Vaal**, **StashBroken**, or **Done** per slot |
+| Exalt batch | One exalt per map per cycle; refresh+assign before each slam so maps at **6 affixes** are never exalted |
+| 6 mods + rules fail | Scour + Alchemy (not exalt) |
+| Corrupted maps | Evaluate only — no orbs; fail rules → stash queue |
+
+See Map doc for grid setup, Vaal corrupt, and deferred stash behaviour.

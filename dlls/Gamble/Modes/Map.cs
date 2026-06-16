@@ -1,5 +1,5 @@
-using Poss.Win.Automation.Input;
 using PoE.dlls.Automation;
+using PoE.dlls.Gamba;
 using PoE.dlls.Logger;
 using PoE.dlls.Gamble.Modifiers;
 using PoE.dlls.InteropServices;
@@ -21,6 +21,8 @@ namespace PoE.dlls.Gamble.Modes
 
         private readonly List<Rule> rules = [];
 
+        private readonly MapGambleSession _session;
+
         private readonly CancellationTokenSource _cts;
         private readonly CancellationToken _token;
 
@@ -30,7 +32,7 @@ namespace PoE.dlls.Gamble.Modes
 
         private bool _isShiftHeld = false;
 
-        public Map(Main main, InputSimulatorHost inputHost, CancellationTokenSource cts, TimeSpan delay, double speed, Coordinates item, Coordinates alchimka, Coordinates scouring, List<Rule> rules)
+        public Map(Main main, InputSimulatorHost inputHost, CancellationTokenSource cts, TimeSpan delay, double speed, Coordinates item, Coordinates alchimka, Coordinates scouring, List<Rule> rules, MapGambleSession session)
         {
             _main = main;
             this.inputHost = inputHost;
@@ -46,6 +48,7 @@ namespace PoE.dlls.Gamble.Modes
             this.scouring = scouring;
 
             this.rules = rules;
+            _session = session;
         }
 
         public async Task Gamble()
@@ -106,7 +109,28 @@ namespace PoE.dlls.Gamble.Modes
             if (_isShiftHeld)
                 inputHost.Simulator.Send("Shift Up");
 
-            GamblerLog.Success();
+            var corruptResult = await MapCorruptHelper.TryFinishWithOptionalCorruptAsync(
+                _main,
+                inputHost,
+                _token,
+                delay,
+                speed,
+                item,
+                _session.Vaal,
+                _session.CorruptOnSuccess,
+                rules);
+
+            if (_token.IsCancellationRequested)
+            {
+                GamblerLog.Cancelled();
+                return;
+            }
+
+            if (corruptResult == false)
+                return;
+
+            if (corruptResult == true)
+                GamblerLog.Success();
         }
         private async Task Copy()
         {
