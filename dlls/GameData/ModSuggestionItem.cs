@@ -5,6 +5,32 @@ namespace PoE.dlls.GameData
         public required string ModName { get; init; }
         public required string ModContent { get; init; }
 
+        public string GetDisplayText(string searchTerm, ModSuggestionBehavior? behavior = null)
+        {
+            behavior ??= ModSuggestionBehavior.Default;
+            if (behavior.ShowNameAndDescription)
+                return FormatNameAndDescription();
+
+            return GetDisplayText(searchTerm);
+        }
+
+        public string GetInsertText(string searchTerm, ModSuggestionBehavior? behavior = null)
+        {
+            behavior ??= ModSuggestionBehavior.Default;
+            if (behavior.InsertModNameOnly)
+                return ModName;
+
+            return GetInsertText(searchTerm);
+        }
+
+        private string FormatNameAndDescription()
+        {
+            if (string.IsNullOrEmpty(ModContent))
+                return ModName;
+
+            return $"{ModName} — {ModContent}";
+        }
+
         public string GetDisplayText(string searchTerm)
         {
             string[] words = ModSearchQuery.SplitWords(searchTerm);

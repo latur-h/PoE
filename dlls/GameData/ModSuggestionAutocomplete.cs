@@ -9,12 +9,20 @@ namespace PoE.dlls.GameData
         private const int PageSize = 50;
         private const int MaxVisibleItems = 10;
 
-        public static void Attach(TextBox textBox, ModSuggestionService service)
+        public static void Attach(
+            TextBox textBox,
+            ModSuggestionService service,
+            Func<ModSuggestionBehavior>? getBehavior = null)
         {
-            SuggestionPopup? popup = null;
-            var watchedAncestors = new List<Control>();
+            if (ReferenceEquals(textBox.Tag, AttachedMarker))
+                return;
 
-            void EnsureAttached()
+            textBox.Tag = AttachedMarker;
+            ModSuggestionBehavior Behavior() => getBehavior?.Invoke() ?? ModSuggestionBehavior.Default;
+
+            SuggestionPopup? popup = null;
+
+            void EnsurePopup()
             {
                 if (popup is not null || textBox.IsDisposed)
                     return;
@@ -22,44 +30,40 @@ namespace PoE.dlls.GameData
                 if (textBox.FindForm() is null)
                     return;
 
-                popup = new SuggestionPopup(textBox, service);
-                textBox.Disposed += (_, _) => popup.Dispose();
-
-                foreach (Control ancestor in watchedAncestors)
+                popup = new SuggestionPopup(textBox, service, Behavior);
+                textBox.Disposed += (_, _) =>
                 {
-                    ancestor.ParentChanged -= OnParentChanged;
-                    ancestor.HandleCreated -= OnParentChanged;
-                }
-
-                watchedAncestors.Clear();
+                    popup.Dispose();
+                    if (ReferenceEquals(textBox.Tag, AttachedMarker))
+                        textBox.Tag = null;
+                };
             }
 
-            void OnParentChanged(object? sender, EventArgs e) => EnsureAttached();
-
-            if (textBox.FindForm() is not null)
+            textBox.GotFocus += (_, _) =>
             {
-                EnsureAttached();
-                return;
-            }
-
-            for (Control? ancestor = textBox; ancestor is not null; ancestor = ancestor.Parent)
-            {
-                ancestor.ParentChanged += OnParentChanged;
-                ancestor.HandleCreated += OnParentChanged;
-                watchedAncestors.Add(ancestor);
-            }
-
-            textBox.Disposed += (_, _) =>
-            {
-                foreach (Control ancestor in watchedAncestors)
-                {
-                    ancestor.ParentChanged -= OnParentChanged;
-                    ancestor.HandleCreated -= OnParentChanged;
-                }
-
-                watchedAncestors.Clear();
+                EnsurePopup();
+                popup?.NotifyFocused();
             };
+            textBox.TextChanged += (_, _) =>
+            {
+                if (!textBox.Focused)
+                    return;
+
+                EnsurePopup();
+                popup?.RequestRefresh();
+            };
+            textBox.HandleCreated += (_, _) => EnsurePopup();
+
+            for (Control? ancestor = textBox.Parent; ancestor is not null; ancestor = ancestor.Parent)
+            {
+                ancestor.ParentChanged += (_, _) => EnsurePopup();
+                ancestor.HandleCreated += (_, _) => EnsurePopup();
+            }
+
+            EnsurePopup();
         }
+
+        private static readonly object AttachedMarker = new();
 
         private sealed class SuggestionDropDownForm : Form
         {
@@ -96,6 +100,7 @@ namespace PoE.dlls.GameData
         {
             private readonly TextBox _textBox;
             private readonly ModSuggestionService _service;
+            private readonly Func<ModSuggestionBehavior> _getBehavior;
             private readonly Form _owner;
             private readonly SuggestionDropDownForm _popup;
             private readonly ScrollableListBox _list;
@@ -110,10 +115,13 @@ namespace PoE.dlls.GameData
             private bool _blockAutoShow;
             private IMessageFilter? _clickOutsideFilter;
 
-            public SuggestionPopup(TextBox textBox, ModSuggestionService service)
+            private ModContentSearchSegment _lastSegment;
+
+            public SuggestionPopup(TextBox textBox, ModSuggestionService service, Func<ModSuggestionBehavior> getBehavior)
             {
                 _textBox = textBox;
                 _service = service;
+                _getBehavior = getBehavior;
                 _owner = textBox.FindForm()
                     ?? throw new InvalidOperationException("Autocomplete requires a parent form.");
 
@@ -142,11 +150,6 @@ namespace PoE.dlls.GameData
                     Size = new Size(420, 160),
                 };
                 _popup.Controls.Add(_list);
-                _popup.Deactivate += (_, _) =>
-                {
-                    if (!_selecting)
-                        HidePopup();
-                };
 
                 _debounce = new System.Windows.Forms.Timer { Interval = DebounceMs };
                 _debounce.Tick += (_, _) =>
@@ -159,13 +162,17 @@ namespace PoE.dlls.GameData
                 _hideTimer.Tick += (_, _) =>
                 {
                     _hideTimer.Stop();
-                    if (_selecting || _textBox.Focused)
+                    if (_selecting || _textBox.Focused || _popup.Bounds.Contains(Control.MousePosition))
                         return;
 
                     HidePopup();
                 };
 
-                _textBox.TextChanged += (_, _) => ScheduleRefresh();
+                _textBox.TextChanged += (_, _) =>
+                {
+                    if (_textBox.Focused)
+                        ScheduleRefresh();
+                };
                 _textBox.GotFocus += (_, _) =>
                 {
                     if (!_blockAutoShow)
@@ -192,8 +199,68 @@ namespace PoE.dlls.GameData
                     _hideTimer.Start();
                 };
 
-                _owner.LocationChanged += (_, _) => RepositionPopup();
-                _owner.SizeChanged += (_, _) => RepositionPopup();
+                _owner.LocationChanged += (_, _) => OnOwnerLayoutChanged();
+                _owner.SizeChanged += (_, _) => OnOwnerLayoutChanged();
+                _owner.VisibleChanged += (_, _) =>
+                {
+                    if (!_owner.Visible)
+                        HidePopup();
+                };
+
+                if (FindParent<TabControl>(_textBox) is TabControl tabControl)
+                    tabControl.SelectedIndexChanged += (_, _) => HidePopup();
+
+                for (Control? ancestor = _textBox.Parent; ancestor is not null; ancestor = ancestor.Parent)
+                    ancestor.VisibleChanged += (_, _) => OnAnchorVisibilityChanged();
+            }
+
+            internal void NotifyFocused()
+            {
+                if (_textBox.IsDisposed)
+                    return;
+
+                _blockAutoShow = false;
+                ScheduleRefresh();
+            }
+
+            private void OnOwnerLayoutChanged()
+            {
+                if (_popup.Visible)
+                    RepositionPopup();
+            }
+
+            private void OnAnchorVisibilityChanged()
+            {
+                if (!IsAnchorDisplayed())
+                    HidePopup();
+            }
+
+            private static T? FindParent<T>(Control control) where T : Control
+            {
+                for (Control? parent = control.Parent; parent is not null; parent = parent.Parent)
+                {
+                    if (parent is T match)
+                        return match;
+                }
+
+                return null;
+            }
+
+            private bool IsAnchorDisplayed()
+            {
+                if (!_textBox.IsHandleCreated || !_textBox.Visible)
+                    return false;
+
+                for (Control? control = _textBox; control is not null; control = control.Parent)
+                {
+                    if (!control.Visible)
+                        return false;
+
+                    if (control.Parent is TabControl tabControl && control is TabPage page && tabControl.SelectedTab != page)
+                        return false;
+                }
+
+                return _owner.Visible;
             }
 
             private Control AnchorControl => _textBox.Parent ?? _textBox;
@@ -208,11 +275,19 @@ namespace PoE.dlls.GameData
 
             private void ScheduleRefresh()
             {
-                if (_blockAutoShow)
+                if (_blockAutoShow || !_textBox.Focused)
                     return;
 
                 _debounce.Stop();
                 _debounce.Start();
+            }
+
+            internal void RequestRefresh()
+            {
+                if (_textBox.IsDisposed)
+                    return;
+
+                ScheduleRefresh();
             }
 
             private void RefreshSuggestions()
@@ -222,13 +297,19 @@ namespace PoE.dlls.GameData
 
                 try
                 {
+                    if (!_textBox.Focused || !IsAnchorDisplayed())
+                    {
+                        HidePopup();
+                        return;
+                    }
+
                     if (!_service.IsReady)
                     {
                         HidePopup();
                         return;
                     }
 
-                    string term = GetSearchTerm(_textBox);
+                    string term = GetSearchTerm(_textBox, out _lastSegment);
                     if (term.Length < MinSearchLength)
                     {
                         HidePopup();
@@ -237,14 +318,15 @@ namespace PoE.dlls.GameData
 
                     ResetResults();
                     _lastTerm = term;
-                    IReadOnlyList<ModSuggestionItem> suggestions = _service.Search(term, PageSize, 0);
+                    ModSuggestionBehavior behavior = _getBehavior();
+                    IReadOnlyList<ModSuggestionItem> suggestions = _service.Search(term, behavior.Scope, PageSize, 0);
                     if (suggestions.Count == 0)
                     {
                         HidePopup();
                         return;
                     }
 
-                    AppendSuggestions(suggestions);
+                    AppendSuggestions(suggestions, behavior);
                     _hasMore = suggestions.Count >= PageSize;
                     _keyboardIndex = -1;
                     ShowPopup();
@@ -264,7 +346,7 @@ namespace PoE.dlls.GameData
                 _loadingMore = false;
             }
 
-            private void AppendSuggestions(IReadOnlyList<ModSuggestionItem> suggestions)
+            private void AppendSuggestions(IReadOnlyList<ModSuggestionItem> suggestions, ModSuggestionBehavior behavior)
             {
                 if (suggestions.Count == 0)
                     return;
@@ -273,7 +355,7 @@ namespace PoE.dlls.GameData
                 foreach (ModSuggestionItem item in suggestions)
                 {
                     _items.Add(item);
-                    _list.Items.Add(item.GetDisplayText(_lastTerm));
+                    _list.Items.Add(item.GetDisplayText(_lastTerm, behavior));
                 }
 
                 _list.EndUpdate();
@@ -302,9 +384,10 @@ namespace PoE.dlls.GameData
                 _loadingMore = true;
                 try
                 {
-                    IReadOnlyList<ModSuggestionItem> suggestions = _service.Search(_lastTerm, PageSize, _items.Count);
+                    ModSuggestionBehavior behavior = _getBehavior();
+                    IReadOnlyList<ModSuggestionItem> suggestions = _service.Search(_lastTerm, behavior.Scope, PageSize, _items.Count);
                     _hasMore = suggestions.Count >= PageSize;
-                    AppendSuggestions(suggestions);
+                    AppendSuggestions(suggestions, behavior);
                     RepositionPopup();
                 }
                 catch (Exception ex)
@@ -319,14 +402,18 @@ namespace PoE.dlls.GameData
 
             private void ShowPopup()
             {
+                if (!_textBox.Focused || !IsAnchorDisplayed())
+                {
+                    HidePopup();
+                    return;
+                }
+
                 RepositionPopup();
                 if (!_popup.Visible)
                 {
                     _popup.Show(_owner);
                     InstallClickOutsideFilter();
                 }
-
-                _textBox.Focus();
             }
 
             private void InstallClickOutsideFilter()
@@ -367,12 +454,12 @@ namespace PoE.dlls.GameData
 
             private void RepositionPopup()
             {
-                if (_items.Count == 0)
+                if (_items.Count == 0 || !IsAnchorDisplayed())
                     return;
 
                 Control anchor = AnchorControl;
                 Point screen = anchor.PointToScreen(new Point(0, anchor.Height + 2));
-                int width = Math.Max(anchor.Width, 360);
+                int width = Math.Max(anchor.Width, _getBehavior().ShowNameAndDescription ? 560 : 360);
                 int visibleRows = Math.Min(MaxVisibleItems, Math.Max(_list.Items.Count, 1));
                 int height = Math.Min(320, Math.Max(80, _list.ItemHeight * visibleRows + 8));
                 _popup.Size = new Size(width, height);
@@ -433,12 +520,13 @@ namespace PoE.dlls.GameData
                 }
 
                 ModSuggestionItem item = _items[index];
+                ModSuggestionBehavior behavior = _getBehavior();
                 _selecting = true;
                 _blockAutoShow = true;
                 _debounce.Stop();
                 try
                 {
-                    ReplaceSearchTerm(_textBox, item.GetInsertText(_lastTerm));
+                    ModContentSearchSegment.ReplaceActiveSegment(_textBox, item.GetInsertText(_lastTerm, behavior));
                     HidePopup();
                     _textBox.Focus();
                 }
@@ -448,30 +536,10 @@ namespace PoE.dlls.GameData
                 }
             }
 
-            private static string GetSearchTerm(TextBox textBox)
+            private static string GetSearchTerm(TextBox textBox, out ModContentSearchSegment segment)
             {
-                string text = textBox.Text;
-                if (string.IsNullOrWhiteSpace(text))
-                    return string.Empty;
-
-                int caret = textBox.SelectionStart;
-                if (caret < 0 || caret > text.Length)
-                    caret = text.Length;
-
-                return text[..caret].Trim();
-            }
-
-            private static void ReplaceSearchTerm(TextBox textBox, string replacement)
-            {
-                string text = textBox.Text;
-                int caret = textBox.SelectionStart;
-                if (caret < 0 || caret > text.Length)
-                    caret = text.Length;
-
-                int start = text[..caret].Length - text[..caret].TrimStart().Length;
-                textBox.Text = text[..start] + replacement + text[caret..];
-                textBox.SelectionStart = start + replacement.Length;
-                textBox.SelectionLength = 0;
+                segment = ModContentSearchSegment.Resolve(textBox.Text, textBox.SelectionStart);
+                return segment.Phrase;
             }
 
             private sealed class OutsideClickFilter(SuggestionPopup popup) : IMessageFilter

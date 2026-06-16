@@ -1,3 +1,4 @@
+using PoE.dlls.Gamble;
 using PoE.dlls.Gamble.Modifiers;
 using PoE.dlls.GameData;
 using PoE.dlls.Settings.Mods;
@@ -32,10 +33,12 @@ namespace PoE.dlls.Gamble.UI
         private bool _inLayout;
         private bool _relayoutScheduled;
         private readonly ModSuggestionService? _modSuggestions;
+        private readonly Func<GambleType>? _getGambleType;
 
-        public GambleRulesPanel(ModSuggestionService? modSuggestions = null)
+        public GambleRulesPanel(ModSuggestionService? modSuggestions = null, Func<GambleType>? getGambleType = null)
         {
             _modSuggestions = modSuggestions;
+            _getGambleType = getGambleType;
             BackColor = StaticColors.BackGround;
             Font = UiFont;
 
@@ -169,6 +172,9 @@ namespace PoE.dlls.Gamble.UI
 
             _rowsHost.Controls.Add(host);
 
+            foreach (var row in rows)
+                AttachRowSuggestions(row);
+
             var view = new PresetView(host, rows);
             _views[preset] = view;
             LayoutView(view);
@@ -181,6 +187,7 @@ namespace PoE.dlls.Gamble.UI
                 return;
 
             CreateRowControl(_activeView.Host, rule, _activeView.Rows);
+            AttachRowSuggestions(_activeView.Rows[^1]);
             LayoutActiveView();
 
             if (!_suppressEvents)
@@ -202,10 +209,31 @@ namespace PoE.dlls.Gamble.UI
             rows.Add(row);
             host.Controls.Add(row);
 
-            if (_modSuggestions is not null)
-                ModSuggestionAutocomplete.Attach(row.ContentTextBox, _modSuggestions);
-
             return row;
+        }
+
+        private void AttachRowSuggestions(GambleRuleRowControl row)
+        {
+            if (_modSuggestions is null)
+                return;
+
+            ModSuggestionAutocomplete.Attach(row.ContentTextBox, _modSuggestions, GetSuggestionBehavior);
+        }
+
+        private ModSuggestionBehavior GetSuggestionBehavior()
+        {
+            GambleType type = _getGambleType?.Invoke() ?? GambleType.Alt;
+            if (type is GambleType.Map or GambleType.MapExalt or GambleType.MapT17)
+            {
+                return new ModSuggestionBehavior
+                {
+                    Scope = ModSuggestionScope.MapOnly,
+                    InsertModNameOnly = true,
+                    ShowNameAndDescription = true,
+                };
+            }
+
+            return ModSuggestionBehavior.Default;
         }
 
         private void RemoveRow(GambleRuleRowControl row)

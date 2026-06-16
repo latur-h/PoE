@@ -224,7 +224,11 @@ namespace PoE
                     ? $"Last refresh: {utc.ToLocalTime():g}"
                     : "Cached locally";
 
-                label_ModCacheStatus.Text = $"{count} modifier names/descriptions available. {refreshed}.";
+                string mapHint = _modCacheDatabase.HasMapTaggedEntries()
+                    ? "Map modes use map-only suggestions (name + description, inserts mod name)."
+                    : "Refresh mod list again to populate map modifier tags for Map / Map Exalt / Map T17 autocomplete.";
+
+                label_ModCacheStatus.Text = $"{count} modifier names/descriptions available. {refreshed}. {mapHint}";
                 return;
             }
 

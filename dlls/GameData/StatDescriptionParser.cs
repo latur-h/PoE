@@ -18,17 +18,38 @@ namespace PoE.dlls.GameData
 
         public static Dictionary<string, string> ParseEnglishTemplates(IEnumerable<byte[]> files)
         {
-            var map = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
-            foreach (byte[] bytes in files)
+            (Dictionary<string, string> templates, _) = ParseEnglishTemplatesFromFiles(
+                files.Select(bytes => (string.Empty, bytes)).ToList());
+            return templates;
+        }
+
+        public static (Dictionary<string, string> Templates, HashSet<string> MapStatIds) ParseEnglishTemplatesFromFiles(
+            IReadOnlyList<(string Path, byte[] Bytes)> files)
+        {
+            var templates = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
+            var mapStatIds = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+
+            foreach ((string path, byte[] bytes) in files)
             {
+                var perFile = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
                 string text = Encoding.Unicode.GetString(bytes);
                 if (text.Length > 0 && text[0] == '\uFEFF')
                     text = text[1..];
 
-                ParseFile(text, map);
+                ParseFile(text, perFile);
+
+                bool isMapSource = path.Contains("map_stat_descriptions", StringComparison.OrdinalIgnoreCase)
+                    || path.Contains("atlas_stat_descriptions", StringComparison.OrdinalIgnoreCase);
+
+                foreach ((string id, string template) in perFile)
+                {
+                    TryAssignTemplate(templates, id, template);
+                    if (isMapSource && IsUsefulTemplate(template))
+                        mapStatIds.Add(id);
+                }
             }
 
-            return map;
+            return (templates, mapStatIds);
         }
 
         private static void ParseFile(string data, Dictionary<string, string> map)

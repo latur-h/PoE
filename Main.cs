@@ -374,7 +374,7 @@ namespace PoE
 
         private void InitializeGambleRulesPanel()
         {
-            gambleRulesPanel = new GambleRulesPanel(_modSuggestions)
+            gambleRulesPanel = new GambleRulesPanel(_modSuggestions, () => _settings.Modifiers.GambleType)
             {
                 Location = new Point(7, 74),
                 Size = new Size(603, 294),

@@ -8,7 +8,13 @@ namespace PoE.dlls.GameData
 
         public bool IsReady => _database.HasEntries;
 
-        public IReadOnlyList<ModSuggestionItem> Search(string term, int limit = 50, int offset = 0) =>
-            _database.Search(term, limit, offset);
+        public IReadOnlyList<ModSuggestionItem> Search(
+            string term,
+            ModSuggestionScope scope = ModSuggestionScope.All,
+            int limit = 50,
+            int offset = 0) =>
+            scope == ModSuggestionScope.MapOnly
+                ? _database.SearchMapGrouped(term, limit, offset)
+                : _database.Search(term, limit, offset);
     }
 }

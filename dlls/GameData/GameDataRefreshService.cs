@@ -70,7 +70,7 @@ namespace PoE.dlls.GameData
             foreach (var (path, bytes) in statDescriptionFiles)
                 GameDataLog.Info($"Read {path} ({FormatBytes(bytes.Length)}).");
 
-            HashSet<(string ModName, string ModContent)> uniqueEntries;
+            HashSet<(string ModName, string ModContent, bool IsMap)> uniqueEntries;
             try
             {
                 uniqueEntries = ModCatalogBuilder.Build(
@@ -78,7 +78,7 @@ namespace PoE.dlls.GameData
                     modsBytes,
                     tagsBytes,
                     statsBytes,
-                    statDescriptionFiles.Select(f => f.Bytes).ToList());
+                    statDescriptionFiles);
             }
             catch (Exception ex)
             {
@@ -90,7 +90,10 @@ namespace PoE.dlls.GameData
 
             int nameRows = uniqueEntries.Count(e => string.IsNullOrEmpty(e.ModContent));
             int contentRows = uniqueEntries.Count - nameRows;
-            GameDataLog.Info($"Extracted {nameRows:N0} name rows and {contentRows:N0} stat-line rows ({uniqueEntries.Count:N0} total suggestions).");
+            int mapRows = uniqueEntries.Count(e => e.IsMap);
+            GameDataLog.Info($"Extracted {nameRows:N0} name rows and {contentRows:N0} stat-line rows ({uniqueEntries.Count:N0} total suggestions, {mapRows:N0} map-tagged).");
+            if (mapRows == 0)
+                GameDataLog.Info("No map-tagged modifiers were extracted — refresh after updating game files, or check Logs for filter issues.");
 
             GameDataLog.Info("Writing SQLite mod cache…");
             try
