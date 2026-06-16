@@ -12,13 +12,13 @@ namespace PoE.dlls.GameData
         public static void Attach(
             TextBox textBox,
             ModSuggestionService service,
-            Func<ModSuggestionBehavior>? getBehavior = null)
+            Func<IModSuggestionStrategy>? getStrategy = null)
         {
             if (ReferenceEquals(textBox.Tag, AttachedMarker))
                 return;
 
             textBox.Tag = AttachedMarker;
-            ModSuggestionBehavior Behavior() => getBehavior?.Invoke() ?? ModSuggestionBehavior.Default;
+            IModSuggestionStrategy Strategy() => getStrategy?.Invoke() ?? ItemModSuggestionStrategy.Instance;
 
             SuggestionPopup? popup = null;
 
@@ -30,7 +30,7 @@ namespace PoE.dlls.GameData
                 if (textBox.FindForm() is null)
                     return;
 
-                popup = new SuggestionPopup(textBox, service, Behavior);
+                popup = new SuggestionPopup(textBox, service, Strategy);
                 textBox.Disposed += (_, _) =>
                 {
                     popup.Dispose();
@@ -100,7 +100,7 @@ namespace PoE.dlls.GameData
         {
             private readonly TextBox _textBox;
             private readonly ModSuggestionService _service;
-            private readonly Func<ModSuggestionBehavior> _getBehavior;
+            private readonly Func<IModSuggestionStrategy> _getStrategy;
             private readonly Form _owner;
             private readonly SuggestionDropDownForm _popup;
             private readonly ScrollableListBox _list;
@@ -117,11 +117,11 @@ namespace PoE.dlls.GameData
 
             private ModContentSearchSegment _lastSegment;
 
-            public SuggestionPopup(TextBox textBox, ModSuggestionService service, Func<ModSuggestionBehavior> getBehavior)
+            public SuggestionPopup(TextBox textBox, ModSuggestionService service, Func<IModSuggestionStrategy> getStrategy)
             {
                 _textBox = textBox;
                 _service = service;
-                _getBehavior = getBehavior;
+                _getStrategy = getStrategy;
                 _owner = textBox.FindForm()
                     ?? throw new InvalidOperationException("Autocomplete requires a parent form.");
 
@@ -318,15 +318,15 @@ namespace PoE.dlls.GameData
 
                     ResetResults();
                     _lastTerm = term;
-                    ModSuggestionBehavior behavior = _getBehavior();
-                    IReadOnlyList<ModSuggestionItem> suggestions = _service.Search(term, behavior.Scope, PageSize, 0);
+                    IModSuggestionStrategy strategy = _getStrategy();
+                    IReadOnlyList<ModSuggestionItem> suggestions = _service.Search(term, strategy, PageSize, 0);
                     if (suggestions.Count == 0)
                     {
                         HidePopup();
                         return;
                     }
 
-                    AppendSuggestions(suggestions, behavior);
+                    AppendSuggestions(suggestions, strategy);
                     _hasMore = suggestions.Count >= PageSize;
                     _keyboardIndex = -1;
                     ShowPopup();
@@ -346,7 +346,7 @@ namespace PoE.dlls.GameData
                 _loadingMore = false;
             }
 
-            private void AppendSuggestions(IReadOnlyList<ModSuggestionItem> suggestions, ModSuggestionBehavior behavior)
+            private void AppendSuggestions(IReadOnlyList<ModSuggestionItem> suggestions, IModSuggestionStrategy strategy)
             {
                 if (suggestions.Count == 0)
                     return;
@@ -355,7 +355,7 @@ namespace PoE.dlls.GameData
                 foreach (ModSuggestionItem item in suggestions)
                 {
                     _items.Add(item);
-                    _list.Items.Add(item.GetDisplayText(_lastTerm, behavior));
+                    _list.Items.Add(strategy.FormatDisplay(item, _lastTerm));
                 }
 
                 _list.EndUpdate();
@@ -384,10 +384,10 @@ namespace PoE.dlls.GameData
                 _loadingMore = true;
                 try
                 {
-                    ModSuggestionBehavior behavior = _getBehavior();
-                    IReadOnlyList<ModSuggestionItem> suggestions = _service.Search(_lastTerm, behavior.Scope, PageSize, _items.Count);
+                    IModSuggestionStrategy strategy = _getStrategy();
+                    IReadOnlyList<ModSuggestionItem> suggestions = _service.Search(_lastTerm, strategy, PageSize, _items.Count);
                     _hasMore = suggestions.Count >= PageSize;
-                    AppendSuggestions(suggestions, behavior);
+                    AppendSuggestions(suggestions, strategy);
                     RepositionPopup();
                 }
                 catch (Exception ex)
@@ -459,7 +459,7 @@ namespace PoE.dlls.GameData
 
                 Control anchor = AnchorControl;
                 Point screen = anchor.PointToScreen(new Point(0, anchor.Height + 2));
-                int width = Math.Max(anchor.Width, _getBehavior().ShowNameAndDescription ? 560 : 360);
+                int width = Math.Max(anchor.Width, _getStrategy().SuggestionPopupMinWidth);
                 int visibleRows = Math.Min(MaxVisibleItems, Math.Max(_list.Items.Count, 1));
                 int height = Math.Min(320, Math.Max(80, _list.ItemHeight * visibleRows + 8));
                 _popup.Size = new Size(width, height);
@@ -520,13 +520,13 @@ namespace PoE.dlls.GameData
                 }
 
                 ModSuggestionItem item = _items[index];
-                ModSuggestionBehavior behavior = _getBehavior();
+                IModSuggestionStrategy strategy = _getStrategy();
                 _selecting = true;
                 _blockAutoShow = true;
                 _debounce.Stop();
                 try
                 {
-                    ModContentSearchSegment.ReplaceActiveSegment(_textBox, item.GetInsertText(_lastTerm, behavior));
+                    ModContentSearchSegment.ReplaceActiveSegment(_textBox, strategy.FormatInsert(item, _lastTerm));
                     HidePopup();
                     _textBox.Focus();
                 }

@@ -10,11 +10,9 @@ namespace PoE.dlls.GameData
 
         public IReadOnlyList<ModSuggestionItem> Search(
             string term,
-            ModSuggestionScope scope = ModSuggestionScope.All,
+            IModSuggestionStrategy strategy,
             int limit = 50,
             int offset = 0) =>
-            scope == ModSuggestionScope.MapOnly
-                ? _database.SearchMapGrouped(term, limit, offset)
-                : _database.Search(term, limit, offset);
+            strategy.Search(_database, term, limit, offset);
     }
 }

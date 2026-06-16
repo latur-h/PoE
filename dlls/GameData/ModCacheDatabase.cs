@@ -129,6 +129,55 @@ namespace PoE.dlls.GameData
             }
         }
 
+        public IReadOnlyList<ModSuggestionItem> SearchItemOnly(string term, int limit = 50, int offset = 0)
+        {
+            string trimmed = term.Trim();
+            string[] words = ModSearchQuery.SplitWords(trimmed);
+            if (words.Length == 0 || trimmed.Length < 2)
+                return [];
+
+            lock (_sync)
+            {
+                EnsureOpen();
+                using var command = _connection!.CreateCommand();
+
+                var contentWordChecks = new StringBuilder();
+                var nameWordChecks = new StringBuilder();
+                for (int i = 0; i < words.Length; i++)
+                {
+                    string param = $"$w{i}";
+                    contentWordChecks.Append($" AND instr(lower(mod_content), lower({param})) > 0");
+                    nameWordChecks.Append($" AND instr(lower(mod_name), lower({param})) > 0");
+                    command.Parameters.AddWithValue(param, words[i]);
+                }
+
+                command.Parameters.AddWithValue("$phrase", trimmed);
+                command.Parameters.AddWithValue("$limit", limit);
+                command.Parameters.AddWithValue("$offset", offset);
+
+                command.CommandText = $"""
+                    SELECT MIN(mod_name) AS mod_name, mod_content
+                    FROM mod_suggestions
+                    WHERE is_map = 0
+                      AND (
+                        (mod_content <> '' {contentWordChecks})
+                        OR (mod_content = '' {nameWordChecks})
+                      )
+                    GROUP BY CASE WHEN mod_content <> '' THEN mod_content ELSE mod_name END
+                    ORDER BY
+                        CASE WHEN mod_content <> '' THEN 0 ELSE 1 END,
+                        CASE WHEN mod_content <> '' AND instr(lower(mod_content), lower($phrase)) > 0 THEN 0 ELSE 1 END,
+                        CASE WHEN mod_content <> '' THEN instr(lower(mod_content), lower($w0)) ELSE instr(lower(MIN(mod_name)), lower($w0)) END,
+                        length(mod_content),
+                        MIN(mod_name),
+                        mod_content
+                    LIMIT $limit OFFSET $offset;
+                    """;
+
+                return ReadSuggestionItems(command);
+            }
+        }
+
         public IReadOnlyList<ModSuggestionItem> SearchMapGrouped(string term, int limit = 50, int offset = 0)
         {
             if (!HasMapTaggedEntries())

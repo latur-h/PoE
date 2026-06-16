@@ -217,24 +217,11 @@ namespace PoE.dlls.Gamble.UI
             if (_modSuggestions is null)
                 return;
 
-            ModSuggestionAutocomplete.Attach(row.ContentTextBox, _modSuggestions, GetSuggestionBehavior);
+            ModSuggestionAutocomplete.Attach(row.ContentTextBox, _modSuggestions, GetSuggestionStrategy);
         }
 
-        private ModSuggestionBehavior GetSuggestionBehavior()
-        {
-            GambleType type = _getGambleType?.Invoke() ?? GambleType.Alt;
-            if (type is GambleType.Map or GambleType.MapExalt or GambleType.MapT17)
-            {
-                return new ModSuggestionBehavior
-                {
-                    Scope = ModSuggestionScope.MapOnly,
-                    InsertModNameOnly = true,
-                    ShowNameAndDescription = true,
-                };
-            }
-
-            return ModSuggestionBehavior.Default;
-        }
+        private IModSuggestionStrategy GetSuggestionStrategy() =>
+            ModSuggestionStrategyResolver.For(_getGambleType?.Invoke() ?? GambleType.Alt);
 
         private void RemoveRow(GambleRuleRowControl row)
         {
