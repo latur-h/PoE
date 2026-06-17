@@ -6,7 +6,10 @@ namespace PoE.dlls.Gamble.Bulk
     internal enum BulkMapAction
     {
         None,
+        /// <summary>Rare maps: Alt+LMB scour then LMB alchemy.</summary>
         ScourAlchemy,
+        /// <summary>Normal/magic maps: LMB alchemy only.</summary>
+        AlchemyOnly,
         Exalt,
         Chaos,
         Vaal,

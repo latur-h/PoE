@@ -206,6 +206,10 @@ namespace PoE
                     _textBox_GambleNextY.Location = new Point(396, 54);
                 if (_button_GambleNextCellRec is not null)
                     _button_GambleNextCellRec.Location = new Point(454, 54);
+                if (_label_GambleRefreshDelay is not null)
+                    _label_GambleRefreshDelay.Location = new Point(220, 88);
+                if (_textBox_GambleRefreshDelay is not null)
+                    _textBox_GambleRefreshDelay.Location = new Point(310, 84);
             }
 
             int contentTop = rowY + rowHeight + margin + bulkOffset;

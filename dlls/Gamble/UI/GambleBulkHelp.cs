@@ -27,6 +27,9 @@ namespace PoE.dlls.Gamble.UI
 
             public const string NextCellRec =
                 "Rec + F6 on the next map (right or below) to fill Next X / Next Y from the delta.";
+
+            public const string RefreshDelay =
+                "Milliseconds to wait after a slam before copying the map (lets the client refresh tooltip text).";
         }
 
         public static GambleModeHelpSection DetailedBulkInventory() => new(

@@ -21,6 +21,9 @@ namespace PoE.dlls.Settings.Mods
         /// <summary>Vertical pixels between map cell centers. Use 0 for a single row.</summary>
         public int NextY { get; set; }
 
+        /// <summary>Wait after a slam before copying map tooltip (ms).</summary>
+        public int RefreshDelayMs { get; set; } = 80;
+
         public bool HasGridArea =>
             GridStart.X != GridEnd.X || GridStart.Y != GridEnd.Y;
 

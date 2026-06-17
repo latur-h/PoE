@@ -22,6 +22,8 @@ namespace PoE
         private Label? _label_GambleNextY;
         private FlatTextBox? _textBox_GambleNextY;
         private Button? _button_GambleNextCellRec;
+        private Label? _label_GambleRefreshDelay;
+        private FlatTextBox? _textBox_GambleRefreshDelay;
         private Label? _label_GamblerGridPickKey;
         private FlatTextBox? _textBox_GamblerGridPickKey;
         private readonly GambleGridCapture _gambleGridCapture = new();
@@ -31,7 +33,7 @@ namespace PoE
         private bool _showGambleBulkPanel;
         private bool _bulkNextCellCaptureArmed;
 
-        private const int GambleBulkPanelHeight = 118;
+        private const int GambleBulkPanelHeight = 142;
 
         private void InitializeGambleBulkUi()
         {
@@ -134,6 +136,22 @@ namespace PoE
                 Font = new Font("Segoe UI", 9F),
             };
 
+            _label_GambleRefreshDelay = new Label
+            {
+                AutoSize = true,
+                Font = new Font("Segoe UI", 11F),
+                ForeColor = StaticColors.ForeGround,
+                Text = "Refresh ms",
+            };
+
+            _textBox_GambleRefreshDelay = new FlatTextBox
+            {
+                BackColor = Color.Transparent,
+                Font = new Font("Segoe UI", 12F),
+                Size = new Size(52, 30),
+                TextAlign = HorizontalAlignment.Center,
+            };
+
             _label_GamblerGridPickKey = new Label
             {
                 AutoSize = true,
@@ -161,6 +179,8 @@ namespace PoE
             _groupBox_GambleBulk.Controls.Add(_label_GambleNextY);
             _groupBox_GambleBulk.Controls.Add(_textBox_GambleNextY);
             _groupBox_GambleBulk.Controls.Add(_button_GambleNextCellRec);
+            _groupBox_GambleBulk.Controls.Add(_label_GambleRefreshDelay);
+            _groupBox_GambleBulk.Controls.Add(_textBox_GambleRefreshDelay);
             tabPage_Gamble.Controls.Add(_groupBox_GambleBulk);
             tabPage_Gamble.Controls.SetChildIndex(_groupBox_GambleBulk, 0);
 
@@ -197,6 +217,8 @@ namespace PoE
 
             _textBox_GambleNextX._textBox.KeyUp += (_, _) => TryApplyBulkStepField(_textBox_GambleNextX, v => _settings.Modifiers.MapBulk.NextX = v, allowZero: false);
             _textBox_GambleNextY._textBox.KeyUp += (_, _) => TryApplyBulkStepField(_textBox_GambleNextY, v => _settings.Modifiers.MapBulk.NextY = v, allowZero: true);
+            _textBox_GambleRefreshDelay!._textBox.KeyUp += (_, _) =>
+                TryApplyBulkStepField(_textBox_GambleRefreshDelay, v => _settings.Modifiers.MapBulk.RefreshDelayMs = v, allowZero: false);
 
             _textBox_GamblerGridPickKey._textBox.KeyDown += (_, e) => e.SuppressKeyPress = true;
             _textBox_GamblerGridPickKey._textBox.KeyUp += (_, e) =>
@@ -225,7 +247,9 @@ namespace PoE
                 || _textBox_GambleNextX is null
                 || _label_GambleNextY is null
                 || _textBox_GambleNextY is null
-                || _button_GambleNextCellRec is null)
+                || _button_GambleNextCellRec is null
+                || _label_GambleRefreshDelay is null
+                || _textBox_GambleRefreshDelay is null)
                 return;
 
             if (_groupBox_GambleBulk is not null)
@@ -241,6 +265,8 @@ namespace PoE
             toolTip.SetToolTip(_label_GambleNextY, GambleBulkHelp.Short.NextY);
             toolTip.SetToolTip(_textBox_GambleNextY, GambleBulkHelp.Short.NextY);
             toolTip.SetToolTip(_button_GambleNextCellRec, GambleBulkHelp.Short.NextCellRec);
+            toolTip.SetToolTip(_label_GambleRefreshDelay, GambleBulkHelp.Short.RefreshDelay);
+            toolTip.SetToolTip(_textBox_GambleRefreshDelay, GambleBulkHelp.Short.RefreshDelay);
         }
 
         private void FinalizeGambleTabUi()
@@ -264,6 +290,8 @@ namespace PoE
             _textBox_GambleNextX._textBox.ForeColor = StaticColors.ForeGround;
             _textBox_GambleNextY!._textBox.Text = bulk.NextY.ToString();
             _textBox_GambleNextY._textBox.ForeColor = StaticColors.ForeGround;
+            _textBox_GambleRefreshDelay!._textBox.Text = bulk.RefreshDelayMs.ToString();
+            _textBox_GambleRefreshDelay._textBox.ForeColor = StaticColors.ForeGround;
             InitHotkeySetting(ref _settings.Modifiers.GamblerGridPickKey, _textBox_GamblerGridPickKey!);
             RefreshGambleBulkStatusLabel();
         }

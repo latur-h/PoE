@@ -12,6 +12,7 @@ namespace PoE.dlls.Gamble.Bulk
     internal sealed class MapBulkGambler : IGamba
     {
         private const int TargetAffixCount = 6;
+        private const int MaxConsecutiveExaltNoModSlams = 3;
 
         private readonly Main _main;
         private readonly InputSimulatorHost _inputHost;
@@ -28,12 +29,15 @@ namespace PoE.dlls.Gamble.Bulk
         private readonly Coordinates _vaal;
         private readonly bool _corruptOnSuccess;
         private readonly GambleMapBulkSettings? _bulkGrid;
+        private readonly TimeSpan _refreshDelay;
 
         private bool _shiftHeld;
         private bool _alchemyPrimed;
         private bool _exaltPrimed;
         private bool _chaosPrimed;
         private bool _vaalPrimed;
+        private Coordinates? _heldOrbStack;
+        private int _consecutiveExaltNoModSlams;
 
         public MapBulkGambler(
             Main main,
@@ -66,6 +70,7 @@ namespace PoE.dlls.Gamble.Bulk
             _bulkGrid = bulkGrid;
             _rules = rules;
             _slots = cells.Select(c => new BulkMapSlot { Position = c }).ToList();
+            _refreshDelay = BulkMapActionHelper.ResolveRefreshDelay(bulkGrid, delay);
 
             GamblerLog.Info($"Bulk map session: {_slots.Count} slots, mode {_mapMode}");
         }
@@ -76,21 +81,17 @@ namespace PoE.dlls.Gamble.Bulk
 
             try
             {
-                while (!_token.IsCancellationRequested && _slots.Any(s => s.IsActive))
+                await PrecheckAllAsync();
+
+                while (!_token.IsCancellationRequested && HasRollingWork())
                 {
-                    await ExecuteStashBrokenBatchAsync();
-
-                    await PrecheckAllAsync();
-
-                    if (_token.IsCancellationRequested)
-                        break;
-
-                    if (!_slots.Any(s => s.IsActive && s.NextAction is BulkMapAction.ScourAlchemy or BulkMapAction.Exalt or BulkMapAction.Chaos or BulkMapAction.Vaal or BulkMapAction.StashBroken))
-                        break;
-
                     await ExecuteScourAlchemyBatchAsync();
-                    await ExecuteExaltBatchAsync();
-                    await ExecuteChaosBatchAsync();
+                    await ExecuteExaltBatchLoopAsync();
+                    await ExecuteChaosBatchLoopAsync();
+                }
+
+                if (!_token.IsCancellationRequested)
+                {
                     await ExecuteVaalBatchAsync();
                     await ExecuteStashBrokenBatchAsync();
                 }
@@ -105,9 +106,16 @@ namespace PoE.dlls.Gamble.Bulk
             }
             finally
             {
-                GambleInputReleaseHelper.ReleaseAll(_inputHost);
+                _inputHost.Simulator.Send("Shift Up");
+                GambleInputReleaseHelper.ReleaseModifiers(_inputHost);
+                _shiftHeld = false;
+                _heldOrbStack = null;
+                ClearPrimedOrbs();
             }
         }
+
+        private bool HasRollingWork() =>
+            _slots.Any(s => s.IsActive && s.NextAction is BulkMapAction.ScourAlchemy or BulkMapAction.AlchemyOnly or BulkMapAction.Exalt or BulkMapAction.Chaos);
 
         private void LogBulkSetup()
         {
@@ -210,20 +218,20 @@ namespace PoE.dlls.Gamble.Bulk
                 return;
             }
 
-            slot.NextAction = BulkMapAction.ScourAlchemy;
+            AssignScourOrAlchemyOnly(slot, eval);
         }
 
         private void AssignMapExaltAction(BulkMapSlot slot, MapRulesResult eval)
         {
             if (!eval.IsRare)
             {
-                slot.NextAction = BulkMapAction.ScourAlchemy;
+                slot.NextAction = BulkMapAction.AlchemyOnly;
                 return;
             }
 
             if (eval.ExcludeHit)
             {
-                slot.NextAction = BulkMapAction.ScourAlchemy;
+                AssignScourOrAlchemyOnly(slot, eval);
                 return;
             }
 
@@ -238,7 +246,7 @@ namespace PoE.dlls.Gamble.Bulk
                 }
                 else
                 {
-                    slot.NextAction = BulkMapAction.ScourAlchemy;
+                    AssignScourOrAlchemyOnly(slot, eval);
                 }
 
                 return;
@@ -246,6 +254,9 @@ namespace PoE.dlls.Gamble.Bulk
 
             slot.NextAction = BulkMapAction.Exalt;
         }
+
+        private static void AssignScourOrAlchemyOnly(BulkMapSlot slot, MapRulesResult eval) =>
+            BulkMapActionHelper.AssignScourOrAlchemyOnly(slot, eval);
 
         private void AssignMapT17Action(BulkMapSlot slot, MapRulesResult eval)
         {
@@ -269,67 +280,127 @@ namespace PoE.dlls.Gamble.Bulk
 
         private async Task ExecuteScourAlchemyBatchAsync()
         {
-            var targets = _slots.Where(s => s.IsActive && s.NextAction == BulkMapAction.ScourAlchemy).ToList();
-            if (targets.Count == 0)
+            var scourTargets = _slots.Where(s => s.IsActive && s.NextAction == BulkMapAction.ScourAlchemy).ToList();
+            var alchemyTargets = _slots.Where(s => s.IsActive && s.NextAction == BulkMapAction.AlchemyOnly).ToList();
+            if (scourTargets.Count == 0 && alchemyTargets.Count == 0)
                 return;
 
             if (!await EnsureAlchemyPrimedAsync())
                 return;
 
-            foreach (var slot in targets)
+            foreach (var slot in scourTargets)
             {
                 _token.ThrowIfCancellationRequested();
                 await MoveToAsync(slot.Position);
-
-                _inputHost.Simulator.Send("Alt Down");
-                await Task.Delay(_delay, _token);
-                _inputHost.Simulator.Send("LButton Down");
-                await Task.Delay(_delay, _token);
-                _inputHost.Simulator.Send("LButton Up");
-                await Task.Delay(_delay, _token);
-                _inputHost.Simulator.Send("Alt Up");
-                await Task.Delay(_delay, _token);
-
+                await SlamScourAsync();
                 await RefreshAndAssignAsync(slot);
+                await SlamAlchemyAsync();
+                await RefreshAndAssignAsync(slot);
+            }
 
-                _inputHost.Simulator.Send("LButton Down");
-                await Task.Delay(_delay, _token);
-                _inputHost.Simulator.Send("LButton Up");
-                await Task.Delay(_delay, _token);
-
+            foreach (var slot in alchemyTargets)
+            {
+                _token.ThrowIfCancellationRequested();
+                await MoveToAsync(slot.Position);
+                await SlamAlchemyAsync();
                 await RefreshAndAssignAsync(slot);
             }
         }
 
-        private async Task ExecuteExaltBatchAsync()
+        private async Task SlamScourAsync()
+        {
+            _inputHost.Simulator.Send("Alt Down");
+            await Task.Delay(_delay, _token);
+            _inputHost.Simulator.Send("LButton Down");
+            await Task.Delay(_delay, _token);
+            _inputHost.Simulator.Send("LButton Up");
+            await Task.Delay(_delay, _token);
+            _inputHost.Simulator.Send("Alt Up");
+            await Task.Delay(_delay, _token);
+        }
+
+        private async Task SlamAlchemyAsync()
+        {
+            _inputHost.Simulator.Send("LButton Down");
+            await Task.Delay(_delay, _token);
+            _inputHost.Simulator.Send("LButton Up");
+            await Task.Delay(_delay, _token);
+        }
+
+        private async Task ExecuteExaltBatchLoopAsync()
         {
             if (_mapMode != GambleType.MapExalt)
+                return;
+
+            if (!_slots.Any(s => s.IsActive && s.NextAction == BulkMapAction.Exalt))
                 return;
 
             if (!await EnsureExaltPrimedAsync())
                 return;
 
-            foreach (var slot in _slots.Where(s => s.IsActive).ToList())
+            while (_slots.Any(s => s.IsActive && s.NextAction == BulkMapAction.Exalt))
             {
                 _token.ThrowIfCancellationRequested();
+                await ExecuteExaltBatchPassAsync();
+            }
+        }
+
+        private async Task ExecuteExaltBatchPassAsync()
+        {
+            foreach (var slot in _slots.Where(s => s.IsActive && s.NextAction == BulkMapAction.Exalt).ToList())
+            {
+                _token.ThrowIfCancellationRequested();
+
+                if (slot.Evaluation.AffixModCount >= TargetAffixCount)
+                {
+                    AssignNextAction(slot);
+                    continue;
+                }
+
                 await MoveToAsync(slot.Position);
 
-                if (!await RefreshAndAssignAsync(slot))
-                    continue;
-
-                if (slot.NextAction != BulkMapAction.Exalt)
-                    continue;
+                int affixBefore = slot.Evaluation.AffixModCount;
 
                 _inputHost.Simulator.Send("LButton Down");
                 await Task.Delay(_delay, _token);
                 _inputHost.Simulator.Send("LButton Up");
                 await Task.Delay(_delay, _token);
 
-                await RefreshAndAssignAsync(slot);
+                if (!await RefreshAndAssignAsync(slot))
+                    continue;
+
+                CheckExaltSlamResult(slot, affixBefore);
+                if (_token.IsCancellationRequested)
+                    return;
             }
         }
 
-        private async Task ExecuteChaosBatchAsync()
+        private void CheckExaltSlamResult(BulkMapSlot slot, int affixCountBefore)
+        {
+            int affixAfter = slot.Evaluation.AffixModCount;
+            if (affixAfter > affixCountBefore)
+            {
+                _consecutiveExaltNoModSlams = 0;
+                return;
+            }
+
+            _consecutiveExaltNoModSlams++;
+            GamblerLog.Warn(
+                $"Exalt did not add a mod at {slot.Position.X},{slot.Position.Y} " +
+                $"({affixCountBefore} → {affixAfter}; empty hand, lag, or stale copy?)");
+
+            if (_consecutiveExaltNoModSlams >= MaxConsecutiveExaltNoModSlams)
+            {
+                GamblerLog.Error(
+                    $"Stopping after {MaxConsecutiveExaltNoModSlams} exalt slams in a row with no new mods " +
+                    "(orb not on cursor or clipboard not refreshed).");
+                _cts.Cancel();
+            }
+        }
+
+        private void ResetExaltSlamGuard() => _consecutiveExaltNoModSlams = 0;
+
+        private async Task ExecuteChaosBatchLoopAsync()
         {
             if (_mapMode != GambleType.MapT17)
                 return;
@@ -340,16 +411,19 @@ namespace PoE.dlls.Gamble.Bulk
             if (!await EnsureChaosPrimedAsync())
                 return;
 
-            foreach (var slot in _slots.Where(s => s.IsActive).ToList())
+            while (_slots.Any(s => s.IsActive && s.NextAction == BulkMapAction.Chaos))
+            {
+                _token.ThrowIfCancellationRequested();
+                await ExecuteChaosBatchPassAsync();
+            }
+        }
+
+        private async Task ExecuteChaosBatchPassAsync()
+        {
+            foreach (var slot in _slots.Where(s => s.IsActive && s.NextAction == BulkMapAction.Chaos).ToList())
             {
                 _token.ThrowIfCancellationRequested();
                 await MoveToAsync(slot.Position);
-
-                if (!await RefreshAndAssignAsync(slot))
-                    continue;
-
-                if (slot.NextAction != BulkMapAction.Chaos)
-                    continue;
 
                 _inputHost.Simulator.Send("LButton Down");
                 await Task.Delay(_delay, _token);
@@ -368,20 +442,11 @@ namespace PoE.dlls.Gamble.Bulk
             if (!await EnsureVaalPrimedAsync())
                 return;
 
-            foreach (var slot in _slots.Where(s => s.IsActive).ToList())
+            foreach (var slot in _slots.Where(s => s.IsActive && s.NextAction == BulkMapAction.Vaal).ToList())
             {
                 _token.ThrowIfCancellationRequested();
 
                 await MoveToAsync(slot.Position);
-
-                if (!await RefreshAndAssignAsync(slot))
-                {
-                    slot.IsFinished = true;
-                    continue;
-                }
-
-                if (slot.NextAction != BulkMapAction.Vaal)
-                    continue;
 
                 _inputHost.Simulator.Send("LButton Down");
                 await Task.Delay(_delay, _token);
@@ -411,7 +476,7 @@ namespace PoE.dlls.Gamble.Bulk
             if (targets.Count == 0)
                 return;
 
-            await PrepareOrbSwapAsync();
+            await ReleaseShiftAndReturnHeldOrbAsync();
 
             foreach (var slot in targets)
             {
@@ -446,6 +511,8 @@ namespace PoE.dlls.Gamble.Bulk
 
         private async Task<bool> RefreshSlotAsync(BulkMapSlot slot)
         {
+            await Task.Delay(_refreshDelay, _token);
+
             string? content = await MapClipboardHelper.CopyMapAsync(_main, _inputHost, _delay, _token);
             if (content is null)
             {
@@ -472,19 +539,85 @@ namespace PoE.dlls.Gamble.Bulk
             _vaalPrimed = false;
         }
 
+        private bool IsHoldingOrbAt(Coordinates stack) =>
+            _heldOrbStack is { } held
+            && held.X == stack.X
+            && held.Y == stack.Y
+            && IsOrbConfigured(stack);
+
         private static bool IsOrbConfigured(Coordinates orb) => orb.X > 0 && orb.Y > 0;
 
-        private async Task PrepareOrbSwapAsync()
+        private async Task ReleaseShiftAndModifiersAsync()
         {
-            GambleInputReleaseHelper.ReleaseAll(_inputHost);
+            _inputHost.Simulator.Send("Shift Up");
             _shiftHeld = false;
-            ClearPrimedOrbs();
             await Task.Delay(_delay, _token);
+            GambleInputReleaseHelper.ReleaseModifiers(_inputHost);
+            await Task.Delay(_refreshDelay, _token);
+        }
+
+        private async Task ReleaseShiftAndReturnHeldOrbAsync()
+        {
+            await ReleaseShiftAndModifiersAsync();
+            await ReturnHeldOrbAsync();
+        }
+
+        private async Task ReturnHeldOrbAsync()
+        {
+            if (_heldOrbStack is null)
+            {
+                ClearPrimedOrbs();
+                return;
+            }
+
+            Coordinates dropOn = ResolveOrbDropMapCell();
+            GamblerLog.Info($"Dropping orb over map slot ({dropOn.X},{dropOn.Y})");
+            await MoveToAsync(dropOn);
+            await SendOrbRightClickAsync();
+            await Task.Delay(_refreshDelay, _token);
+            _heldOrbStack = null;
+            ClearPrimedOrbs();
+        }
+
+        private Coordinates ResolveOrbDropMapCell()
+        {
+            foreach (var slot in _slots)
+            {
+                if (slot.IsActive)
+                    return slot.Position;
+            }
+
+            return _slots[0].Position;
+        }
+
+        private async Task SendOrbRightClickAsync()
+        {
+            _inputHost.Simulator.Send("RButton Down");
+            await Task.Delay(_delay, _token);
+            _inputHost.Simulator.Send("RButton Up");
+            await Task.Delay(_delay, _token);
+        }
+
+        private async Task PickUpOrbWithoutShiftAsync(Coordinates stack)
+        {
+            GamblerLog.Info($"Picking up orb ({stack.X},{stack.Y})");
+            await MoveToAsync(stack);
+            await SendOrbRightClickAsync();
+            await Task.Delay(_refreshDelay, _token);
+            _heldOrbStack = stack;
+            ResetExaltSlamGuard();
+        }
+
+        private async Task SwapToOrbAsync(Coordinates stack)
+        {
+            await ReleaseShiftAndReturnHeldOrbAsync();
+            await PickUpOrbWithoutShiftAsync(stack);
+            await EnsureShiftHeldAsync();
         }
 
         private async Task<bool> EnsureAlchemyPrimedAsync()
         {
-            if (_alchemyPrimed)
+            if (_alchemyPrimed && IsHoldingOrbAt(_alchemy))
                 return true;
 
             if (!IsOrbConfigured(_alchemy))
@@ -493,21 +626,14 @@ namespace PoE.dlls.Gamble.Bulk
                 return false;
             }
 
-            await PrepareOrbSwapAsync();
-            await MoveToAsync(_alchemy);
-            _inputHost.Simulator.Send("RButton Down");
-            await Task.Delay(_delay, _token);
-            _inputHost.Simulator.Send("RButton Up");
-            await Task.Delay(_delay, _token);
-
-            await EnsureShiftHeldAsync();
+            await SwapToOrbAsync(_alchemy);
             _alchemyPrimed = true;
             return true;
         }
 
         private async Task<bool> EnsureExaltPrimedAsync()
         {
-            if (_exaltPrimed)
+            if (_exaltPrimed && IsHoldingOrbAt(_exalt))
                 return true;
 
             if (!IsOrbConfigured(_exalt))
@@ -516,22 +642,15 @@ namespace PoE.dlls.Gamble.Bulk
                 return false;
             }
 
-            await PrepareOrbSwapAsync();
-            await MoveToAsync(_exalt);
-            _inputHost.Simulator.Send("RButton Down");
-            await Task.Delay(_delay, _token);
-            _inputHost.Simulator.Send("RButton Up");
-            await Task.Delay(_delay, _token);
-
-            await EnsureShiftHeldAsync();
+            await SwapToOrbAsync(_exalt);
             _exaltPrimed = true;
-            GamblerLog.Info("Exalt orb picked up — shift held for batch slams");
+            GamblerLog.Info("Exalt orb on cursor — shift held for batch slams");
             return true;
         }
 
         private async Task<bool> EnsureChaosPrimedAsync()
         {
-            if (_chaosPrimed)
+            if (_chaosPrimed && IsHoldingOrbAt(_chaos))
                 return true;
 
             if (!IsOrbConfigured(_chaos))
@@ -540,21 +659,14 @@ namespace PoE.dlls.Gamble.Bulk
                 return false;
             }
 
-            await PrepareOrbSwapAsync();
-            await MoveToAsync(_chaos);
-            _inputHost.Simulator.Send("RButton Down");
-            await Task.Delay(_delay, _token);
-            _inputHost.Simulator.Send("RButton Up");
-            await Task.Delay(_delay, _token);
-
-            await EnsureShiftHeldAsync();
+            await SwapToOrbAsync(_chaos);
             _chaosPrimed = true;
             return true;
         }
 
         private async Task<bool> EnsureVaalPrimedAsync()
         {
-            if (_vaalPrimed)
+            if (_vaalPrimed && IsHoldingOrbAt(_vaal))
                 return true;
 
             if (!IsOrbConfigured(_vaal))
@@ -563,14 +675,7 @@ namespace PoE.dlls.Gamble.Bulk
                 return false;
             }
 
-            await PrepareOrbSwapAsync();
-            await MoveToAsync(_vaal);
-            _inputHost.Simulator.Send("RButton Down");
-            await Task.Delay(_delay, _token);
-            _inputHost.Simulator.Send("RButton Up");
-            await Task.Delay(_delay, _token);
-
-            await EnsureShiftHeldAsync();
+            await SwapToOrbAsync(_vaal);
             _vaalPrimed = true;
             return true;
         }
@@ -583,13 +688,6 @@ namespace PoE.dlls.Gamble.Bulk
             _inputHost.Simulator.Send("Shift Down");
             await Task.Delay(_delay, _token);
             _shiftHeld = true;
-        }
-
-        private void ReleaseShift()
-        {
-            GambleInputReleaseHelper.ReleaseAll(_inputHost);
-            _shiftHeld = false;
-            ClearPrimedOrbs();
         }
     }
 }
