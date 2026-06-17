@@ -13,6 +13,7 @@ namespace PoE
         private GroupBox? _groupBox_GambleBulk;
         private CheckBox? _checkBox_BulkInventory;
         private CheckBox? _checkBox_CorruptOnSuccess;
+        private CheckBox? _checkBox_CorruptEightMods;
         private Label? _label_GambleGridStatus;
         private Label? _label_GambleCellAnchor;
         private Button? _button_GambleCellAnchorRec;
@@ -24,6 +25,9 @@ namespace PoE
         private Button? _button_GambleNextCellRec;
         private Label? _label_GambleRefreshDelay;
         private FlatTextBox? _textBox_GambleRefreshDelay;
+        private CheckBox? _checkBox_BulkFastEmptyColor;
+        private Label? _label_GambleEmptySlotsStatus;
+        private Button? _button_GambleEmptySlotsRegister;
         private Label? _label_GamblerGridPickKey;
         private FlatTextBox? _textBox_GamblerGridPickKey;
         private readonly GambleGridCapture _gambleGridCapture = new();
@@ -33,7 +37,8 @@ namespace PoE
         private bool _showGambleBulkPanel;
         private bool _bulkNextCellCaptureArmed;
 
-        private const int GambleBulkPanelHeight = 142;
+        private const int GambleBulkPanelHeight = 172;
+        private const int GambleEmptyRegisterButtonWidth = 72;
 
         private void InitializeGambleBulkUi()
         {
@@ -64,6 +69,15 @@ namespace PoE
                 Text = "Corrupt on success (Vaal)",
             };
 
+            _checkBox_CorruptEightMods = new CheckBox
+            {
+                AutoSize = true,
+                Enabled = false,
+                Font = new Font("Segoe UI", 12F),
+                ForeColor = StaticColors.ForeGround,
+                Text = "8 mods",
+            };
+
             _label_GambleGridStatus = new Label
             {
                 AutoSize = true,
@@ -84,8 +98,9 @@ namespace PoE
             {
                 Size = new Size(48, 30),
                 Text = "Rec",
-                ForeColor = Color.Black,
                 Font = new Font("Segoe UI", 9F),
+                ForeColor = StaticColors.ButtonForeGround,
+                UseVisualStyleBackColor = true,
             };
 
             _textBox_GambleCellAnchor = new FlatTextBox
@@ -132,8 +147,9 @@ namespace PoE
             {
                 Size = new Size(48, 30),
                 Text = "Rec",
-                ForeColor = Color.Black,
                 Font = new Font("Segoe UI", 9F),
+                ForeColor = StaticColors.ButtonForeGround,
+                UseVisualStyleBackColor = true,
             };
 
             _label_GambleRefreshDelay = new Label
@@ -150,6 +166,32 @@ namespace PoE
                 Font = new Font("Segoe UI", 12F),
                 Size = new Size(52, 30),
                 TextAlign = HorizontalAlignment.Center,
+            };
+
+            _checkBox_BulkFastEmptyColor = new CheckBox
+            {
+                AutoSize = true,
+                Font = new Font("Segoe UI", 12F),
+                ForeColor = StaticColors.ForeGround,
+                Text = "Fast empty check",
+            };
+
+            _label_GambleEmptySlotsStatus = new Label
+            {
+                AutoSize = true,
+                Font = new Font("Segoe UI", 11F),
+                ForeColor = StaticColors.ForeGround,
+                Text = "Empty slots: not registered",
+                MaximumSize = new Size(260, 0),
+            };
+
+            _button_GambleEmptySlotsRegister = new Button
+            {
+                Size = new Size(72, 30),
+                Text = "Register",
+                Font = new Font("Segoe UI", 9F),
+                ForeColor = StaticColors.ButtonForeGround,
+                UseVisualStyleBackColor = true,
             };
 
             _label_GamblerGridPickKey = new Label
@@ -170,6 +212,7 @@ namespace PoE
 
             _groupBox_GambleBulk.Controls.Add(_checkBox_BulkInventory);
             _groupBox_GambleBulk.Controls.Add(_checkBox_CorruptOnSuccess);
+            _groupBox_GambleBulk.Controls.Add(_checkBox_CorruptEightMods);
             _groupBox_GambleBulk.Controls.Add(_label_GambleGridStatus);
             _groupBox_GambleBulk.Controls.Add(_label_GambleCellAnchor);
             _groupBox_GambleBulk.Controls.Add(_button_GambleCellAnchorRec);
@@ -181,6 +224,9 @@ namespace PoE
             _groupBox_GambleBulk.Controls.Add(_button_GambleNextCellRec);
             _groupBox_GambleBulk.Controls.Add(_label_GambleRefreshDelay);
             _groupBox_GambleBulk.Controls.Add(_textBox_GambleRefreshDelay);
+            _groupBox_GambleBulk.Controls.Add(_checkBox_BulkFastEmptyColor);
+            _groupBox_GambleBulk.Controls.Add(_label_GambleEmptySlotsStatus);
+            _groupBox_GambleBulk.Controls.Add(_button_GambleEmptySlotsRegister);
             tabPage_Gamble.Controls.Add(_groupBox_GambleBulk);
             tabPage_Gamble.Controls.SetChildIndex(_groupBox_GambleBulk, 0);
 
@@ -196,10 +242,26 @@ namespace PoE
             };
 
             _checkBox_CorruptOnSuccess.CheckedChanged += (_, _) =>
+            {
                 _settings.Modifiers.MapBulk.CorruptOnSuccess = _checkBox_CorruptOnSuccess.Checked;
+                if (!_checkBox_CorruptOnSuccess.Checked)
+                {
+                    _checkBox_CorruptEightMods!.Checked = false;
+                    _settings.Modifiers.MapBulk.CorruptRequireEightMods = false;
+                }
+
+                _checkBox_CorruptEightMods!.Enabled = _checkBox_CorruptOnSuccess.Checked;
+            };
+
+            _checkBox_CorruptEightMods.CheckedChanged += (_, _) =>
+                _settings.Modifiers.MapBulk.CorruptRequireEightMods = _checkBox_CorruptEightMods.Checked;
+
+            _checkBox_BulkFastEmptyColor.CheckedChanged += (_, _) =>
+                _settings.Modifiers.MapBulk.FastEmptyColorCheck = _checkBox_BulkFastEmptyColor.Checked;
 
             _button_GambleCellAnchorRec.Click += (_, _) => ToggleBulkFirstCellCapture();
             _button_GambleNextCellRec.Click += (_, _) => ToggleBulkNextCellCapture();
+            _button_GambleEmptySlotsRegister.Click += (_, _) => RegisterBulkEmptySlots();
 
             _textBox_GambleCellAnchor._textBox.KeyUp += (_, _) =>
             {
@@ -208,6 +270,7 @@ namespace PoE
                     _settings.Modifiers.MapBulk.CellAnchor = coordinates;
                     _textBox_GambleCellAnchor._textBox.ForeColor = StaticColors.ForeGround;
                     RefreshGambleBulkStatusLabel();
+                    RefreshEmptySlotRegistrationLabel();
                 }
                 else
                 {
@@ -228,7 +291,11 @@ namespace PoE
             _gambleGridCaptureTimer.Tick += (_, _) =>
             {
                 if (_gambleGridCapture.Poll(_settings.Modifiers.MapBulk))
+                {
+                    BulkEmptySlotHelper.ClearRegistrationIfStale(_settings.Modifiers.MapBulk);
                     RefreshGambleBulkStatusLabel();
+                    RefreshEmptySlotRegistrationLabel();
+                }
             };
             _gambleGridCaptureTimer.Start();
 
@@ -239,6 +306,7 @@ namespace PoE
         {
             if (_checkBox_BulkInventory is null
                 || _checkBox_CorruptOnSuccess is null
+                || _checkBox_CorruptEightMods is null
                 || _label_GambleGridStatus is null
                 || _label_GambleCellAnchor is null
                 || _button_GambleCellAnchorRec is null
@@ -249,13 +317,17 @@ namespace PoE
                 || _textBox_GambleNextY is null
                 || _button_GambleNextCellRec is null
                 || _label_GambleRefreshDelay is null
-                || _textBox_GambleRefreshDelay is null)
+                || _textBox_GambleRefreshDelay is null
+                || _checkBox_BulkFastEmptyColor is null
+                || _label_GambleEmptySlotsStatus is null
+                || _button_GambleEmptySlotsRegister is null)
                 return;
 
             if (_groupBox_GambleBulk is not null)
                 toolTip.SetToolTip(_groupBox_GambleBulk, "Bulk map rolling — hover each control for a short hint. Open ? on Gamble type for full details.");
             toolTip.SetToolTip(_checkBox_BulkInventory, GambleBulkHelp.Short.BulkInventory);
             toolTip.SetToolTip(_checkBox_CorruptOnSuccess, GambleBulkHelp.Short.CorruptOnSuccess);
+            toolTip.SetToolTip(_checkBox_CorruptEightMods, GambleBulkHelp.Short.CorruptRequireEightMods);
             toolTip.SetToolTip(_label_GambleGridStatus, GambleBulkHelp.Short.GridArea);
             toolTip.SetToolTip(_label_GambleCellAnchor, GambleBulkHelp.Short.FirstCell);
             toolTip.SetToolTip(_button_GambleCellAnchorRec, GambleBulkHelp.Short.FirstCell);
@@ -267,6 +339,9 @@ namespace PoE
             toolTip.SetToolTip(_button_GambleNextCellRec, GambleBulkHelp.Short.NextCellRec);
             toolTip.SetToolTip(_label_GambleRefreshDelay, GambleBulkHelp.Short.RefreshDelay);
             toolTip.SetToolTip(_textBox_GambleRefreshDelay, GambleBulkHelp.Short.RefreshDelay);
+            toolTip.SetToolTip(_checkBox_BulkFastEmptyColor, GambleBulkHelp.Short.FastEmptyColorCheck);
+            toolTip.SetToolTip(_label_GambleEmptySlotsStatus, GambleBulkHelp.Short.EmptySlotRegistration);
+            toolTip.SetToolTip(_button_GambleEmptySlotsRegister, GambleBulkHelp.Short.EmptySlotRegister);
         }
 
         private void FinalizeGambleTabUi()
@@ -284,6 +359,8 @@ namespace PoE
             var bulk = _settings.Modifiers.MapBulk;
             _checkBox_BulkInventory.Checked = bulk.BulkInventory;
             _checkBox_CorruptOnSuccess!.Checked = bulk.CorruptOnSuccess;
+            _checkBox_CorruptEightMods!.Checked = bulk.CorruptRequireEightMods;
+            _checkBox_CorruptEightMods.Enabled = bulk.CorruptOnSuccess;
             _textBox_GambleCellAnchor!._textBox.Text = $"{bulk.CellAnchor.X}, {bulk.CellAnchor.Y}";
             _textBox_GambleCellAnchor._textBox.ForeColor = StaticColors.ForeGround;
             _textBox_GambleNextX!._textBox.Text = bulk.NextX.ToString();
@@ -292,6 +369,9 @@ namespace PoE
             _textBox_GambleNextY._textBox.ForeColor = StaticColors.ForeGround;
             _textBox_GambleRefreshDelay!._textBox.Text = bulk.RefreshDelayMs.ToString();
             _textBox_GambleRefreshDelay._textBox.ForeColor = StaticColors.ForeGround;
+            _checkBox_BulkFastEmptyColor!.Checked = bulk.FastEmptyColorCheck;
+            BulkEmptySlotHelper.ClearRegistrationIfStale(bulk);
+            RefreshEmptySlotRegistrationLabel();
             InitHotkeySetting(ref _settings.Modifiers.GamblerGridPickKey, _textBox_GamblerGridPickKey!);
             RefreshGambleBulkStatusLabel();
         }
@@ -327,6 +407,7 @@ namespace PoE
             if (!bulk.HasGridArea)
             {
                 _label_GambleGridStatus.Text = "Grid: press Grid hotkey, drag LMB over stash area";
+                RefreshEmptySlotRegistrationLabel();
                 return;
             }
 
@@ -335,10 +416,57 @@ namespace PoE
             {
                 string missing = !bulk.HasCellStep ? "set Next X / Next Y" : "pick First cell";
                 _label_GambleGridStatus.Text = $"Grid area set — {missing} ({cells} cells when ready)";
+                RefreshEmptySlotRegistrationLabel();
                 return;
             }
 
             _label_GambleGridStatus.Text = $"Grid ready: {cells} cells";
+            RefreshEmptySlotRegistrationLabel();
+        }
+
+        private void RefreshEmptySlotRegistrationLabel()
+        {
+            if (_label_GambleEmptySlotsStatus is null || _button_GambleEmptySlotsRegister is null)
+                return;
+
+            var bulk = _settings.Modifiers.MapBulk;
+            BulkEmptySlotHelper.ClearRegistrationIfStale(bulk);
+
+            if (!bulk.IsConfigured)
+            {
+                _label_GambleEmptySlotsStatus.Text = "Empty slots: configure grid first";
+                _label_GambleEmptySlotsStatus.ForeColor = StaticColors.ForeGround;
+                _button_GambleEmptySlotsRegister.Enabled = false;
+                return;
+            }
+
+            _button_GambleEmptySlotsRegister.Enabled = true;
+
+            if (BulkEmptySlotHelper.IsRegistrationValid(bulk))
+            {
+                int cells = bulk.EmptySlotSignatures.Count;
+                _label_GambleEmptySlotsStatus.Text = $"Empty slots: registered ({cells})";
+                _label_GambleEmptySlotsStatus.ForeColor = Color.LimeGreen;
+                return;
+            }
+
+            _label_GambleEmptySlotsStatus.Text = "Empty slots: not registered";
+            _label_GambleEmptySlotsStatus.ForeColor = StaticColors.ForeGround;
+        }
+
+        private void RegisterBulkEmptySlots()
+        {
+            var bulk = _settings.Modifiers.MapBulk;
+            if (!BulkEmptySlotHelper.TryRegister(bulk, out string error))
+            {
+                GamblerLog.Warn(error);
+                RefreshEmptySlotRegistrationLabel();
+                return;
+            }
+
+            int cells = bulk.EmptySlotSignatures.Count;
+            GamblerLog.Info($"Registered empty slots for {cells} grid cell(s).");
+            RefreshEmptySlotRegistrationLabel();
         }
 
         private void TryApplyBulkStepField(FlatTextBox textBox, Action<int> setter, bool allowZero)
@@ -348,6 +476,7 @@ namespace PoE
                 setter(value);
                 textBox._textBox.ForeColor = StaticColors.ForeGround;
                 RefreshGambleBulkStatusLabel();
+                RefreshEmptySlotRegistrationLabel();
                 return;
             }
 
@@ -379,7 +508,7 @@ namespace PoE
                 return;
 
             _bulkAnchorCaptureArmed = false;
-            _button_GambleCellAnchorRec.ForeColor = Color.Black;
+            _button_GambleCellAnchorRec.ForeColor = StaticColors.ButtonForeGround;
             _button_GambleCellAnchorRec.Text = "Rec";
         }
 
@@ -408,7 +537,7 @@ namespace PoE
                 return;
 
             _bulkNextCellCaptureArmed = false;
-            _button_GambleNextCellRec.ForeColor = Color.Black;
+            _button_GambleNextCellRec.ForeColor = StaticColors.ButtonForeGround;
             _button_GambleNextCellRec.Text = "Rec";
         }
 
@@ -434,6 +563,7 @@ namespace PoE
             _textBox_GambleCellAnchor._textBox.ForeColor = StaticColors.ForeGround;
             StopBulkFirstCellCapture();
             RefreshGambleBulkStatusLabel();
+            RefreshEmptySlotRegistrationLabel();
             return true;
         }
 
@@ -472,6 +602,7 @@ namespace PoE
             _textBox_GambleNextY._textBox.ForeColor = StaticColors.ForeGround;
             StopBulkNextCellCapture();
             RefreshGambleBulkStatusLabel();
+            RefreshEmptySlotRegistrationLabel();
             return true;
         }
 

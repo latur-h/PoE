@@ -67,6 +67,31 @@ public class MapRulesEvaluatorTests
     }
 
     [Fact]
+    public void Evaluate_affixes_stat_rule_requires_minimum_affix_count()
+    {
+        var rules = new List<Rule>
+        {
+            new(0, ModifierType.Prefix, 0, "affixes:8;"),
+        };
+
+        var result = MapRulesEvaluator.Evaluate(SixModMapWithAugmentedStats, rules, logMods: false);
+
+        Assert.Equal(MapRuleFailure.Stats, result.Failure);
+        Assert.False(result.RulesPassed);
+    }
+
+    [Fact]
+    public void MapCorruptRulesHelper_adds_eight_affix_rule_when_enabled()
+    {
+        var rules = new List<Rule> { new(1, ModifierType.Prefix, 0, "foo") };
+
+        var augmented = MapCorruptRulesHelper.RulesForPostCorruptEvaluation(rules, requireEightAffixes: true);
+
+        Assert.Equal(2, augmented.Count);
+        Assert.Contains(augmented, r => r.Content == MapCorruptRulesHelper.EightAffixStatRule);
+    }
+
+    [Fact]
     public void CountAffixMods_ignores_implicit_blocks()
     {
         var modifiers = new List<Modifier>

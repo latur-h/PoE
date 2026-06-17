@@ -108,6 +108,7 @@ namespace PoE.dlls.Gamble.Modes
                                 item,
                                 _session.Vaal,
                                 _session.CorruptOnSuccess,
+                                _session.RequiresEightModsAfterCorrupt,
                                 rules);
 
                             if (_token.IsCancellationRequested)

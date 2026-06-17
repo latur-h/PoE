@@ -47,6 +47,10 @@ namespace PoE.dlls.Gamble.Modes
             @".*?:\d+(?>;|$)",
             RegexOptions.IgnoreCase | RegexOptions.Singleline | RegexOptions.Compiled);
 
+        private static readonly Regex ModCountStatRuleRegex = new(
+            @"^(?'kind'mods|affixes):(?'min'\d+);?$",
+            RegexOptions.IgnoreCase | RegexOptions.Compiled);
+
         public static bool IsRare(string itemContent) => RarityRareRegex.IsMatch(itemContent);
 
         public static bool IsCorrupted(string itemContent) => CorruptedRegex.IsMatch(itemContent);
@@ -112,6 +116,15 @@ namespace PoE.dlls.Gamble.Modes
 
             foreach (var rule in statRules)
             {
+                string content = rule.Content.Trim();
+                if (ModCountStatRuleRegex.IsMatch(content))
+                {
+                    if (!CheckModCountStat(itemContent, content))
+                        return false;
+
+                    continue;
+                }
+
                 if (CompactStatRuleRegex.IsMatch(rule.Content))
                 {
                     if (!CheckCompactStats(itemContent, rule.Content))
@@ -125,6 +138,25 @@ namespace PoE.dlls.Gamble.Modes
             }
 
             return true;
+        }
+
+        private static bool CheckModCountStat(string itemContent, string ruleContent)
+        {
+            Match match = ModCountStatRuleRegex.Match(ruleContent.Trim());
+            if (!match.Success)
+                return true;
+
+            if (!int.TryParse(match.Groups["min"].Value, out int minimum))
+                return true;
+
+            var modifiers = ParseModifiers(itemContent, logMods: false);
+            string kind = match.Groups["kind"].Value;
+            int count = string.Equals(kind, "affixes", StringComparison.OrdinalIgnoreCase)
+                ? CountAffixMods(modifiers)
+                : modifiers.Count;
+
+            GamblerLog.Debug($"Affixes {count} vs {minimum}");
+            return count >= minimum;
         }
 
         private static bool CheckCompactStats(string itemContent, string ruleContent)

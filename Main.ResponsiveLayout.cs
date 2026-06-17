@@ -183,9 +183,11 @@ namespace PoE
                     _checkBox_BulkInventory.Location = new Point(10, 24);
                 if (_checkBox_CorruptOnSuccess is not null)
                     _checkBox_CorruptOnSuccess.Location = new Point(10, 50);
+                if (_checkBox_CorruptEightMods is not null)
+                    _checkBox_CorruptEightMods.Location = new Point(10, 72);
                 if (_label_GambleGridStatus is not null)
                 {
-                    _label_GambleGridStatus.Location = new Point(10, 76);
+                    _label_GambleGridStatus.Location = new Point(10, 94);
                     _label_GambleGridStatus.MaximumSize = new Size(width - 24, 0);
                 }
 
@@ -210,6 +212,20 @@ namespace PoE
                     _label_GambleRefreshDelay.Location = new Point(220, 88);
                 if (_textBox_GambleRefreshDelay is not null)
                     _textBox_GambleRefreshDelay.Location = new Point(310, 84);
+                if (_checkBox_BulkFastEmptyColor is not null)
+                    _checkBox_BulkFastEmptyColor.Location = new Point(10, 118);
+
+                int bulkInnerRight = width - margin * 2 - 10;
+                if (_button_GambleEmptySlotsRegister is not null)
+                    _button_GambleEmptySlotsRegister.Location = new Point(
+                        bulkInnerRight - GambleEmptyRegisterButtonWidth,
+                        134);
+                if (_label_GambleEmptySlotsStatus is not null)
+                {
+                    int registerLeft = bulkInnerRight - GambleEmptyRegisterButtonWidth - 8;
+                    _label_GambleEmptySlotsStatus.Location = new Point(10, 138);
+                    _label_GambleEmptySlotsStatus.MaximumSize = new Size(Math.Max(120, registerLeft - 10), 0);
+                }
             }
 
             int contentTop = rowY + rowHeight + margin + bulkOffset;

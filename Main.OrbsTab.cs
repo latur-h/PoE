@@ -107,10 +107,10 @@ namespace PoE
             {
                 Size = new Size(48, 30),
                 Text = "Rec",
-                ForeColor = Color.Black,
                 Font = new Font("Segoe UI", 9F, FontStyle.Regular, GraphicsUnit.Point),
                 TextAlign = ContentAlignment.MiddleCenter,
                 Padding = Padding.Empty,
+                ForeColor = StaticColors.ButtonForeGround,
                 UseVisualStyleBackColor = true,
                 UseCompatibleTextRendering = true,
             };
@@ -171,7 +171,7 @@ namespace PoE
         }
         private void StopCoordinateRecording(CoordinateSlot slot)
         {
-            slot.Record.ForeColor = Color.Black;
+            slot.Record.ForeColor = StaticColors.ButtonForeGround;
             slot.Record.Text = "Rec";
         }
 

@@ -10,5 +10,9 @@ namespace PoE.dlls.Gamba
         Coordinates Exalt,
         Coordinates Chaos,
         IReadOnlyList<Coordinates>? BulkCells,
-        GambleMapBulkSettings? BulkGrid);
+        GambleMapBulkSettings? BulkGrid)
+    {
+        public bool RequiresEightModsAfterCorrupt =>
+            CorruptOnSuccess && BulkGrid?.CorruptRequireEightMods == true;
+    }
 }

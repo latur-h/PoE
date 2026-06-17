@@ -8,6 +8,9 @@ namespace PoE.dlls.Settings.Mods
 
         public bool CorruptOnSuccess { get; set; }
 
+        /// <summary>After Vaal corrupt, require at least 8 affix mods before keeping the map.</summary>
+        public bool CorruptRequireEightMods { get; set; }
+
         public Coordinates GridStart { get; set; } = new(0, 0);
 
         public Coordinates GridEnd { get; set; } = new(0, 0);
@@ -23,6 +26,12 @@ namespace PoE.dlls.Settings.Mods
 
         /// <summary>Wait after a slam before copying map tooltip (ms).</summary>
         public int RefreshDelayMs { get; set; } = 80;
+
+        /// <summary>Skip slots whose center pixel matches preregistered empty signatures before clipboard precheck.</summary>
+        public bool FastEmptyColorCheck { get; set; }
+
+        /// <summary>Per-cell empty reference captured on a fully empty inventory grid.</summary>
+        public List<BulkEmptySlotSignature> EmptySlotSignatures { get; set; } = [];
 
         public bool HasGridArea =>
             GridStart.X != GridEnd.X || GridStart.Y != GridEnd.Y;

@@ -10,6 +10,9 @@ namespace PoE.dlls.Gamble.UI
             public const string CorruptOnSuccess =
                 "After rules pass, Vaal corrupt each map. Bulk: broken maps are stashed after the orb is released; single: logs Broken map.";
 
+            public const string CorruptRequireEightMods =
+                "With corrupt enabled: after Vaal, re-check rules plus at least 8 affix mods. Maps below 8 affixes are stashed as broken.";
+
             public const string CorruptedMap =
                 "Already-corrupted maps are evaluated only — no orb slams. Failed rules are queued for stash.";
 
@@ -30,6 +33,15 @@ namespace PoE.dlls.Gamble.UI
 
             public const string RefreshDelay =
                 "Milliseconds to wait after a slam before copying the map (lets the client refresh tooltip text).";
+
+            public const string FastEmptyColorCheck =
+                "Before precheck, compare each cell to preregistered empty pixels and skip clipboard copy when they match.";
+
+            public const string EmptySlotRegistration =
+                "With an empty inventory, register once to save each grid cell's empty pixel. Re-register after changing the grid.";
+
+            public const string EmptySlotRegister =
+                "Sample every grid cell on the current screen and save as the empty reference for each slot.";
         }
 
         public static GambleModeHelpSection DetailedBulkInventory() => new(

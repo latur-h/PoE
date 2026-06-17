@@ -141,12 +141,39 @@ namespace PoE.dlls.Gamble.Bulk
 
             if (_corruptOnSuccess)
                 GamblerLog.Info(GambleBulkHelp.Short.CorruptOnSuccess);
+
+            if (RequiresEightModsAfterCorrupt())
+                GamblerLog.Info(GambleBulkHelp.Short.CorruptRequireEightMods);
+
+            if (_bulkGrid is { FastEmptyColorCheck: true })
+                GamblerLog.Info(GambleBulkHelp.Short.FastEmptyColorCheck);
+        }
+
+        private void ApplyFastEmptyColorCheckIfEnabled()
+        {
+            if (_bulkGrid is null || !_bulkGrid.FastEmptyColorCheck)
+                return;
+
+            if (!BulkEmptySlotHelper.IsRegistrationValid(_bulkGrid))
+            {
+                GamblerLog.Warn("Fast empty check is enabled but empty slots are not registered for the current grid.");
+                return;
+            }
+
+            int skipped = BulkEmptySlotHelper.MarkMatchingSlotsEmpty(_slots, _bulkGrid.EmptySlotSignatures);
+            if (skipped > 0)
+                GamblerLog.Info($"Fast empty check: skipped {skipped} slot(s) before precheck.");
         }
 
         private bool ShouldCorrupt() => _corruptOnSuccess && MapCorruptHelper.IsVaalConfigured(_vaal);
 
+        private bool RequiresEightModsAfterCorrupt() =>
+            _corruptOnSuccess && _bulkGrid?.CorruptRequireEightMods == true;
+
         private async Task PrecheckAllAsync()
         {
+            ApplyFastEmptyColorCheckIfEnabled();
+
             foreach (var slot in _slots.Where(s => s.IsActive))
             {
                 slot.NextAction = BulkMapAction.None;
@@ -457,6 +484,14 @@ namespace PoE.dlls.Gamble.Bulk
                 {
                     slot.IsFinished = true;
                     continue;
+                }
+
+                if (RequiresEightModsAfterCorrupt())
+                {
+                    slot.Evaluation = MapRulesEvaluator.Evaluate(
+                        slot.Content!,
+                        MapCorruptRulesHelper.RulesForPostCorruptEvaluation(_rules, requireEightAffixes: true),
+                        logMods: false);
                 }
 
                 if (slot.Evaluation.RulesPassed)

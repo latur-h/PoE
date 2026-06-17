@@ -23,6 +23,7 @@ namespace PoE.dlls.Gamble.Modes
             Coordinates item,
             Coordinates vaal,
             bool corruptOnSuccess,
+            bool corruptRequireEightMods,
             List<Rule> rules)
         {
             if (!corruptOnSuccess || !IsVaalConfigured(vaal))
@@ -56,7 +57,10 @@ namespace PoE.dlls.Gamble.Modes
             if (content is null)
                 return null;
 
-            var evaluation = MapRulesEvaluator.Evaluate(content, rules);
+            var evaluationRules = MapCorruptRulesHelper.RulesForPostCorruptEvaluation(
+                rules,
+                corruptRequireEightMods);
+            var evaluation = MapRulesEvaluator.Evaluate(content, evaluationRules);
             if (evaluation.RulesPassed)
                 return true;
 
