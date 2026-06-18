@@ -92,6 +92,25 @@ public class MapRulesEvaluatorTests
     }
 
     [Fact]
+    public void IsMagic_and_IsNormal_detect_rarity_lines()
+    {
+        const string magicMap = """
+            Item Class: Maps
+            Rarity: Magic
+            """;
+
+        const string normalMap = """
+            Item Class: Maps
+            Rarity: Normal
+            """;
+
+        Assert.True(MapRulesEvaluator.IsMagic(magicMap));
+        Assert.False(MapRulesEvaluator.IsNormal(magicMap));
+        Assert.True(MapRulesEvaluator.IsNormal(normalMap));
+        Assert.False(MapRulesEvaluator.IsMagic(normalMap));
+    }
+
+    [Fact]
     public void CountAffixMods_ignores_implicit_blocks()
     {
         var modifiers = new List<Modifier>

@@ -35,6 +35,14 @@ namespace PoE.dlls.Gamble.Modes
             @"Rarity:\s*Rare",
             RegexOptions.IgnoreCase | RegexOptions.Compiled);
 
+        private static readonly Regex RarityMagicRegex = new(
+            @"Rarity:\s*Magic",
+            RegexOptions.IgnoreCase | RegexOptions.Compiled);
+
+        private static readonly Regex RarityNormalRegex = new(
+            @"Rarity:\s*Normal",
+            RegexOptions.IgnoreCase | RegexOptions.Compiled);
+
         private static readonly Regex CorruptedRegex = new(
             @"(?m)^Corrupted\s*$",
             RegexOptions.IgnoreCase | RegexOptions.Compiled);
@@ -52,6 +60,10 @@ namespace PoE.dlls.Gamble.Modes
             RegexOptions.IgnoreCase | RegexOptions.Compiled);
 
         public static bool IsRare(string itemContent) => RarityRareRegex.IsMatch(itemContent);
+
+        public static bool IsMagic(string itemContent) => RarityMagicRegex.IsMatch(itemContent);
+
+        public static bool IsNormal(string itemContent) => RarityNormalRegex.IsMatch(itemContent);
 
         public static bool IsCorrupted(string itemContent) => CorruptedRegex.IsMatch(itemContent);
 

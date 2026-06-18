@@ -1,39 +1,38 @@
-using PoE.dlls.Gamble.Modifiers;
-using PoE.dlls.InteropServices;
-using PoE.dlls.Logger;
 using PoE.dlls.Automation;
 using PoE.dlls.Gamba;
 using PoE.dlls.Gamble;
+using PoE.dlls.Gamble.Bulk;
+using PoE.dlls.Gamble.Modifiers;
+using PoE.dlls.InteropServices;
+using PoE.dlls.Logger;
 
 namespace PoE.dlls.Gamble.Modes
 {
     public class MapExalt : IGamba
     {
-        private const int TargetModCount = 6;
+        private const int TargetAffixCount = 6;
+        private const int MaxConsecutiveExaltNoModSlams = 3;
 
         private readonly Main _main;
-        private readonly InputSimulatorHost inputHost;
-
-        private readonly double speed;
-        private readonly TimeSpan delay;
-
-        private readonly Coordinates item;
-        private readonly Coordinates alchemy;
-
-        private readonly List<Rule> rules;
-
+        private readonly InputSimulatorHost _inputHost;
+        private readonly double _speed;
+        private readonly TimeSpan _delay;
+        private readonly TimeSpan _refreshDelay;
+        private readonly Coordinates _item;
+        private readonly Coordinates _alchemy;
+        private readonly Coordinates _exalt;
+        private readonly List<Rule> _rules;
+        private readonly MapGambleSession _session;
         private readonly CancellationTokenSource _cts;
         private readonly CancellationToken _token;
 
-        private int _hash;
-        private int count;
-        private readonly int maxAttempts = 3;
-
-        private bool _isShiftHeld;
+        private bool _shiftHeld;
         private bool _alchemyPrimed;
-
-        private readonly Coordinates _exalt;
-        private readonly MapGambleSession _session;
+        private bool _exaltPrimed;
+        private Coordinates? _heldOrbStack;
+        private int _consecutiveExaltNoModSlams;
+        private string _lastItemContent = string.Empty;
+        private bool _cursorOnItem;
 
         public MapExalt(
             Main main,
@@ -49,85 +48,112 @@ namespace PoE.dlls.Gamble.Modes
             MapGambleSession session)
         {
             _main = main;
-            this.inputHost = inputHost;
-            this.delay = delay;
-            this.speed = speed;
+            _inputHost = inputHost;
+            _delay = delay;
+            _speed = speed;
             _cts = cts;
             _token = _cts.Token;
-            this.item = item;
-            this.alchemy = alchemy;
+            _item = item;
+            _alchemy = alchemy;
             _exalt = exalt;
-            this.rules = rules;
+            _rules = rules;
             _session = session;
+            _refreshDelay = BulkMapActionHelper.ResolveRefreshDelay(session.BulkGrid, delay);
         }
 
         public async Task Gamble()
         {
             try
             {
+                await MoveToItemAsync();
+                _cursorOnItem = true;
+
                 while (!_token.IsCancellationRequested)
                 {
-                    inputHost.Simulator.MouseDeltaMove(item.X, item.Y, speed);
-                    await Task.Delay(delay);
-
-                    string? itemContent = await Copy();
-                    if (itemContent is null)
-                        return;
-
-                    var evaluation = EvaluateClipboard(itemContent);
-                    if (!evaluation.IsMap)
+                    MapRulesResult eval = await CopyAndEvaluateAsync();
+                    if (!eval.IsMap)
                     {
                         GamblerLog.Warn("Item is not a map.");
-                        _cts.Cancel();
                         return;
                     }
 
-                    if (!evaluation.IsRare)
+                    if (eval.IsCorrupted)
                     {
-                        await EnsureAlchemyPrimed();
-                        await ScouringAlchemyOnItem();
+                        GamblerLog.Warn("Corrupted map cannot be modified further (single item — no action).");
+                        return;
+                    }
+
+                    if (!eval.IsRare)
+                    {
+                        if (!await ApplyNonRarePrepAsync())
+                            return;
+
                         continue;
                     }
 
-                    if (evaluation.ExcludeHit)
+                    if (eval.ExcludeHit)
                     {
-                        await ScouringAlchemyOnItem();
+                        if (!await ApplyScourAlchemyAsync())
+                            return;
+
                         continue;
                     }
 
-                    if (evaluation.AffixModCount >= TargetModCount)
+                    if (eval.AffixModCount >= TargetAffixCount)
                     {
-                        if (evaluation.RulesPassed)
+                        if (eval.RulesPassed)
                         {
-                            var corruptResult = await MapCorruptHelper.TryFinishWithOptionalCorruptAsync(
-                                _main,
-                                inputHost,
-                                _token,
-                                delay,
-                                speed,
-                                item,
-                                _session.Vaal,
-                                _session.CorruptOnSuccess,
-                                _session.RequiresEightModsAfterCorrupt,
-                                rules);
-
-                            if (_token.IsCancellationRequested)
-                            {
-                                GamblerLog.Cancelled();
-                                return;
-                            }
-
-                            if (corruptResult == true)
-                                GamblerLog.Success();
-
+                            await FinishWithOptionalCorruptAsync();
                             return;
                         }
 
-                        await ScouringAlchemyOnItem();
+                        if (!await ApplyScourAlchemyAsync())
+                            return;
+
                         continue;
                     }
 
-                    await ExaltSlam();
+                    if (!await EnsureExaltPrimedAsync())
+                        return;
+
+                    int affixBefore = eval.AffixModCount;
+                    await SlamExaltAsync();
+                    await Task.Delay(_refreshDelay, _token);
+
+                    MapRulesResult after = await CopyAndEvaluateAsync();
+                    if (!after.IsMap)
+                        return;
+
+                    if (after.IsCorrupted)
+                    {
+                        GamblerLog.Warn("Corrupted map cannot be modified further (single item — no action).");
+                        return;
+                    }
+
+                    if (after.ExcludeHit)
+                    {
+                        if (!await ApplyScourAlchemyAsync())
+                            return;
+
+                        continue;
+                    }
+
+                    if (after.AffixModCount >= TargetAffixCount)
+                    {
+                        if (after.RulesPassed)
+                        {
+                            await FinishWithOptionalCorruptAsync();
+                            return;
+                        }
+
+                        if (!await ApplyScourAlchemyAsync())
+                            return;
+
+                        continue;
+                    }
+
+                    if (!CheckExaltSlamResult(affixBefore, after.AffixModCount))
+                        return;
                 }
 
                 if (_token.IsCancellationRequested)
@@ -135,52 +161,118 @@ namespace PoE.dlls.Gamble.Modes
             }
             finally
             {
-                GambleInputReleaseHelper.ReleaseAll(inputHost);
+                await CleanupOrbStateAsync();
             }
         }
 
-        private MapRulesResult EvaluateClipboard(string itemContent)
+        private async Task FinishWithOptionalCorruptAsync()
         {
-            if (!TrackClipboardHash(itemContent))
-                return default;
+            await ReleaseShiftAndReturnHeldOrbAsync();
 
-            return MapRulesEvaluator.Evaluate(itemContent, rules);
+            var corruptResult = await MapCorruptHelper.TryFinishWithOptionalCorruptAsync(
+                _main,
+                _inputHost,
+                _token,
+                _delay,
+                _speed,
+                _item,
+                _session.Vaal,
+                _session.CorruptOnSuccess,
+                _session.RequiresEightModsAfterCorrupt,
+                _rules);
+
+            if (_token.IsCancellationRequested)
+            {
+                GamblerLog.Cancelled();
+                return;
+            }
+
+            if (corruptResult == true)
+                GamblerLog.Success();
         }
 
-        private bool TrackClipboardHash(string itemContent)
+        private async Task<bool> ApplyNonRarePrepAsync()
         {
-            int hash = itemContent.GetHashCode();
-            if (_hash != hash)
+            if (MapRulesEvaluator.IsMagic(_lastItemContent))
+                return await ApplyScourAlchemyAsync();
+
+            return await ApplyAlchemyOnlyAsync();
+        }
+
+        private async Task<bool> ApplyScourAlchemyAsync()
+        {
+            if (!await EnsureAlchemyPrimedAsync())
+                return false;
+
+            await MoveToItemIfNeededAsync();
+            await SlamScourAsync();
+            await Task.Delay(_refreshDelay, _token);
+            await SlamAlchemyAsync();
+            await Task.Delay(_refreshDelay, _token);
+            return true;
+        }
+
+        private async Task<bool> ApplyAlchemyOnlyAsync()
+        {
+            if (!await EnsureAlchemyPrimedAsync())
+                return false;
+
+            await MoveToItemIfNeededAsync();
+            await SlamAlchemyAsync();
+            await Task.Delay(_refreshDelay, _token);
+            return true;
+        }
+
+        private bool CheckExaltSlamResult(int affixCountBefore, int affixCountAfter)
+        {
+            if (affixCountAfter > affixCountBefore)
             {
-                _hash = hash;
+                _consecutiveExaltNoModSlams = 0;
                 return true;
             }
 
-            if (count >= maxAttempts)
+            _consecutiveExaltNoModSlams++;
+            GamblerLog.Warn(
+                $"Exalt did not add a mod ({affixCountBefore} → {affixCountAfter}; empty hand, lag, or stale copy?)");
+
+            if (_consecutiveExaltNoModSlams >= MaxConsecutiveExaltNoModSlams)
             {
-                GamblerLog.MaxAttemptsReached();
+                GamblerLog.Error(
+                    $"Stopping after {MaxConsecutiveExaltNoModSlams} exalt slams in a row with no new mods " +
+                    "(orb not on cursor or clipboard not refreshed).");
                 _cts.Cancel();
                 return false;
             }
 
-            count++;
             return true;
         }
 
-        private async Task<string?> Copy()
+        private async Task<MapRulesResult> CopyAndEvaluateAsync()
         {
-            inputHost.Simulator.Send("Ctrl Down");
-            await Task.Delay(delay);
-            inputHost.Simulator.Send("Alt Down");
-            await Task.Delay(delay);
-            inputHost.Simulator.Send("C Down");
-            await Task.Delay(delay);
-            inputHost.Simulator.Send("C Up");
-            await Task.Delay(delay);
-            inputHost.Simulator.Send("Alt Up");
-            await Task.Delay(delay);
-            inputHost.Simulator.Send("Ctrl Up");
-            await Task.Delay(delay);
+            string? content = await CopyMapAsync();
+            if (content is null)
+                return default;
+
+            _lastItemContent = content;
+            return MapRulesEvaluator.Evaluate(content, _rules);
+        }
+
+        private async Task<string?> CopyMapAsync()
+        {
+            await MoveToItemIfNeededAsync();
+
+            _inputHost.Simulator.Send("Ctrl Down");
+            await Task.Delay(_delay, _token);
+            _inputHost.Simulator.Send("Alt Down");
+            await Task.Delay(_delay, _token);
+            _inputHost.Simulator.Send("C Down");
+            await Task.Delay(_delay, _token);
+            _inputHost.Simulator.Send("C Up");
+            await Task.Delay(_delay, _token);
+            _inputHost.Simulator.Send("Alt Up");
+            await Task.Delay(_delay, _token);
+            _inputHost.Simulator.Send("Ctrl Up");
+            await Task.Delay(_delay, _token);
 
             string itemContent = _main.Invoke(() => Clipboard.GetText(TextDataFormat.Text));
             if (string.IsNullOrEmpty(itemContent))
@@ -194,81 +286,188 @@ namespace PoE.dlls.Gamble.Modes
             return itemContent;
         }
 
-        private async Task EnsureAlchemyPrimed()
+        private async Task MoveToItemIfNeededAsync()
         {
-            if (_alchemyPrimed)
+            if (_cursorOnItem)
                 return;
 
-            inputHost.Simulator.MouseDeltaMove(alchemy.X, alchemy.Y, speed);
-            await Task.Delay(delay);
-            inputHost.Simulator.Send("RButton Down");
-            await Task.Delay(delay);
-            inputHost.Simulator.Send("RButton Up");
-            await Task.Delay(delay);
+            await MoveToItemAsync();
+            _cursorOnItem = true;
+        }
 
-            inputHost.Simulator.MouseDeltaMove(item.X, item.Y, speed);
-            await Task.Delay(delay);
+        private async Task MoveToItemAsync()
+        {
+            _inputHost.Simulator.MouseDeltaMove(_item.X, _item.Y, _speed);
+            await Task.Delay(_delay, _token);
+            _cursorOnItem = true;
+        }
 
-            await EnsureShiftHeld();
+        private void MarkCursorLeftItem() => _cursorOnItem = false;
+
+        private async Task SlamScourAsync()
+        {
+            _inputHost.Simulator.Send("Alt Down");
+            await Task.Delay(_delay, _token);
+            _inputHost.Simulator.Send("LButton Down");
+            await Task.Delay(_delay, _token);
+            _inputHost.Simulator.Send("LButton Up");
+            await Task.Delay(_delay, _token);
+            _inputHost.Simulator.Send("Alt Up");
+            await Task.Delay(_delay, _token);
+        }
+
+        private async Task SlamAlchemyAsync()
+        {
+            _inputHost.Simulator.Send("LButton Down");
+            await Task.Delay(_delay, _token);
+            _inputHost.Simulator.Send("LButton Up");
+            await Task.Delay(_delay, _token);
+        }
+
+        private async Task SlamExaltAsync()
+        {
+            await MoveToItemIfNeededAsync();
+            _inputHost.Simulator.Send("LButton Down");
+            await Task.Delay(_delay, _token);
+            _inputHost.Simulator.Send("LButton Up");
+            await Task.Delay(_delay, _token);
+        }
+
+        private async Task<bool> EnsureAlchemyPrimedAsync()
+        {
+            if (_alchemyPrimed && IsHoldingOrbAt(_alchemy))
+                return true;
+
+            if (!IsOrbConfigured(_alchemy))
+            {
+                GamblerLog.Warn("Alchemy orb coordinates are not configured.");
+                return false;
+            }
+
+            await SwapToOrbAsync(_alchemy);
             _alchemyPrimed = true;
+            _exaltPrimed = false;
+            return true;
         }
 
-        private async Task EnsureShiftHeld()
+        private async Task<bool> EnsureExaltPrimedAsync()
         {
-            if (_isShiftHeld)
+            if (_exaltPrimed && IsHoldingOrbAt(_exalt))
+                return true;
+
+            if (!IsOrbConfigured(_exalt))
+            {
+                GamblerLog.Warn("Exalt orb coordinates are not configured.");
+                return false;
+            }
+
+            await SwapToOrbAsync(_exalt);
+            _exaltPrimed = true;
+            _alchemyPrimed = false;
+            return true;
+        }
+
+        private async Task SwapToOrbAsync(Coordinates stack)
+        {
+            await ReleaseShiftAndReturnHeldOrbAsync();
+            await PickUpOrbWithoutShiftAsync(stack);
+            await EnsureShiftHeldAsync();
+        }
+
+        private async Task PickUpOrbWithoutShiftAsync(Coordinates stack)
+        {
+            GamblerLog.Info($"Picking up orb ({stack.X},{stack.Y})");
+            MarkCursorLeftItem();
+            await MoveToAsync(stack);
+            await SendOrbRightClickAsync();
+            await Task.Delay(_refreshDelay, _token);
+            _heldOrbStack = stack;
+            _consecutiveExaltNoModSlams = 0;
+        }
+
+        private async Task ReleaseShiftAndReturnHeldOrbAsync()
+        {
+            await ReleaseShiftAndModifiersAsync();
+            await ReturnHeldOrbAsync();
+        }
+
+        private async Task ReleaseShiftAndModifiersAsync()
+        {
+            _inputHost.Simulator.Send("Shift Up");
+            _shiftHeld = false;
+            await Task.Delay(_delay, _token);
+            GambleInputReleaseHelper.ReleaseModifiers(_inputHost);
+            await Task.Delay(_refreshDelay, _token);
+        }
+
+        private async Task ReturnHeldOrbAsync()
+        {
+            if (_heldOrbStack is null)
+            {
+                ClearPrimedOrbs();
+                return;
+            }
+
+            GamblerLog.Info($"Dropping orb over map ({_item.X},{_item.Y})");
+            await MoveToItemAsync();
+            await SendOrbRightClickAsync();
+            await Task.Delay(_refreshDelay, _token);
+            _heldOrbStack = null;
+            ClearPrimedOrbs();
+        }
+
+        private async Task CleanupOrbStateAsync()
+        {
+            try
+            {
+                await ReleaseShiftAndReturnHeldOrbAsync();
+            }
+            catch (OperationCanceledException) when (_token.IsCancellationRequested)
+            {
+            }
+
+            GambleInputReleaseHelper.ReleaseModifiers(_inputHost);
+        }
+
+        private async Task EnsureShiftHeldAsync()
+        {
+            if (_shiftHeld)
                 return;
 
-            inputHost.Simulator.Send("Shift Down");
-            await Task.Delay(delay);
-            _isShiftHeld = true;
+            _inputHost.Simulator.Send("Shift Down");
+            await Task.Delay(_delay, _token);
+            _shiftHeld = true;
         }
 
-        private void ReleaseShift()
+        private async Task SendOrbRightClickAsync()
         {
-            GambleInputReleaseHelper.ReleaseAll(inputHost);
-            _isShiftHeld = false;
+            _inputHost.Simulator.Send("RButton Down");
+            await Task.Delay(_delay, _token);
+            _inputHost.Simulator.Send("RButton Up");
+            await Task.Delay(_delay, _token);
+        }
+
+        private async Task MoveToAsync(Coordinates point)
+        {
+            if (point.X != _item.X || point.Y != _item.Y)
+                MarkCursorLeftItem();
+
+            _inputHost.Simulator.MouseDeltaMove(point.X, point.Y, _speed);
+            await Task.Delay(_delay, _token);
+        }
+
+        private void ClearPrimedOrbs()
+        {
             _alchemyPrimed = false;
+            _exaltPrimed = false;
         }
 
-        private async Task ScouringAlchemyOnItem()
-        {
-            await EnsureAlchemyPrimed();
+        private bool IsHoldingOrbAt(Coordinates stack) =>
+            _heldOrbStack is { } held
+            && held.X == stack.X
+            && held.Y == stack.Y
+            && IsOrbConfigured(stack);
 
-            inputHost.Simulator.MouseDeltaMove(item.X, item.Y, speed);
-            await Task.Delay(delay);
-
-            inputHost.Simulator.Send("Alt Down");
-            await Task.Delay(delay);
-            inputHost.Simulator.Send("LButton Down");
-            await Task.Delay(delay);
-            inputHost.Simulator.Send("LButton Up");
-            await Task.Delay(delay);
-            inputHost.Simulator.Send("Alt Up");
-            await Task.Delay(delay);
-
-            inputHost.Simulator.Send("LButton Down");
-            await Task.Delay(delay);
-            inputHost.Simulator.Send("LButton Up");
-            await Task.Delay(delay);
-        }
-
-        private async Task ExaltSlam()
-        {
-            await EnsureShiftHeld();
-
-            inputHost.Simulator.MouseDeltaMove(_exalt.X, _exalt.Y, speed);
-            await Task.Delay(delay);
-            inputHost.Simulator.Send("RButton Down");
-            await Task.Delay(delay);
-            inputHost.Simulator.Send("RButton Up");
-            await Task.Delay(delay);
-
-            inputHost.Simulator.MouseDeltaMove(item.X, item.Y, speed);
-            await Task.Delay(delay);
-            inputHost.Simulator.Send("LButton Down");
-            await Task.Delay(delay);
-            inputHost.Simulator.Send("LButton Up");
-            await Task.Delay(delay);
-        }
+        private static bool IsOrbConfigured(Coordinates orb) => orb.X > 0 && orb.Y > 0;
     }
 }
