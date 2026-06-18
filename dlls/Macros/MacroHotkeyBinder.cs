@@ -48,6 +48,9 @@ namespace PoE.dlls.Macros
 
                 _hotkeys.Register(id, () =>
                 {
+                    if (!_engine.IsGameForeground())
+                        return Task.CompletedTask;
+
                     var resolved = _engine.FindTrigger(triggerId);
                     if (resolved is null)
                         return Task.CompletedTask;
@@ -84,6 +87,9 @@ namespace PoE.dlls.Macros
 
             hotkeys.Register(EnableHotkeyId, () =>
             {
+                if (!engine.IsGameForeground())
+                    return Task.CompletedTask;
+
                 engine.ToggleFeatureEnabled();
                 return Task.CompletedTask;
             }, key);

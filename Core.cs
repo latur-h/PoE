@@ -145,6 +145,9 @@ namespace PoE
             if (Gambler is not null && Gambler.IsRunning())
                 return;
 
+            if (_gambleTabUiReady)
+                gambleRulesPanel.Commit();
+
             var preset = _settings.Modifiers.GetActivePreset();
 
             List<Rule> rules = preset.Rules

@@ -24,6 +24,10 @@ namespace PoE.dlls.Gamble
 
             var required = rules.Where(r => r.Priority >= 1).ToList();
             var optional = rules.Where(r => r.Priority > 0 && r.Priority < 1).ToList();
+            bool hasContentRules = rules.Any(r => !string.IsNullOrEmpty(r.Content));
+
+            if (required.Count == 0 && optional.Count == 0)
+                return !hasContentRules;
 
             int requiredCount = 0;
             int optionalCount = 0;
@@ -65,6 +69,7 @@ namespace PoE.dlls.Gamble
 
             var required = rules.Where(r => r.Priority >= 1).ToList();
             var optional = rules.Where(r => r.Priority > 0 && r.Priority < 1).ToList();
+            bool hasContentRules = rules.Any(r => !string.IsNullOrEmpty(r.Content));
 
             int requiredCount = 0;
             int optionalCount = 0;
@@ -90,6 +95,12 @@ namespace PoE.dlls.Gamble
 
                     optionalCount++;
                 }
+            }
+
+            if (required.Count == 0 && optional.Count == 0)
+            {
+                if (hasContentRules)
+                    return modsCount == 1 ? AltAugResponse.Aug : AltAugResponse.Alt;
             }
 
             if (required.Count <= requiredCount)

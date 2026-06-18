@@ -1,46 +1,33 @@
-Item Class: Maps
-Rarity: Rare
-Miracle Portent
-Map (Tier 16)
+Item Class: Sceptres
+Rarity: Magic
+Synthesised Flame Shaper's Karui Sceptre of the Apt
 --------
-Item Quantity: +101% (augmented)
-Item Rarity: +60% (augmented)
-Monster Pack Size: +39% (augmented)
-More Divination Cards: +50% (augmented)
-Quality (Divination Cards): +20% (augmented)
+Sceptre
+Quality: +20% (augmented)
+Physical Damage: 37-55
+Critical Strike Chance: 7.00%
+Attacks per Second: 1.50
+Weapon Range: 1.1 metres
 --------
-Item Level: 85
+Requirements:
+Level: 60
+Str: 65 (augmented) (unmet)
+Int: 65 (augmented) (unmet)
 --------
-Monster Level: 83
+Sockets: B-B-B 
 --------
-Delirium Reward Type: Currency (enchant)
-Delirium Reward Type: Currency (enchant)
-Delirium Reward Type: Currency (enchant)
-Delirium Reward Type: Currency (enchant)
-Players in Area are 80% Delirious (enchant)
-Area contains an Empowered Mirage which covers the entire Map (enchant)
+Item Level: 83
 --------
-{ Prefix Modifier "Antagonist's" (Tier: 1) }
-20(20-30)% increased number of Rare Monsters
-{ Prefix Modifier "Unstoppable" (Tier: 1) — Speed }
-Monsters cannot be Taunted — Unscalable Value
-Monsters' Action Speed cannot be modified to below Base Value
-Monsters' Movement Speed cannot be modified to below Base Value — Unscalable Value
-{ Prefix Modifier "Hexwarded" (Tier: 1) — Caster, Curse }
-60% less effect of Curses on Monsters
-{ Prefix Modifier "Impaling" (Tier: 1) }
-Monsters' Attacks have 60% chance to Impale on Hit
-(When an Impaled enemy is hit, the Impale reflects 10% of the physical damage of the Impaling hit to that enemy. Impale lasts for 5 hits or 8 seconds)
-{ Suffix Modifier "of Blinding" (Tier: 1) }
-Monsters Blind on Hit
-(Being Blinded causes 20% less Accuracy Rating and Evasion Rating, for 4 seconds)
-{ Suffix Modifier "of Imprecision" (Tier: 1) }
-Players have 25% less Accuracy Rating
-{ Suffix Modifier "of Congealment" (Tier: 1) }
-Monsters cannot be Leeched from
-{ Suffix Modifier "of Toughness" (Tier: 1) — Damage, Critical }
-Monsters take 37(36-40)% reduced Extra Damage from Critical Strikes
+Quality does not increase Physical Damage (enchant)
+Grants 1% increased Area of Effect per 4% Quality (enchant)
 --------
-Travel to a Map of this tier or lower by using this in a personal Map Device. Maps can only be used once. 
+{ Implicit Modifier — Damage, Physical }
+Enemies you Kill have a 15% chance to Explode, dealing a tenth of their maximum Life as Physical Damage
 --------
-Corrupted
+{ Prefix Modifier "Flame Shaper's" (Tier: 1) — Elemental, Fire, Caster, Gem }
++1 to Level of all Fire Spell Skill Gems
+{ Suffix Modifier "of the Apt" (Tier: 1) }
+32% reduced Attribute Requirements
+(Attributes are Strength, Dexterity, and Intelligence)
+--------
+Synthesised Item

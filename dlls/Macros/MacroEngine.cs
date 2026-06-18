@@ -44,6 +44,8 @@ namespace PoE.dlls.Macros
             }
         }
 
+        public bool IsGameForeground() => _inputHost.Simulator.IsActiveWindow();
+
         public void ApplySettings(MacroSettings settings)
         {
             lock (_stateLock)

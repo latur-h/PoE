@@ -527,16 +527,31 @@ namespace PoE.dlls.Gamble.UI
 
             internal TextBox ContentTextBox => _content._textBox;
 
-            public GambleRuleRow ToRule() => new()
+            public GambleRuleRow ToRule()
             {
-                Priority = _rule.Priority,
-                ModifierType = _rule.ModifierType,
-                Tier = _rule.Tier,
-                Content = _content._textBox.Text,
-                EldritchInfluence = _isEldritchMode()
-                    ? (_influence.SelectedIndex == 1 ? EldritchInfluence.EaterOfWorlds : EldritchInfluence.SearingExarch)
-                    : _rule.EldritchInfluence,
-            };
+                decimal priority = _rule.Priority;
+                if (decimal.TryParse(_priority._textBox.Text, out decimal parsedPriority))
+                    priority = parsedPriority;
+
+                int tier = _rule.Tier;
+                if (int.TryParse(_tier._textBox.Text, out int parsedTier) && parsedTier > 0 && parsedTier < 10)
+                    tier = parsedTier;
+
+                ModifierType modifierType = _rule.ModifierType;
+                if (_type.Visible && _type.SelectedItem is string typeName)
+                    modifierType = Enum.Parse<ModifierType>(typeName);
+
+                return new GambleRuleRow
+                {
+                    Priority = priority,
+                    ModifierType = modifierType,
+                    Tier = tier,
+                    Content = _content._textBox.Text,
+                    EldritchInfluence = _isEldritchMode()
+                        ? (_influence.SelectedIndex == 1 ? EldritchInfluence.EaterOfWorlds : EldritchInfluence.SearingExarch)
+                        : _rule.EldritchInfluence,
+                };
+            }
 
             public void SetWidth(int width)
             {
