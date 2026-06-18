@@ -48,9 +48,6 @@ namespace PoE.dlls.Macros
 
                 _hotkeys.Register(id, () =>
                 {
-                    if (_engine.IsCycleInProgress(triggerId))
-                        return Task.CompletedTask;
-
                     var resolved = _engine.FindTrigger(triggerId);
                     if (resolved is null)
                         return Task.CompletedTask;

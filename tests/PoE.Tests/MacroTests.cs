@@ -137,7 +137,7 @@ public class MacroSettingsHelperTests
 public class MacroEngineToggleTests
 {
     [Fact]
-    public void ToggleTriggerActive_ignores_duplicate_invocation_within_debounce_window()
+    public void ToggleTriggerActive_ignores_duplicate_arm_within_debounce_window()
     {
         var engine = new MacroEngine(new PoE.dlls.Automation.InputSimulatorHost());
         var trigger = new MacroTrigger { Id = Guid.NewGuid(), Active = false };
@@ -154,10 +154,35 @@ public class MacroEngineToggleTests
         MacroTrigger? runtime = engine.FindTrigger(trigger.Id);
         Assert.NotNull(runtime);
 
-        engine.ToggleTriggerActive(runtime);
-        engine.ToggleTriggerActive(runtime);
+        engine.ToggleTriggerActive(runtime!);
+        engine.ToggleTriggerActive(runtime!);
 
-        Assert.True(runtime.Active);
+        Assert.True(runtime!.Active);
+    }
+
+    [Fact]
+    public void ToggleTriggerActive_disarm_is_not_blocked_by_arm_debounce()
+    {
+        var engine = new MacroEngine(new PoE.dlls.Automation.InputSimulatorHost());
+        var trigger = new MacroTrigger { Id = Guid.NewGuid(), Active = false };
+        var settings = new MacroSettings
+        {
+            GlobalProfile = new MacroProfile
+            {
+                Name = MacroProfile.GlobalName,
+                Triggers = [trigger],
+            },
+        };
+
+        engine.ApplySettings(settings);
+        MacroTrigger? runtime = engine.FindTrigger(trigger.Id);
+        Assert.NotNull(runtime);
+
+        engine.ToggleTriggerActive(runtime!);
+        Thread.Sleep(150);
+        engine.ToggleTriggerActive(runtime!);
+
+        Assert.False(runtime!.Active);
     }
 
     [Fact]
@@ -178,11 +203,11 @@ public class MacroEngineToggleTests
         MacroTrigger? runtime = engine.FindTrigger(trigger.Id);
         Assert.NotNull(runtime);
 
-        engine.ToggleTriggerActive(runtime);
+        engine.ToggleTriggerActive(runtime!);
         Thread.Sleep(350);
-        engine.ToggleTriggerActive(runtime);
+        engine.ToggleTriggerActive(runtime!);
 
-        Assert.False(runtime.Active);
+        Assert.False(runtime!.Active);
     }
 }
 

@@ -14,6 +14,8 @@ namespace PoE.dlls.Macros
     {
         private const int PollIntervalMs = 5;
         private const int ToggleDebounceMs = 300;
+        /// <summary>Reject a disarm that lands immediately after arm from the same hotkey bounce.</summary>
+        private const int ArmDisarmPairRejectMs = 120;
 
         private readonly InputSimulatorHost _inputHost;
         private readonly object _stateLock = new();
@@ -22,6 +24,7 @@ namespace PoE.dlls.Macros
         private readonly Dictionary<Guid, bool> _triggerWasDown = new();
         private readonly Dictionary<Guid, long> _lastCycleFireTicks = new();
         private readonly Dictionary<Guid, long> _lastToggleTicks = new();
+        private readonly Dictionary<Guid, long> _lastArmTicks = new();
         private readonly Dictionary<Guid, long> _lockUntilTicks = new();
         private readonly HashSet<Guid> _cycleInProgress = new();
 
@@ -84,21 +87,45 @@ namespace PoE.dlls.Macros
         public void ToggleTriggerActive(MacroTrigger trigger)
         {
             long now = Environment.TickCount64;
+            bool changed;
 
             lock (_stateLock)
             {
-                if (_lastToggleTicks.TryGetValue(trigger.Id, out long lastToggle)
-                    && now - lastToggle < ToggleDebounceMs)
-                {
-                    return;
-                }
-
-                _lastToggleTicks[trigger.Id] = now;
-                trigger.Active = !trigger.Active;
+                changed = TryToggleTriggerActiveLocked(trigger, now);
             }
 
-            SettingsChanged?.Invoke();
+            if (changed)
+                SettingsChanged?.Invoke();
         }
+
+        private bool TryToggleTriggerActiveLocked(MacroTrigger trigger, long now)
+        {
+            if (trigger.Active)
+            {
+                if (WasRecentlyArmed(trigger.Id, now))
+                    return false;
+
+                trigger.Active = false;
+                _lastToggleTicks[trigger.Id] = now;
+                return true;
+            }
+
+            if (WasRecentlyToggled(trigger.Id, now, ToggleDebounceMs))
+                return false;
+
+            trigger.Active = true;
+            _lastArmTicks[trigger.Id] = now;
+            _lastToggleTicks[trigger.Id] = now;
+            return true;
+        }
+
+        private bool WasRecentlyArmed(Guid triggerId, long now) =>
+            _lastArmTicks.TryGetValue(triggerId, out long lastArm)
+            && now - lastArm < ArmDisarmPairRejectMs;
+
+        private bool WasRecentlyToggled(Guid triggerId, long now, int toggleDebounceMs) =>
+            _lastToggleTicks.TryGetValue(triggerId, out long lastToggle)
+            && now - lastToggle < toggleDebounceMs;
 
         public MacroTrigger? FindTrigger(Guid triggerId)
         {

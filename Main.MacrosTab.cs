@@ -266,7 +266,18 @@ namespace PoE
 
             _settings.Macros.FeatureEnabled = _macroEngine.FeatureEnabled;
             RefreshMacrosFeatureCheckbox();
+            SyncPersistedActivesFromEngine();
             _macrosPanel.SyncActiveFromEngine(_macroEngine);
+        }
+
+        private void SyncPersistedActivesFromEngine()
+        {
+            foreach (var (_, trigger) in MacroSettingsHelper.EnumerateTriggers(_settings.Macros, true, true))
+            {
+                MacroTrigger? resolved = _macroEngine.FindTrigger(trigger.Id);
+                if (resolved is not null)
+                    trigger.Active = resolved.Active;
+            }
         }
     }
 }
