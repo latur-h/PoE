@@ -187,6 +187,9 @@ namespace PoE.dlls.Macros
             if (!enabled || triggers.Count == 0)
                 return;
 
+            if (!_inputHost.Simulator.IsActiveWindow())
+                return;
+
             foreach (var trigger in triggers)
             {
                 cancellationToken.ThrowIfCancellationRequested();
@@ -297,9 +300,6 @@ namespace PoE.dlls.Macros
 
         private async Task ProcessPixelJumpAsync(MacroTrigger trigger, CancellationToken cancellationToken)
         {
-            if (!_inputHost.Simulator.IsActiveWindow())
-                return;
-
             if (!MacroColorHelper.TryParseHex(trigger.ExpectedColor, out Color expected))
                 return;
 
