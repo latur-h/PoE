@@ -24,7 +24,7 @@ namespace PoE.dlls.Settings.Mods
         /// <summary>Vertical pixels between map cell centers. Use 0 for a single row.</summary>
         public int NextY { get; set; }
 
-        /// <summary>Wait after a slam before copying map tooltip (ms).</summary>
+        /// <summary>Map-only wait after slams/orb drops before copying tooltip (ms). Separate from Settings → Delay.</summary>
         public int RefreshDelayMs { get; set; } = 80;
 
         /// <summary>Skip slots whose center pixel matches preregistered empty signatures before clipboard precheck.</summary>

@@ -32,7 +32,8 @@ namespace PoE.dlls.Gamble.UI
                 "Rec + F6 on the next map (right or below) to fill Next X / Next Y from the delta.";
 
             public const string RefreshDelay =
-                "Milliseconds to wait after a slam before copying the map (lets the client refresh tooltip text).";
+                "Map-only wait after slams and orb drops before copying tooltip text. Separate from Settings → Delay. " +
+                "Without network lag, ~10 ms here with Delay ~20 ms feels fast; lower if copy stays reliable.";
 
             public const string FastEmptyColorCheck =
                 "Before precheck, compare each cell to preregistered empty pixels and skip clipboard copy when they match.";
@@ -94,5 +95,22 @@ namespace PoE.dlls.Gamble.UI
             "• Next X must be greater than 0.\r\n" +
             "• Next Y may be 0 when maps are in a single row.\r\n\r\n" +
             "Cell centers are: First + (column × Next X, row × Next Y), kept inside the grid area.");
+
+        public static GambleModeHelpSection DetailedTiming() => new(
+            "Delay vs Refresh ms",
+            "Two different timings control map gambling speed:\r\n\r\n" +
+            "Settings → Gamble → Delay\r\n" +
+            "• Pause between every input step: click down/up, key down/up, and mouse move.\r\n" +
+            "• Applies to all gamble modes.\r\n\r\n" +
+            "Gamble tab → Bulk panel → Refresh ms\r\n" +
+            "• Extra wait after currency slams, orb drops, and modifier release before copying the map.\r\n" +
+            "• Lets the client refresh tooltip text. Used by Map, Map Exalt, and Map T17 — including single-map runs (not only bulk inventory).\r\n" +
+            "• If Refresh ms is 0, the bot uses max(50, Delay) instead.\r\n\r\n" +
+            "How they relate: Delay sets the base click/key rhythm; Refresh ms is added on top wherever the bot needs fresh clipboard text or the game to settle after currency. " +
+            "Both stack — a low Delay with a high Refresh ms can still feel slow after each slam.\r\n\r\n" +
+            "Tuning (no network / input lag):\r\n" +
+            "• Start with Delay 20 ms and Refresh ms 10 ms — feels fast and works well for many setups.\r\n" +
+            "• You can lower both further if copy and orb placement stay reliable.\r\n" +
+            "• Raise Delay if clicks or orbs miss; raise Refresh ms if copied map text is empty or stale.");
     }
 }

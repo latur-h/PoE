@@ -409,7 +409,7 @@ namespace PoE.dlls.Gamble.Modes
             }
 
             GamblerLog.Info($"Dropping orb over map ({_item.X},{_item.Y})");
-            await MoveToItemAsync();
+            await MoveToItemIfNeededAsync();
             await SendOrbRightClickAsync();
             await Task.Delay(_refreshDelay, _token);
             _heldOrbStack = null;

@@ -416,7 +416,9 @@ namespace PoE
             SettingsHintHelper.Attach(toolTip_Settings, groupBox_GambleSettings, label_GamblerStopKey, textBox_GamblerStopKey,
                 "Hotkey to stop the running gamble routine.");
             SettingsHintHelper.Attach(toolTip_Settings, groupBox_GambleSettings, label_GamblerDelay, textBox_GamblerDelay,
-                "Pause in milliseconds between gamble actions (clicks, keys, clipboard). Increase if item text fails to copy or orbs miss.");
+                "Pause between every gamble input (click/key gaps, mouse steps). All modes. " +
+                "Map modes also use Gamble tab → Bulk → Refresh ms after slams before copy — see Gamble tab ? help. " +
+                "Without network lag, try Delay 20 ms with Refresh ms 10; lower both if stable, raise Delay if orbs miss or Refresh ms if copy is stale.");
             SettingsHintHelper.Attach(toolTip_Settings, groupBox_GambleSettings, label_GambleSpeed, textBox_GambleSpeed,
                 "Mouse movement speed when traveling between stash positions. Higher is faster. Does not change click or key timing.");
 

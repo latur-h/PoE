@@ -201,6 +201,7 @@ namespace PoE.dlls.Gamble.UI
             GambleBulkHelp.DetailedGridArea(),
             GambleBulkHelp.DetailedFirstCell(),
             GambleBulkHelp.DetailedNextStep(),
+            GambleBulkHelp.DetailedTiming(),
             GambleBulkHelp.DetailedCorruptOnSuccess(),
             GambleBulkHelp.DetailedCorruptedMaps(),
         ]);
@@ -225,6 +226,7 @@ namespace PoE.dlls.Gamble.UI
             GambleBulkHelp.DetailedGridArea(),
             GambleBulkHelp.DetailedFirstCell(),
             GambleBulkHelp.DetailedNextStep(),
+            GambleBulkHelp.DetailedTiming(),
             GambleBulkHelp.DetailedCorruptOnSuccess(),
             GambleBulkHelp.DetailedCorruptedMaps(),
         ]);
@@ -251,6 +253,7 @@ namespace PoE.dlls.Gamble.UI
             GambleBulkHelp.DetailedGridArea(),
             GambleBulkHelp.DetailedFirstCell(),
             GambleBulkHelp.DetailedNextStep(),
+            GambleBulkHelp.DetailedTiming(),
             GambleBulkHelp.DetailedCorruptOnSuccess(),
             GambleBulkHelp.DetailedCorruptedMaps(),
         ]);
