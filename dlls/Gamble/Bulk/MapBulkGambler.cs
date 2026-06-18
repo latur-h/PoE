@@ -252,7 +252,7 @@ namespace PoE.dlls.Gamble.Bulk
         {
             if (!eval.IsRare)
             {
-                slot.NextAction = BulkMapAction.AlchemyOnly;
+                slot.NextAction = BulkMapActionHelper.ResolveNonRarePrep(slot.Content);
                 return;
             }
 

@@ -22,12 +22,31 @@ public class BulkMapActionHelperTests
     [Fact]
     public void AssignScourOrAlchemyOnly_normal_uses_alchemy_only()
     {
-        var slot = new BulkMapSlot { Position = new Coordinates(1, 2) };
+        var slot = new BulkMapSlot { Position = new Coordinates(1, 2), Content = "Rarity: Normal\nItem Class: Maps" };
         var eval = new MapRulesResult(true, false, false, 1, 1, MapRuleFailure.None, false);
 
         BulkMapActionHelper.AssignScourOrAlchemyOnly(slot, eval);
 
         Assert.Equal(BulkMapAction.AlchemyOnly, slot.NextAction);
+    }
+
+    [Fact]
+    public void AssignScourOrAlchemyOnly_magic_uses_scour_alchemy()
+    {
+        var slot = new BulkMapSlot { Position = new Coordinates(1, 2), Content = "Rarity: Magic\nItem Class: Maps" };
+        var eval = new MapRulesResult(true, false, false, 1, 1, MapRuleFailure.None, false);
+
+        BulkMapActionHelper.AssignScourOrAlchemyOnly(slot, eval);
+
+        Assert.Equal(BulkMapAction.ScourAlchemy, slot.NextAction);
+    }
+
+    [Fact]
+    public void ResolveNonRarePrep_magic_uses_scour_alchemy()
+    {
+        Assert.Equal(
+            BulkMapAction.ScourAlchemy,
+            BulkMapActionHelper.ResolveNonRarePrep("Rarity: Magic\nItem Class: Maps"));
     }
 
     [Fact]

@@ -5,9 +5,16 @@ namespace PoE.dlls.Gamble.Bulk
 {
     internal static class BulkMapActionHelper
     {
+        public static BulkMapAction ResolveNonRarePrep(string? itemContent) =>
+            itemContent is not null && MapRulesEvaluator.IsMagic(itemContent)
+                ? BulkMapAction.ScourAlchemy
+                : BulkMapAction.AlchemyOnly;
+
         public static void AssignScourOrAlchemyOnly(BulkMapSlot slot, MapRulesResult eval)
         {
-            slot.NextAction = eval.IsRare ? BulkMapAction.ScourAlchemy : BulkMapAction.AlchemyOnly;
+            slot.NextAction = eval.IsRare
+                ? BulkMapAction.ScourAlchemy
+                : ResolveNonRarePrep(slot.Content);
         }
 
         public static TimeSpan ResolveRefreshDelay(GambleMapBulkSettings? bulkGrid, TimeSpan actionDelay)

@@ -8,7 +8,7 @@ namespace PoE.dlls.Gamble.Bulk
         None,
         /// <summary>Rare maps: Alt+LMB scour then LMB alchemy.</summary>
         ScourAlchemy,
-        /// <summary>Normal/magic maps: LMB alchemy only.</summary>
+        /// <summary>Normal maps: LMB alchemy only. Magic maps use ScourAlchemy.</summary>
         AlchemyOnly,
         Exalt,
         Chaos,
