@@ -31,7 +31,7 @@ public class ModSuggestionStrategyTests
         if (!database.HasEntries)
             return;
 
-        IReadOnlyList<ModSuggestionItem> results = database.SearchItemOnly("life", 20, 0);
+        IReadOnlyList<ModSuggestionItem> results = database.SearchItemOnly("life", spawnTagFilter: null, 20, 0);
         Assert.NotEmpty(results);
 
         using var connection = new Microsoft.Data.Sqlite.SqliteConnection($"Data Source={dbPath}");

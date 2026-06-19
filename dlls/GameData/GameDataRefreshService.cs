@@ -62,6 +62,16 @@ namespace PoE.dlls.GameData
             if (!ReadDatFile(archive, "data/stats.datc64", out byte[] statsBytes))
                 return Fail("Could not read data/stats.datc64 from the game folder.");
 
+            byte[]? essencesBytes = null;
+            if (archive.TryReadGameFile("data/essences.datc64", out byte[] readEssences, out _, out _)
+                && readEssences.Length > 0)
+            {
+                essencesBytes = readEssences;
+                GameDataLog.Info($"Read data/essences.datc64 ({FormatBytes(readEssences.Length)}).");
+            }
+            else
+                GameDataLog.Info("essences.datc64 not found — essence modifier type tags will be omitted.");
+
             IReadOnlyList<(string Path, byte[] Bytes)> statDescriptionFiles =
                 PoEDataFileLocator.ReadStatDescriptionFiles(archive);
             if (statDescriptionFiles.Count == 0)
@@ -78,7 +88,8 @@ namespace PoE.dlls.GameData
                     modsBytes,
                     tagsBytes,
                     statsBytes,
-                    statDescriptionFiles);
+                    statDescriptionFiles,
+                    essencesBytes);
             }
             catch (Exception ex)
             {
@@ -93,7 +104,13 @@ namespace PoE.dlls.GameData
             int mapRows = uniqueEntries.Count(e => e.IsMap);
             int exarchRows = uniqueEntries.Count(e => e.EldritchInfluence == ModEldritchInfluence.SearingExarch);
             int eaterRows = uniqueEntries.Count(e => e.EldritchInfluence == ModEldritchInfluence.EaterOfWorlds);
-            GameDataLog.Info($"Extracted {nameRows:N0} name rows and {contentRows:N0} stat-line rows ({uniqueEntries.Count:N0} total suggestions, {mapRows:N0} map-tagged, {exarchRows:N0} exarch, {eaterRows:N0} eater).");
+            int flaskRows = uniqueEntries.Count(e => e.ItemKind == ModItemKind.Flask);
+            int jewelRows = uniqueEntries.Count(e => e.ItemKind == ModItemKind.Jewel);
+            int clusterRows = uniqueEntries.Count(e => e.ItemKind == ModItemKind.ClusterJewel);
+            int abyssRows = uniqueEntries.Count(e => e.ItemKind == ModItemKind.AbyssJewel);
+            int essenceRows = uniqueEntries.Count(e => e.ItemKind == ModItemKind.Essence);
+            GameDataLog.Info(
+                $"Extracted {nameRows:N0} name rows and {contentRows:N0} stat-line rows ({uniqueEntries.Count:N0} total suggestions, {mapRows:N0} map-tagged, {exarchRows:N0} exarch, {eaterRows:N0} eater, {flaskRows:N0} flask, {jewelRows:N0} jewel, {clusterRows:N0} cluster jewel, {abyssRows:N0} abyss jewel, {essenceRows:N0} essence).");
             if (mapRows == 0)
                 GameDataLog.Info("No map-tagged modifiers were extracted — refresh after updating game files, or check Logs for filter issues.");
 

@@ -11,5 +11,8 @@ namespace PoE.dlls.GameData
         string ModName,
         string ModContent,
         bool IsMap,
-        ModEldritchInfluence EldritchInfluence);
+        ModEldritchInfluence EldritchInfluence,
+        int ModDomain = 0,
+        ModItemKind ItemKind = ModItemKind.Item,
+        string SpawnTags = "");
 }

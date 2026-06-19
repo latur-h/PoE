@@ -15,10 +15,11 @@ namespace PoE.dlls.Gamble.UI
         private const int PriorityColumnWidth = 72;
         private const int TypeColumnX = PriorityColumnWidth + ColumnGap;
         private const int TypeColumnWidth = 121;
+        private const int InfluenceColumnX = TypeColumnX + TypeColumnWidth + ColumnGap;
         private const int InfluenceColumnWidth = 158;
-        private const int TierColumnX = TypeColumnX + TypeColumnWidth + ColumnGap;
+        private const int TierColumnX = InfluenceColumnX;
         private const int TierColumnWidth = 59;
-        private const int EldritchContentColumnX = TypeColumnX + InfluenceColumnWidth + ColumnGap;
+        private const int EldritchContentColumnX = InfluenceColumnX + InfluenceColumnWidth + ColumnGap;
 
         private static int ContentColumnX(bool eldritch) =>
             eldritch ? EldritchContentColumnX : TierColumnX + TierColumnWidth + ColumnGap;
@@ -30,7 +31,6 @@ namespace PoE.dlls.Gamble.UI
         private readonly Label _headerContent;
 
         private static readonly Font UiFont = new("Segoe UI", 12F, FontStyle.Regular, GraphicsUnit.Point);
-        private static readonly string[] ModifierTypeNames = Enum.GetNames<ModifierType>();
 
         private readonly Panel _scrollPanel;
         private readonly Panel _rowsHost;
@@ -60,8 +60,8 @@ namespace PoE.dlls.Gamble.UI
             };
 
             _header = header;
-            _headerType = CreateHeaderLabel("Type", TypeColumnX, TypeColumnWidth);
-            _headerInfluence = CreateHeaderLabel("Influence", TypeColumnX, InfluenceColumnWidth);
+            _headerType = CreateHeaderLabel("Item type", TypeColumnX, TypeColumnWidth);
+            _headerInfluence = CreateHeaderLabel("Influence", InfluenceColumnX, InfluenceColumnWidth);
             _headerTier = CreateHeaderLabel("Tier", TierColumnX, TierColumnWidth);
             _headerContent = CreateHeaderLabel("Modifier content", ContentColumnX(false), 287);
 
@@ -113,7 +113,7 @@ namespace PoE.dlls.Gamble.UI
         public void RefreshGambleTypeLayout()
         {
             bool eldritch = IsEldritchMode();
-            _headerType.Visible = !eldritch;
+            _headerType.Visible = true;
             _headerInfluence.Visible = eldritch;
             _headerTier.Visible = !eldritch;
             _headerContent.Location = new Point(ContentColumnX(eldritch), 4);
@@ -121,7 +121,14 @@ namespace PoE.dlls.Gamble.UI
             foreach (var view in _views.Values)
             {
                 foreach (var row in view.Rows)
+                {
                     row.ApplyEldritchMode(eldritch);
+                    if (_modSuggestions is not null)
+                    {
+                        SpawnTagAutocomplete.SetEldritchArmourScope(row.TypeFilterTextBox, IsEldritchMode);
+                        SpawnTagAutocomplete.Refresh(row.TypeFilterTextBox, _modSuggestions);
+                    }
+                }
             }
 
             LayoutActiveView();
@@ -263,6 +270,12 @@ namespace PoE.dlls.Gamble.UI
             if (_modSuggestions is null)
                 return;
 
+            SpawnTagAutocomplete.Attach(
+                row.TypeFilterTextBox,
+                _modSuggestions,
+                onFilterChanged: () => ModSuggestionAutocomplete.RequestRefresh(row.ContentTextBox),
+                useEldritchArmourScope: IsEldritchMode);
+
             ModSuggestionAutocomplete.Attach(row.ContentTextBox, _modSuggestions, () => ResolveSuggestionStrategy(row));
         }
 
@@ -270,13 +283,13 @@ namespace PoE.dlls.Gamble.UI
         {
             GambleType type = _getGambleType?.Invoke() ?? GambleType.Alt;
             if (type == GambleType.Eldritch)
-                return EldritchModSuggestionStrategy.For(row.GetEldritchInfluence());
+                return EldritchModSuggestionStrategy.For(row.GetEldritchInfluence(), row.GetItemTypeFilter());
 
-            return ModSuggestionStrategyResolver.For(type);
+            if (type is GambleType.Map or GambleType.MapExalt or GambleType.MapT17)
+                return MapModSuggestionStrategy.Instance;
+
+            return ItemModSuggestionStrategy.For(row.GetItemTypeFilter());
         }
-
-        private IModSuggestionStrategy GetSuggestionStrategy() =>
-            ModSuggestionStrategyResolver.For(_getGambleType?.Invoke() ?? GambleType.Alt);
 
         private void RemoveRow(GambleRuleRowControl row)
         {
@@ -413,7 +426,7 @@ namespace PoE.dlls.Gamble.UI
             private readonly Func<bool> _isEldritchMode;
             private GambleRuleRow _rule;
             private readonly FlatTextBox _priority;
-            private readonly FlatComboBox _type;
+            private readonly FlatTextBox _typeFilter;
             private readonly FlatComboBox _influence;
             private readonly FlatTextBox _tier;
             private readonly FlatTextBox _content;
@@ -438,24 +451,17 @@ namespace PoE.dlls.Gamble.UI
                     Changed?.Invoke(this, EventArgs.Empty);
                 };
 
-                _type = new FlatComboBox
+                _typeFilter = CreateTextBox(new Point(TypeColumnX, 2), new Size(TypeColumnWidth, 30), HorizontalAlignment.Left);
+                _typeFilter._textBox.Text = ModSpawnTagDisplay.GetDisplayName(rule.ItemTypeFilter);
+                _typeFilter._textBox.TextChanged += (_, _) =>
                 {
-                    Location = new Point(TypeColumnX, 2),
-                    Size = new Size(TypeColumnWidth, 30),
-                    Font = UiFont,
-                };
-                _type.Items.AddRange(ModifierTypeNames);
-                _type.SelectedItem = rule.ModifierType.ToString();
-                _type.SelectedIndexChanged += (_, _) =>
-                {
-                    if (_type.SelectedItem is string name)
-                        _rule.ModifierType = Enum.Parse<ModifierType>(name);
+                    _rule.ItemTypeFilter = _typeFilter._textBox.Text;
                     Changed?.Invoke(this, EventArgs.Empty);
                 };
 
                 _influence = new FlatComboBox
                 {
-                    Location = new Point(TypeColumnX, 2),
+                    Location = new Point(InfluenceColumnX, 2),
                     Size = new Size(InfluenceColumnWidth, 30),
                     Font = UiFont,
                 };
@@ -503,7 +509,7 @@ namespace PoE.dlls.Gamble.UI
                 _remove.Click += (_, _) => RemoveRequested?.Invoke(this, EventArgs.Empty);
 
                 Controls.Add(_priority);
-                Controls.Add(_type);
+                Controls.Add(_typeFilter);
                 Controls.Add(_influence);
                 Controls.Add(_tier);
                 Controls.Add(_content);
@@ -517,10 +523,15 @@ namespace PoE.dlls.Gamble.UI
                     ? EldritchInfluence.EaterOfWorlds
                     : EldritchInfluence.SearingExarch;
 
+            internal string GetItemTypeFilter() =>
+                ModSpawnTagFilter.Normalize(_typeFilter._textBox.Text) ?? string.Empty;
+
+            internal TextBox TypeFilterTextBox => _typeFilter._textBox;
+
             internal void ApplyEldritchMode(bool eldritch)
             {
-                _type.Visible = !eldritch;
                 _influence.Visible = eldritch;
+                _influence.Location = new Point(InfluenceColumnX, 2);
                 _tier.Visible = !eldritch;
                 _content.Location = new Point(ContentColumnX(eldritch), 2);
             }
@@ -537,14 +548,11 @@ namespace PoE.dlls.Gamble.UI
                 if (int.TryParse(_tier._textBox.Text, out int parsedTier) && parsedTier > 0 && parsedTier < 10)
                     tier = parsedTier;
 
-                ModifierType modifierType = _rule.ModifierType;
-                if (_type.Visible && _type.SelectedItem is string typeName)
-                    modifierType = Enum.Parse<ModifierType>(typeName);
-
                 return new GambleRuleRow
                 {
                     Priority = priority,
-                    ModifierType = modifierType,
+                    ModifierType = ModifierType.Any,
+                    ItemTypeFilter = ModSpawnTagFilter.Normalize(_typeFilter._textBox.Text) ?? string.Empty,
                     Tier = tier,
                     Content = _content._textBox.Text,
                     EldritchInfluence = _isEldritchMode()

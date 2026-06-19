@@ -65,6 +65,34 @@ public class ModCatalogIntegrationTests
             entries,
             e => e.EldritchInfluence == ModEldritchInfluence.EaterOfWorlds
                  && e.ModContent.Contains("Arcane Surge", StringComparison.OrdinalIgnoreCase));
+
+        int flaskRows = entries.Count(e => e.ItemKind == ModItemKind.Flask);
+        int jewelRows = entries.Count(e => e.ItemKind == ModItemKind.Jewel);
+        int clusterRows = entries.Count(e => e.ItemKind == ModItemKind.ClusterJewel);
+        int abyssRows = entries.Count(e => e.ItemKind == ModItemKind.AbyssJewel);
+        Assert.True(flaskRows > 0, $"Expected flask suggestion rows, got 0 of {entries.Count}.");
+        Assert.True(jewelRows > 0, $"Expected jewel suggestion rows, got 0 of {entries.Count}.");
+        Assert.True(clusterRows > 0, $"Expected cluster jewel suggestion rows, got 0 of {entries.Count}.");
+        Assert.True(abyssRows > 0, $"Expected abyss jewel suggestion rows, got 0 of {entries.Count}.");
+
+        Assert.Contains(
+            entries,
+            e => e.ItemKind == ModItemKind.Flask
+                 && (e.SpawnTags.Contains("utility_flask", StringComparison.OrdinalIgnoreCase)
+                     || e.SpawnTags.Contains("life_flask", StringComparison.OrdinalIgnoreCase)
+                     || e.SpawnTags.Contains("mana_flask", StringComparison.OrdinalIgnoreCase)));
+
+        Assert.Contains(
+            entries,
+            e => e.ItemKind == ModItemKind.ClusterJewel
+                 && (e.ModContent.Contains("Feasting Fiends", StringComparison.OrdinalIgnoreCase)
+                     || e.ModName.Contains("Feasting Fiends", StringComparison.OrdinalIgnoreCase)));
+
+        Assert.Contains(
+            entries,
+            e => e.ItemKind == ModItemKind.ClusterJewel
+                 && !string.IsNullOrWhiteSpace(e.SpawnTags)
+                 && e.SpawnTags.Contains("affliction_", StringComparison.OrdinalIgnoreCase));
     }
 
     [Fact]

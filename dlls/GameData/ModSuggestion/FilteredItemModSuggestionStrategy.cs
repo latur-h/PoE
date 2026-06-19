@@ -1,17 +1,14 @@
 namespace PoE.dlls.GameData
 {
-    public sealed class ItemModSuggestionStrategy : IModSuggestionStrategy
+    public sealed class FilteredItemModSuggestionStrategy : IModSuggestionStrategy
     {
-        public static ItemModSuggestionStrategy Instance { get; } = new();
+        private readonly string _spawnTagFilter;
 
-        public static IModSuggestionStrategy For(string? spawnTagFilter)
-        {
-            string? normalized = ModSpawnTagFilter.Normalize(spawnTagFilter);
-            return normalized is null ? Instance : new FilteredItemModSuggestionStrategy(normalized);
-        }
+        public FilteredItemModSuggestionStrategy(string spawnTagFilter) =>
+            _spawnTagFilter = ModSpawnTagFilter.Normalize(spawnTagFilter) ?? string.Empty;
 
         public IReadOnlyList<ModSuggestionItem> Search(ModCacheDatabase database, string term, int limit, int offset) =>
-            database.SearchItemOnly(term, spawnTagFilter: null, limit, offset);
+            database.SearchItemOnly(term, _spawnTagFilter, limit, offset);
 
         public string FormatDisplay(ModSuggestionItem item, string searchTerm) =>
             item.GetDisplayText(searchTerm);

@@ -61,6 +61,7 @@
     <PackageReference Include="Poss.Win.Automation.Core" Version="1.0.5" />
     <PackageReference Include="Poss.Win.Automation.GlobalHotKeys" Version="1.0.5" />
     <PackageReference Include="Poss.Win.Automation.Input" Version="1.0.5" />
+    <PackageReference Include="SQLitePCLRaw.bundle_e_sqlite3" Version="3.0.3" />
   </ItemGroup>
 
 </Project>

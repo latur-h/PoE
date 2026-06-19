@@ -6,6 +6,9 @@
 # dotenv files
 .env
 
+# Cursor files
+.cursor/
+
 # Test project build output (nested under tests/)
 tests/**/[Bb]in/
 tests/**/[Oo]bj/

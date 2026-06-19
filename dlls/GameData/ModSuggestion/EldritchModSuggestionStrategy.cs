@@ -5,14 +5,19 @@ namespace PoE.dlls.GameData
     public sealed class EldritchModSuggestionStrategy : IModSuggestionStrategy
     {
         private readonly ModEldritchInfluence _influence;
+        private readonly string? _itemTypeFilter;
 
-        private EldritchModSuggestionStrategy(ModEldritchInfluence influence) => _influence = influence;
+        private EldritchModSuggestionStrategy(ModEldritchInfluence influence, string? itemTypeFilter)
+        {
+            _influence = influence;
+            _itemTypeFilter = ModSpawnTagFilter.Normalize(itemTypeFilter);
+        }
 
-        public static EldritchModSuggestionStrategy For(EldritchInfluence influence) =>
-            new(ToCatalogInfluence(influence));
+        public static EldritchModSuggestionStrategy For(EldritchInfluence influence, string? itemTypeFilter = null) =>
+            new(ToCatalogInfluence(influence), itemTypeFilter);
 
         public IReadOnlyList<ModSuggestionItem> Search(ModCacheDatabase database, string term, int limit, int offset) =>
-            database.SearchEldritchImplicit(_influence, term, limit, offset);
+            database.SearchEldritchImplicit(_influence, term, _itemTypeFilter, limit, offset);
 
         public string FormatDisplay(ModSuggestionItem item, string searchTerm) => item.ModContent;
 

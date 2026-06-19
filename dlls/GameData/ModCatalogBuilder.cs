@@ -4,89 +4,10 @@ namespace PoE.dlls.GameData
 {
     internal static class ModCatalogBuilder
     {
-        // LibDat2 schema enums are 1-based (ITEM=1, AREA=5, ATLAS=11, CRUCIBLE_MAP=33). Raw dat can be 0-based (ITEM=0, ATLAS=10).
-        private static readonly HashSet<int> AllowedDomains = [0, 1, 5, 10, 11, 33];
         private const int GenerationPrefix = 1;
         private const int GenerationSuffix = 2;
         private const int GenerationExarchImplicit = 28;
         private const int GenerationEaterImplicit = 29;
-
-        private static readonly HashSet<string> EldritchItemSpawnTags = new(StringComparer.OrdinalIgnoreCase)
-        {
-            "gloves",
-            "boots",
-            "helmet",
-            "body_armour",
-            "amulet",
-        };
-
-        private static readonly HashSet<string> MapSpawnTags = new(StringComparer.OrdinalIgnoreCase)
-        {
-            "map",
-            "atlas",
-            "white_map",
-            "red_map",
-            "yellow_map",
-            "blue_map",
-            "ancient_map",
-            "memory_map",
-            "expedition_logbook",
-            "low_tier_map",
-            "mid_tier_map",
-            "top_tier_map",
-            "uber_tier_map",
-            "maven_map",
-            "primordial_map",
-            "has_uber_map_prefix",
-            "has_uber_map_suffix",
-            "crucible_map_low",
-            "crucible_map_high",
-        };
-
-        private static readonly HashSet<string> UniqueOnlyTags = new(StringComparer.OrdinalIgnoreCase)
-        {
-            "unique",
-            "unique_map",
-            "unique_league",
-        };
-
-        private static readonly HashSet<string> ItemOrMapTags = new(StringComparer.OrdinalIgnoreCase)
-        {
-            "default",
-            "ring",
-            "amulet",
-            "belt",
-            "gloves",
-            "boots",
-            "helmet",
-            "body_armour",
-            "shield",
-            "quiver",
-            "weapon",
-            "map",
-            "jewel",
-            "str_armour",
-            "dex_armour",
-            "int_armour",
-            "str_dex_armour",
-            "str_int_armour",
-            "dex_int_armour",
-            "str_dex_int_armour",
-            "two_hand_weapon",
-            "one_hand_weapon",
-            "onehand",
-            "twohand",
-            "bow",
-            "claw",
-            "dagger",
-            "rune_dagger",
-            "wand",
-            "staff",
-            "warstaff",
-            "axe",
-            "mace",
-            "sword",
-        };
 
         private static readonly string[] StatKeyColumns =
         [
@@ -98,7 +19,8 @@ namespace PoE.dlls.GameData
             byte[] modsBytes,
             byte[] tagsBytes,
             byte[] statsBytes,
-            IReadOnlyList<(string Path, byte[] Bytes)> statDescriptionFiles)
+            IReadOnlyList<(string Path, byte[] Bytes)> statDescriptionFiles,
+            byte[]? essencesBytes = null)
         {
             var mods = LibDat2DatTable.Load(modsBytes, "mods", schemaJsonPath);
             var tags = LibDat2DatTable.Load(tagsBytes, "tags", schemaJsonPath);
@@ -114,14 +36,18 @@ namespace PoE.dlls.GameData
             string?[] tagIds = BuildTagIds(tags);
             string?[] statIds = BuildStatIds(stats);
 
-            var entries = new Dictionary<(string ModName, string ModContent, ModEldritchInfluence Eldritch), bool>(ModEntryKeyComparer.Instance);
+            var entries = new Dictionary<(string ModName, string ModContent, ModEldritchInfluence Eldritch), ModCatalogAccumulator>(ModEntryKeyComparer.Instance);
             int includedMods = 0;
             int mapMods = 0;
             int eldritchMods = 0;
+            int flaskMods = 0;
+            int clusterMods = 0;
+            int abyssMods = 0;
+            int essenceMods = 0;
             var scanTimer = Stopwatch.StartNew();
             long lastProgressMs = 0;
 
-            GameDataLog.Info($"Scanning {mods.RowCount} mods (items, maps, eldritch implicits)…");
+            GameDataLog.Info($"Scanning {mods.RowCount} mods (items, maps, flasks, jewels, abyss jewels, cluster jewels, eldritch implicits, essences)…");
             for (int row = 0; row < mods.RowCount; row++)
             {
                 long elapsedMs = scanTimer.ElapsedMilliseconds;
@@ -131,6 +57,11 @@ namespace PoE.dlls.GameData
                     lastProgressMs = elapsedMs;
                 }
 
+                string? modId = mods.GetString(row, "Id");
+                if (ModCatalogTagHelper.ShouldExcludeModId(modId))
+                    continue;
+
+                int domain = mods.GetInt32(row, "Domain");
                 int generation = mods.GetInt32(row, "GenerationType");
                 ModEldritchInfluence eldritchInfluence = generation switch
                 {
@@ -139,6 +70,12 @@ namespace PoE.dlls.GameData
                     _ => ModEldritchInfluence.None,
                 };
 
+                IReadOnlyList<string> positiveSpawnTags = CollectPositiveSpawnTags(mods, tagIds, row);
+                if (ModCatalogTagHelper.IsJewelDomain(domain))
+                    positiveSpawnTags = EnsureJewelSpawnTag(positiveSpawnTags);
+                else if (ModCatalogTagHelper.IsAbyssJewelDomain(domain))
+                    positiveSpawnTags = AbyssJewelSubtypeTags.EnrichSpawnTags(modId, positiveSpawnTags);
+
                 if (eldritchInfluence != ModEldritchInfluence.None)
                 {
                     if (!ShouldIncludeEldritchImplicit(mods, tagIds, row))
@@ -146,7 +83,7 @@ namespace PoE.dlls.GameData
 
                     includedMods++;
                     eldritchMods++;
-                    bool eldritchIsMap = IsMapMod(mods, tagIds, row);
+                    bool eldritchIsMap = IsMapMod(mods, tagIds, row, domain);
                     if (eldritchIsMap)
                         mapMods++;
 
@@ -158,51 +95,216 @@ namespace PoE.dlls.GameData
                     if (lines.Count == 0)
                         continue;
 
+                    ModItemKind eldritchKind = ModCatalogTagHelper.ResolveItemKind(
+                        domain, positiveSpawnTags, eldritchIsMap, eldritchInfluence);
+
                     foreach (string line in lines)
-                        AddSuggestion(entries, eldritchName, line, eldritchIsMap, eldritchInfluence);
+                    {
+                        AddSuggestion(
+                            entries,
+                            eldritchName,
+                            line,
+                            eldritchIsMap,
+                            eldritchInfluence,
+                            domain,
+                            eldritchKind,
+                            positiveSpawnTags);
+                    }
 
                     continue;
                 }
 
-                if (!ShouldIncludeMod(mods, tagIds, row))
+                if (!ShouldIncludeMod(mods, tagIds, row, domain, positiveSpawnTags))
                     continue;
 
                 includedMods++;
-                bool isMap = IsMapMod(mods, tagIds, row);
+                bool isMap = IsMapMod(mods, tagIds, row, domain);
                 if (isMap)
                     mapMods++;
+
+                ModItemKind itemKind = ModCatalogTagHelper.ResolveItemKind(
+                    domain, positiveSpawnTags, isMap, ModEldritchInfluence.None);
+
+                if (itemKind == ModItemKind.Flask)
+                    flaskMods++;
+                else if (itemKind == ModItemKind.ClusterJewel)
+                    clusterMods++;
+                else if (itemKind == ModItemKind.AbyssJewel)
+                    abyssMods++;
 
                 string? name = mods.GetString(row, "Name")?.Trim();
                 if (string.IsNullOrWhiteSpace(name))
                     continue;
 
-                AddSuggestion(entries, name, string.Empty, isMap, ModEldritchInfluence.None);
+                AddSuggestion(entries, name, string.Empty, isMap, ModEldritchInfluence.None, domain, itemKind, positiveSpawnTags);
 
                 foreach (string line in BuildDescriptionLines(mods, statIds, statTemplates, row))
-                    AddSuggestion(entries, name, line, isMap, ModEldritchInfluence.None);
+                {
+                    AddSuggestion(
+                        entries,
+                        name,
+                        line,
+                        isMap,
+                        ModEldritchInfluence.None,
+                        domain,
+                        itemKind,
+                        positiveSpawnTags);
+                }
             }
 
-            GameDataLog.Info($"Scan complete — {includedMods:N0} mods matched filters ({mapMods:N0} map-tagged, {eldritchMods:N0} eldritch implicit), {entries.Count:N0} suggestion rows.");
+            if (essencesBytes is not null)
+                essenceMods = IncludeEssenceMods(
+                    schemaJsonPath,
+                    essencesBytes,
+                    mods,
+                    tagIds,
+                    statIds,
+                    statTemplates,
+                    entries,
+                    ref includedMods);
+
+            GameDataLog.Info(
+                $"Scan complete — {includedMods:N0} mods matched filters ({mapMods:N0} map-tagged, {eldritchMods:N0} eldritch implicit, {flaskMods:N0} flask, {clusterMods:N0} cluster jewel, {abyssMods:N0} abyss jewel, {essenceMods:N0} essence), {entries.Count:N0} suggestion rows.");
+
             if (includedMods == 0)
                 WriteFilterDebugDump(mods, tagIds);
 
             return entries
-                .Select(kv => new ModCatalogEntry(kv.Key.ModName, kv.Key.ModContent, kv.Value, kv.Key.Eldritch))
+                .Select(kv => new ModCatalogEntry(
+                    kv.Key.ModName,
+                    kv.Key.ModContent,
+                    kv.Value.IsMap,
+                    kv.Key.Eldritch,
+                    kv.Value.ModDomain,
+                    kv.Value.ItemKind,
+                    ModCatalogTagHelper.FormatSpawnTags(kv.Value.SpawnTags)))
                 .ToHashSet();
         }
 
+        private static int IncludeEssenceMods(
+            string schemaJsonPath,
+            byte[] essencesBytes,
+            LibDat2DatTable mods,
+            string?[] tagIds,
+            string?[] statIds,
+            Dictionary<string, string> statTemplates,
+            Dictionary<(string ModName, string ModContent, ModEldritchInfluence Eldritch), ModCatalogAccumulator> entries,
+            ref int includedMods)
+        {
+            LibDat2DatTable essences;
+            try
+            {
+                essences = LibDat2DatTable.Load(essencesBytes, "essences", schemaJsonPath);
+            }
+            catch (Exception ex)
+            {
+                GameDataLog.Info($"Could not load essences.dat for essence mod tags: {ex.Message}");
+                return 0;
+            }
+
+            Dictionary<int, HashSet<string>> essenceTagsByModRow = EssenceModTagEnricher.BuildModRowTags(essences);
+            int essenceModRows = 0;
+
+            foreach (KeyValuePair<int, HashSet<string>> pair in essenceTagsByModRow)
+            {
+                int modRow = pair.Key;
+                HashSet<string> essenceTags = pair.Value;
+                if ((uint)modRow >= (uint)mods.RowCount || essenceTags.Count == 0)
+                    continue;
+
+                int domain = mods.GetInt32(modRow, "Domain");
+                if (!ModCatalogTagHelper.AllowedDomains.Contains(domain))
+                    continue;
+
+                int generation = mods.GetInt32(modRow, "GenerationType");
+                if (generation is not (GenerationPrefix or GenerationSuffix))
+                    continue;
+
+                IReadOnlyList<string> naturalTags = CollectPositiveSpawnTags(mods, tagIds, modRow);
+                var combinedTags = new List<string>(naturalTags.Count + essenceTags.Count);
+                combinedTags.AddRange(naturalTags);
+                combinedTags.AddRange(essenceTags);
+
+                string? name = mods.GetString(modRow, "Name")?.Trim();
+                if (string.IsNullOrWhiteSpace(name))
+                    continue;
+
+                includedMods++;
+                essenceModRows++;
+
+                ModItemKind itemKind = ModCatalogTagHelper.MergeItemKind(
+                    ModCatalogTagHelper.ResolveItemKind(domain, combinedTags, false, ModEldritchInfluence.None),
+                    ModItemKind.Essence);
+
+                AddSuggestion(
+                    entries,
+                    name,
+                    string.Empty,
+                    false,
+                    ModEldritchInfluence.None,
+                    domain,
+                    itemKind,
+                    combinedTags);
+
+                foreach (string line in BuildDescriptionLines(mods, statIds, statTemplates, modRow))
+                {
+                    AddSuggestion(
+                        entries,
+                        name,
+                        line,
+                        false,
+                        ModEldritchInfluence.None,
+                        domain,
+                        itemKind,
+                        combinedTags);
+                }
+            }
+
+            return essenceModRows;
+        }
+
         private static void AddSuggestion(
-            Dictionary<(string ModName, string ModContent, ModEldritchInfluence Eldritch), bool> entries,
+            Dictionary<(string ModName, string ModContent, ModEldritchInfluence Eldritch), ModCatalogAccumulator> entries,
             string modName,
             string modContent,
             bool isMap,
-            ModEldritchInfluence eldritch)
+            ModEldritchInfluence eldritch,
+            int modDomain,
+            ModItemKind itemKind,
+            IReadOnlyList<string> positiveSpawnTags)
         {
             var key = (modName, modContent, eldritch);
-            if (entries.TryGetValue(key, out bool existing))
-                entries[key] = existing || isMap;
-            else
-                entries[key] = isMap;
+            if (!entries.TryGetValue(key, out ModCatalogAccumulator? accumulator))
+            {
+                accumulator = new ModCatalogAccumulator();
+                entries[key] = accumulator;
+            }
+
+            accumulator.Merge(isMap, modDomain, itemKind, positiveSpawnTags);
+        }
+
+        private sealed class ModCatalogAccumulator
+        {
+            public bool IsMap { get; private set; }
+
+            public int ModDomain { get; private set; }
+
+            public ModItemKind ItemKind { get; private set; }
+
+            public HashSet<string> SpawnTags { get; } = new(StringComparer.OrdinalIgnoreCase);
+
+            public void Merge(bool isMap, int modDomain, ModItemKind itemKind, IEnumerable<string> positiveSpawnTags)
+            {
+                IsMap |= isMap;
+                ModDomain = modDomain;
+                ItemKind = ModCatalogTagHelper.MergeItemKind(ItemKind, itemKind);
+
+                foreach (string tag in positiveSpawnTags)
+                {
+                    if (!string.IsNullOrWhiteSpace(tag))
+                        SpawnTags.Add(tag.Trim());
+                }
+            }
         }
 
         private sealed class ModEntryKeyComparer : IEqualityComparer<(string ModName, string ModContent, ModEldritchInfluence Eldritch)>
@@ -226,10 +328,10 @@ namespace PoE.dlls.GameData
             string?[] tagIds,
             int row)
         {
-            if (HasActiveSpawnTag(mods, tagIds, row, EldritchItemSpawnTags))
+            if (HasActiveSpawnTag(mods, tagIds, row, ModCatalogTagHelper.EldritchItemSpawnTags))
                 return true;
 
-            return HasActiveSpawnTag(mods, tagIds, row, MapSpawnTags);
+            return HasActiveSpawnTag(mods, tagIds, row, ModCatalogTagHelper.MapSpawnTags);
         }
 
         private static string? ResolveCatalogModName(LibDat2DatTable mods, int row)
@@ -241,17 +343,16 @@ namespace PoE.dlls.GameData
             return mods.GetString(row, "Id")?.Trim();
         }
 
-        private static bool IsMapDomain(int domain) => domain is 5 or 11 or 33;
-
         private static bool IsMapMod(
             LibDat2DatTable mods,
             string?[] tagIds,
-            int row)
+            int row,
+            int domain)
         {
-            if (IsMapDomain(mods.GetInt32(row, "Domain")))
+            if (ModCatalogTagHelper.IsMapDomain(domain))
                 return true;
 
-            return HasActiveSpawnTag(mods, tagIds, row, MapSpawnTags);
+            return HasActiveSpawnTag(mods, tagIds, row, ModCatalogTagHelper.MapSpawnTags);
         }
 
         private static bool HasActiveSpawnTag(
@@ -279,12 +380,13 @@ namespace PoE.dlls.GameData
             return false;
         }
 
-        private static bool HasAnyNonUniquePositiveSpawn(LibDat2DatTable mods, string?[] tagIds, int row)
+        private static List<string> CollectPositiveSpawnTags(LibDat2DatTable mods, string?[] tagIds, int row)
         {
+            var positive = new List<string>();
             IReadOnlyList<int> spawnTags = mods.GetForeignKeyArray(row, "SpawnWeight_TagsKeys");
             IReadOnlyList<int> spawnValues = mods.GetInt32Array(row, "SpawnWeight_Values");
             if (spawnTags.Count == 0 || spawnValues.Count == 0)
-                return false;
+                return positive;
 
             int count = Math.Min(spawnTags.Count, spawnValues.Count);
             for (int i = 0; i < count; i++)
@@ -293,17 +395,31 @@ namespace PoE.dlls.GameData
                     continue;
 
                 string? tag = TagId(tagIds, spawnTags[i]);
-                if (string.IsNullOrWhiteSpace(tag))
+                if (string.IsNullOrWhiteSpace(tag) || ModCatalogTagHelper.UniqueOnlyTags.Contains(tag))
                     continue;
 
-                if (UniqueOnlyTags.Contains(tag))
-                    continue;
-
-                return true;
+                positive.Add(tag);
             }
 
-            return false;
+            return positive;
         }
+
+        private static IReadOnlyList<string> EnsureJewelSpawnTag(IReadOnlyList<string> tags)
+        {
+            foreach (string tag in tags)
+            {
+                if (string.Equals(tag, "jewel", StringComparison.OrdinalIgnoreCase))
+                    return tags;
+            }
+
+            var withJewel = new List<string>(tags.Count + 1);
+            withJewel.AddRange(tags);
+            withJewel.Add("jewel");
+            return withJewel;
+        }
+
+        private static bool HasAnyNonUniquePositiveSpawn(LibDat2DatTable mods, string?[] tagIds, int row) =>
+            CollectPositiveSpawnTags(mods, tagIds, row).Count > 0;
 
         private static void WriteFilterDebugDump(LibDat2DatTable mods, string?[] tagIds)
         {
@@ -323,7 +439,7 @@ namespace PoE.dlls.GameData
                 {
                     int domain = mods.GetInt32(row, "Domain");
                     int gen = mods.GetInt32(row, "GenerationType");
-                    if (domain is not (1 or 11) || gen is not (1 or 2))
+                    if (domain is not (1 or 11 or ModCatalogTagHelper.DomainClusterJewel or ModCatalogTagHelper.DomainClusterJewelRaw) || gen is not (1 or 2))
                         continue;
 
                     string? id = mods.GetString(row, "Id");
@@ -352,46 +468,36 @@ namespace PoE.dlls.GameData
             }
         }
 
-        private static bool ShouldIncludeMod(LibDat2DatTable mods, string?[] tagIds, int row)
+        private static bool ShouldIncludeMod(
+            LibDat2DatTable mods,
+            string?[] tagIds,
+            int row,
+            int domain,
+            IReadOnlyList<string> positiveSpawnTags)
         {
-            int domain = mods.GetInt32(row, "Domain");
-            if (!AllowedDomains.Contains(domain))
+            if (!ModCatalogTagHelper.AllowedDomains.Contains(domain))
                 return false;
 
             int generation = mods.GetInt32(row, "GenerationType");
             if (generation is not (GenerationPrefix or GenerationSuffix))
                 return false;
 
-            if (IsMapDomain(domain))
+            if (ModCatalogTagHelper.IsMapDomain(domain))
                 return HasAnyNonUniquePositiveSpawn(mods, tagIds, row);
 
-            IReadOnlyList<int> spawnTags = mods.GetForeignKeyArray(row, "SpawnWeight_TagsKeys");
-            IReadOnlyList<int> spawnValues = mods.GetInt32Array(row, "SpawnWeight_Values");
-            if (spawnTags.Count == 0 || spawnValues.Count == 0)
-                return false;
+            if (ModCatalogTagHelper.IsClusterJewelDomain(domain))
+                return positiveSpawnTags.Count > 0;
 
-            bool hasAllowedSpawn = false;
-            bool onlyUniqueSpawn = true;
+            if (ModCatalogTagHelper.IsFlaskDomain(domain))
+                return ModCatalogTagHelper.HasFlaskPositiveSpawn(positiveSpawnTags);
 
-            int count = Math.Min(spawnTags.Count, spawnValues.Count);
-            for (int i = 0; i < count; i++)
-            {
-                if (spawnValues[i] <= 0)
-                    continue;
+            if (ModCatalogTagHelper.IsJewelDomain(domain))
+                return positiveSpawnTags.Count > 0;
 
-                string? tag = TagId(tagIds, spawnTags[i]);
-                if (string.IsNullOrWhiteSpace(tag))
-                    continue;
+            if (ModCatalogTagHelper.IsAbyssJewelDomain(domain))
+                return ModCatalogTagHelper.HasAbyssJewelPositiveSpawn(positiveSpawnTags);
 
-                if (UniqueOnlyTags.Contains(tag))
-                    continue;
-
-                onlyUniqueSpawn = false;
-                if (ItemOrMapTags.Contains(tag) || MapSpawnTags.Contains(tag))
-                    hasAllowedSpawn = true;
-            }
-
-            return hasAllowedSpawn && !onlyUniqueSpawn;
+            return ModCatalogTagHelper.HasAllowedPositiveSpawn(positiveSpawnTags);
         }
 
         private static IReadOnlyList<string> BuildDescriptionLines(
