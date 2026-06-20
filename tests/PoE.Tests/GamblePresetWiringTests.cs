@@ -61,5 +61,76 @@ namespace PoE.Tests
 
             Assert.Equal(AltAugResponse.Alt, response);
         }
+
+        [Fact]
+        public void Reject_rule_fails_matches_rules_before_required_check()
+        {
+            var reject = new Rule(-1, ModifierType.Any, 99, "Attribute Requirements");
+            var required = new Rule(1, ModifierType.Any, 99, "Fire Spell Skill Gems");
+
+            Assert.False(GambleRuleEvaluator.MatchesRules(
+                FireSceptreSnippet,
+                [required, reject],
+                logParse: false));
+        }
+
+        [Fact]
+        public void Reject_rule_passes_when_mod_not_present()
+        {
+            var reject = new Rule(-1, ModifierType.Any, 99, "maximum Life");
+            var required = new Rule(1, ModifierType.Any, 99, "Fire Spell Skill Gems");
+
+            Assert.True(GambleRuleEvaluator.MatchesRules(
+                FireSceptreSnippet,
+                [required, reject],
+                logParse: false));
+        }
+
+        [Fact]
+        public void Reject_only_setup_passes_when_no_excluded_mod()
+        {
+            var reject = new Rule(-1, ModifierType.Any, 99, "maximum Life");
+
+            Assert.True(GambleRuleEvaluator.MatchesRules(
+                FireSceptreSnippet,
+                [reject],
+                logParse: false));
+        }
+
+        [Fact]
+        public void Reject_rule_matches_mod_name()
+        {
+            var reject = new Rule(-1, ModifierType.Any, 99, "Apt");
+
+            Assert.False(GambleRuleEvaluator.MatchesRules(
+                FireSceptreSnippet,
+                [reject],
+                logParse: false));
+        }
+
+        [Fact]
+        public void Required_rule_matches_mod_name()
+        {
+            var required = new Rule(1, ModifierType.Any, 99, "Flame Shaper");
+
+            Assert.True(GambleRuleEvaluator.MatchesRules(
+                FireSceptreSnippet,
+                [required],
+                logParse: false));
+        }
+
+        [Fact]
+        public void Reject_rule_returns_alt_in_alt_aug_before_success()
+        {
+            var reject = new Rule(-1, ModifierType.Any, 99, "Attribute Requirements");
+            var required = new Rule(1, ModifierType.Any, 99, "Fire Spell Skill Gems");
+
+            AltAugResponse response = GambleRuleEvaluator.EvaluateAltAug(
+                FireSceptreSnippet,
+                [required, reject],
+                logParse: false);
+
+            Assert.Equal(AltAugResponse.Alt, response);
+        }
     }
 }

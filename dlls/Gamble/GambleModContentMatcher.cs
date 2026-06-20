@@ -106,7 +106,7 @@ namespace PoE.dlls.Gamble
             return IsLegacyRegexMatch(ruleContent, itemModContent);
         }
 
-        public static bool MatchesModRule(Rule rule, Modifier mod, bool matchNameToo = false)
+        public static bool MatchesModRule(Rule rule, Modifier mod, bool matchNameToo = true)
         {
             if (rule.Type != ModifierType.Any && mod.Type != rule.Type)
                 return false;

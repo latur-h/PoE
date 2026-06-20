@@ -8,8 +8,11 @@ namespace PoE.dlls.Gamble.UI
 
     public static class GambleModeHelp
     {
-        private static GambleModeHelpSection ItemModContentSection(string matchTarget) => Section("Content",
-            matchTarget + "\r\n\r\n" +
+        private const string ItemModNameOrContentMatch =
+            "Matched against the mod description line or the crafted mod name in quotes — either can satisfy the rule.";
+
+        private static GambleModeHelpSection ItemModContentSection(string? extraDetail = null) => Section("Content",
+            (extraDetail is null ? ItemModNameOrContentMatch : extraDetail + " " + ItemModNameOrContentMatch) + "\r\n\r\n" +
             "Autocomplete: type in Content to search the mod list; picking a suggestion inserts a # template — add operators or exact numbers as needed.\r\n\r\n" +
             "Numbers and comparison:\r\n" +
             "• # — any value at that position\r\n" +
@@ -74,12 +77,12 @@ namespace PoE.dlls.Gamble.UI
             Section("Priority",
                 "• 1 or higher — Required: every such rule must match at least one mod\r\n" +
                 "• Between 0 and 1 (e.g. 0.5) — Optional: if you use any optional rules, at least one must match\r\n" +
+                "-1 or lower — Reject: if any mod matches, roll is rejected (checked first)\r\n" +
                 "• 0 is not optional"),
             Section("Type & Tier",
                 "• Type — Prefix, Suffix, Implicit, or Any\r\n" +
                 "• Tier — maximum tier allowed (lower number = better mod)"),
-            ItemModContentSection(
-                "Matched against the mod description line (text under the { Prefix … } header), not the crafted name in quotes."),
+            ItemModContentSection(),
             Section("Enchants",
                 "Lines marked (enchant) count as Implicit mods and follow the same rules."),
             Section("Success",
@@ -99,11 +102,10 @@ namespace PoE.dlls.Gamble.UI
                 "• Alt — rules not met and the item has two or more prefix/suffix mods (reroll)\r\n" +
                 "• Success — required rules met and optional rules satisfied (if any)"),
             Section("Priority",
-                "Same as Alt: 1+ required, fractional optional (not 0)."),
+                "Same as Alt: 1+ required, fractional optional (not 0), -1 or lower reject (checked first)."),
             Section("Type & Tier",
                 "Same filters as Alt."),
-            ItemModContentSection(
-                "Tested against the mod description or the mod name — either can satisfy the rule."),
+            ItemModContentSection(),
             Section("Success",
                 "Required rules satisfied; optional rules satisfied when present."),
         ]);
@@ -119,12 +121,12 @@ namespace PoE.dlls.Gamble.UI
             Section("Priority",
                 "• 1 or higher — Required\r\n" +
                 "• Between 0 and 1 — Optional (if any optional rows exist, at least one must match)\r\n" +
+                "-1 or lower — Reject: if any mod matches, roll is rejected (checked first)\r\n" +
                 "• 0 is not optional"),
             Section("Type & Tier",
                 "• Type — Prefix, Suffix, Implicit, or Any\r\n" +
                 "• Tier — maximum tier allowed"),
-            ItemModContentSection(
-                "Matched against the mod description line (e.g. to maximum life, fire resistance)."),
+            ItemModContentSection(),
             Section("Success",
                 "All required rules match; optional rules satisfied when configured."),
         ]);
@@ -140,11 +142,11 @@ namespace PoE.dlls.Gamble.UI
             Section("Priority",
                 "• 1 or higher — Required\r\n" +
                 "• Between 0 and 1 — Optional\r\n" +
+                "-1 or lower — Reject: if any mod matches, roll is rejected (checked first)\r\n" +
                 "• 0 is not optional"),
             Section("Type & Tier",
                 "Type and Tier filters apply (same as Chaos)."),
-            ItemModContentSection(
-                "Matched against the mod description line (e.g. to strength on a suffix row)."),
+            ItemModContentSection(),
             Section("Success",
                 "All required rules match; optional rules satisfied when configured."),
         ]);
@@ -269,11 +271,11 @@ namespace PoE.dlls.Gamble.UI
             OrbsTabCoordinatesSection("Harvest item, Craft button"),
             Section("Priority",
                 "• 1 or higher — Required\r\n" +
-                "• Between 0 and 1 — Optional"),
+                "• Between 0 and 1 — Optional\r\n" +
+                "-1 or lower — Reject: if any mod matches, roll is rejected (checked first)"),
             Section("Type & Tier",
                 "Both apply — same as Chaos/Essence."),
-            ItemModContentSection(
-                "Matched against the mod description line (typical reforge outcome lines)."),
+            ItemModContentSection("Typical reforge outcome lines."),
             Section("Success",
                 "All required rules match; optional rules satisfied when configured."),
         ]);
@@ -289,13 +291,13 @@ namespace PoE.dlls.Gamble.UI
                 "4. Release Shift when done or cancelled."),
             OrbsTabCoordinatesSection("Default item, Searing Exarch orb, Eater of Worlds orb"),
             Section("Priority",
-                "• 1 or higher — Required\r\n" +
-                "• Between 0 and 1 — Optional"),
+                "• 1 or higher — Required on the matching implicit line\r\n" +
+                "• Between 0 and 1 — Optional\r\n" +
+                "-1 or lower — Reject: if any mod on the item matches, roll is rejected (checked first)"),
             Section("Rules",
-                "Each rule targets one influence (Searing Exarch or Eater of Worlds). Only the matching implicit line is checked.\r\n" +
-                "Tier and Type columns are hidden — only implicit content matching applies."),
-            ItemModContentSection(
-                "Matched against the implicit line for the row's influence. Examples: damage penetration, item quantity, reservation efficiency."),
+                "Each rule targets one influence (Searing Exarch or Eater of Worlds). Required/optional apply only to the matching implicit line.\r\n" +
+                "Reject rules apply to all mods on the item. Tier and Type columns are hidden for implicit matching."),
+            ItemModContentSection("Implicit lines for the row's influence."),
             Section("Success",
                 "Both influence groups pass their required rules; optional rules satisfied when configured."),
         ]);

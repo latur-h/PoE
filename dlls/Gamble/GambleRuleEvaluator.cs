@@ -14,20 +14,45 @@ namespace PoE.dlls.Gamble
 
     internal static class GambleRuleEvaluator
     {
+        public static bool IsExcludedByRules(
+            IReadOnlyList<Modifier> modifiers,
+            IReadOnlyList<Rule> rules,
+            bool matchNameToo = true)
+        {
+            List<Rule> exclude = rules
+                .Where(r => r.Priority <= -1 && !string.IsNullOrEmpty(r.Content))
+                .ToList();
+            if (exclude.Count == 0)
+                return false;
+
+            foreach (Modifier mod in modifiers)
+            {
+                foreach (Rule rule in exclude)
+                {
+                    if (GambleModContentMatcher.MatchesModRule(rule, mod, matchNameToo))
+                        return true;
+                }
+            }
+
+            return false;
+        }
+
         public static bool MatchesRules(
             string itemContent,
             IReadOnlyList<Rule> rules,
-            bool matchNameToo = false,
+            bool matchNameToo = true,
             bool logParse = true)
         {
             List<Modifier> modifiers = ParseModifiers(itemContent, logImplicitMods: true, logParse: logParse);
 
+            if (IsExcludedByRules(modifiers, rules, matchNameToo))
+                return false;
+
             var required = rules.Where(r => r.Priority >= 1).ToList();
             var optional = rules.Where(r => r.Priority > 0 && r.Priority < 1).ToList();
-            bool hasContentRules = rules.Any(r => !string.IsNullOrEmpty(r.Content));
 
             if (required.Count == 0 && optional.Count == 0)
-                return !hasContentRules;
+                return !HasIgnoredPriorityZeroRules(rules);
 
             int requiredCount = 0;
             int optionalCount = 0;
@@ -67,9 +92,11 @@ namespace PoE.dlls.Gamble
         {
             List<Modifier> modifiers = ParseModifiers(itemContent, logImplicitMods: false, logParse: logParse);
 
+            if (IsExcludedByRules(modifiers, rules))
+                return AltAugResponse.Alt;
+
             var required = rules.Where(r => r.Priority >= 1).ToList();
             var optional = rules.Where(r => r.Priority > 0 && r.Priority < 1).ToList();
-            bool hasContentRules = rules.Any(r => !string.IsNullOrEmpty(r.Content));
 
             int requiredCount = 0;
             int optionalCount = 0;
@@ -79,7 +106,7 @@ namespace PoE.dlls.Gamble
             {
                 foreach (Modifier mod in modifiers)
                 {
-                    if (!GambleModContentMatcher.MatchesModRule(rule, mod, matchNameToo: true))
+                    if (!GambleModContentMatcher.MatchesModRule(rule, mod))
                         continue;
 
                     requiredCount++;
@@ -90,7 +117,7 @@ namespace PoE.dlls.Gamble
             {
                 foreach (Modifier mod in modifiers)
                 {
-                    if (!GambleModContentMatcher.MatchesModRule(rule, mod, matchNameToo: true))
+                    if (!GambleModContentMatcher.MatchesModRule(rule, mod))
                         continue;
 
                     optionalCount++;
@@ -99,8 +126,10 @@ namespace PoE.dlls.Gamble
 
             if (required.Count == 0 && optional.Count == 0)
             {
-                if (hasContentRules)
+                if (HasIgnoredPriorityZeroRules(rules))
                     return modsCount == 1 ? AltAugResponse.Aug : AltAugResponse.Alt;
+
+                return AltAugResponse.Success;
             }
 
             if (required.Count <= requiredCount)
@@ -113,6 +142,9 @@ namespace PoE.dlls.Gamble
 
             return modsCount == 1 ? AltAugResponse.Aug : AltAugResponse.Alt;
         }
+
+        private static bool HasIgnoredPriorityZeroRules(IReadOnlyList<Rule> rules) =>
+            rules.Any(r => !string.IsNullOrEmpty(r.Content) && r.Priority == 0);
 
         public static List<Modifier> ParseModifiers(string itemContent, bool logImplicitMods = true, bool logParse = true)
         {

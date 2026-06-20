@@ -180,9 +180,14 @@ namespace PoE.dlls.Gamble.Modes
         private Coordinates OrbFor(EldritchInfluence influence) =>
             influence == EldritchInfluence.EaterOfWorlds ? eaterOrb : exarchOrb;
 
-        private bool IsComplete(List<Modifier> modifiers) =>
-            SlotSatisfied(modifiers, EldritchInfluence.SearingExarch)
-            && SlotSatisfied(modifiers, EldritchInfluence.EaterOfWorlds);
+        private bool IsComplete(List<Modifier> modifiers)
+        {
+            if (GambleRuleEvaluator.IsExcludedByRules(modifiers, rules))
+                return false;
+
+            return SlotSatisfied(modifiers, EldritchInfluence.SearingExarch)
+                && SlotSatisfied(modifiers, EldritchInfluence.EaterOfWorlds);
+        }
 
         private async Task<(bool Ok, List<Modifier> Modifiers)> TryReadItemAsync(
             bool requireHashChange,
