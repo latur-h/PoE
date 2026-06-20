@@ -63,20 +63,25 @@ namespace PoE.dlls.Gamble
             return content.Trim();
         }
 
-        public static string ToRegexPattern(string ruleContent)
+        public static string ToRegexPattern(string ruleContent, bool allowArticlesForHash = false)
         {
             if (string.IsNullOrEmpty(ruleContent))
                 return string.Empty;
 
             var pattern = new StringBuilder(ruleContent.Length + 16);
             foreach (char c in ruleContent)
-                pattern.Append(c == '#' ? @"\d+" : c);
+            {
+                if (c == '#')
+                    pattern.Append(allowArticlesForHash ? @"(?:\d+|(?:an|a)(?=\s|$))" : @"\d+");
+                else
+                    pattern.Append(c);
+            }
 
             return pattern.ToString();
         }
 
-        public static Regex CreateRulePattern(string ruleContent) =>
-            new(ToRegexPattern(ruleContent), RegexOptions.IgnoreCase | RegexOptions.Compiled);
+        public static Regex CreateRulePattern(string ruleContent, bool allowArticlesForHash = false) =>
+            new(ToRegexPattern(ruleContent, allowArticlesForHash), RegexOptions.IgnoreCase | RegexOptions.Compiled);
 
         public static bool IsContentMatch(string ruleContent, string itemModContent)
         {
@@ -130,7 +135,18 @@ namespace PoE.dlls.Gamble
         private static bool IsLegacyRegexMatch(string ruleContent, string itemModContent)
         {
             string normalized = NormalizeItemModContent(itemModContent);
-            return CreateRulePattern(ruleContent).IsMatch(normalized);
+            if (CreateRulePattern(ruleContent).IsMatch(normalized))
+                return true;
+
+            if (CreateRulePattern(ruleContent, allowArticlesForHash: true).IsMatch(normalized))
+                return true;
+
+            string relaxedRule = ModTemplateMatcher.RelaxTrailingWordPlural(ruleContent);
+            string relaxedItem = ModTemplateMatcher.RelaxTrailingWordPlural(normalized);
+            if (string.Equals(relaxedRule, relaxedItem, StringComparison.OrdinalIgnoreCase))
+                return true;
+
+            return CreateRulePattern(relaxedRule, allowArticlesForHash: true).IsMatch(relaxedItem);
         }
 
         private static string ReplaceWithHighestNonRangeValue(Match match)

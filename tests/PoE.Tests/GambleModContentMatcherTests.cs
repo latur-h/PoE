@@ -223,5 +223,75 @@ namespace PoE.Tests
                     File.Delete(dbPath);
             }
         }
+
+        [Fact]
+        public void Hash_matches_an_article_as_single_count()
+        {
+            Assert.True(ModTemplateMatcher.TryMatch(
+                "Projectiles Pierce # additional Targets",
+                "Projectiles Pierce # additional Targets",
+                "Projectiles Pierce an additional Target"));
+        }
+
+        [Fact]
+        public void Hash_matches_a_article_as_single_count()
+        {
+            Assert.True(ModTemplateMatcher.TryMatch(
+                "Projectiles Pierce # additional Targets",
+                "Projectiles Pierce # additional Targets",
+                "Projectiles Pierce a additional Target"));
+        }
+
+        [Fact]
+        public void Article_does_not_satisfy_greater_than_one_threshold()
+        {
+            Assert.False(ModTemplateMatcher.TryMatch(
+                "Projectiles Pierce >=2 additional Targets",
+                "Projectiles Pierce # additional Targets",
+                "Projectiles Pierce an additional Target"));
+        }
+
+        [Fact]
+        public void Eldritch_db_rule_matches_pierce_item_line_with_catalog_context()
+        {
+            string dbPath = Path.Combine(Path.GetTempPath(), $"poe_modcache_test_{Guid.NewGuid():N}.sqlite");
+            try
+            {
+                using var database = new ModCacheDatabase(dbPath);
+                database.Recreate(
+                [
+                    new ModCatalogEntry(
+                        "Pierce",
+                        "Projectiles Pierce # additional Targets",
+                        false,
+                        ModEldritchInfluence.EaterOfWorlds),
+                ]);
+
+                GambleModContentMatcher.SetCatalogContext(database, GambleType.Eldritch);
+                try
+                {
+                    Assert.True(GambleModContentMatcher.IsContentMatch(
+                        "Projectiles Pierce # additional Targets",
+                        "Projectiles Pierce an additional Target"));
+                }
+                finally
+                {
+                    GambleModContentMatcher.ClearCatalogContext();
+                }
+            }
+            finally
+            {
+                if (File.Exists(dbPath))
+                    File.Delete(dbPath);
+            }
+        }
+
+        [Fact]
+        public void RelaxTrailingWordPlural_strips_last_word_s_suffix()
+        {
+            Assert.Equal(
+                "Projectiles Pierce an additional Target",
+                ModTemplateMatcher.RelaxTrailingWordPlural("Projectiles Pierce an additional Targets"));
+        }
     }
 }
