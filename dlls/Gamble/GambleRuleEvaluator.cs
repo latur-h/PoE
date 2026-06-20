@@ -168,6 +168,8 @@ namespace PoE.dlls.Gamble
                 string name = string.Empty;
                 if (getName.IsMatch(mod.Value))
                     name = getName.Match(mod.Value).Groups["Name"].Value.Trim();
+                else if (type == ModifierType.Implicit)
+                    name = ResolveEldritchImplicitInfluenceName(mod.Value);
 
                 int tier = 0;
                 if (getTier.IsMatch(mod.Value))
@@ -202,6 +204,17 @@ namespace PoE.dlls.Gamble
             }
 
             return modifiers;
+        }
+
+        private static string ResolveEldritchImplicitInfluenceName(string modBlock)
+        {
+            if (Regex.IsMatch(modBlock, @"Eater of Worlds", RegexOptions.IgnoreCase))
+                return "Eater of Worlds";
+
+            if (Regex.IsMatch(modBlock, @"Searing Exarch", RegexOptions.IgnoreCase))
+                return "Searing Exarch";
+
+            return string.Empty;
         }
     }
 }

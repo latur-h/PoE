@@ -303,6 +303,7 @@ namespace PoE.dlls.Macros.UI
             _rowsHost.SuspendLayout();
             try
             {
+                UpdateHeaderColumnVisibility();
                 LayoutHeader(width);
 
                 int y = 0;
@@ -330,23 +331,48 @@ namespace PoE.dlls.Macros.UI
             }
         }
 
+        private void UpdateHeaderColumnVisibility()
+        {
+            if (_rows.Count == 0)
+            {
+                _headerTrigger.Visible = true;
+                _headerCycle.Visible = true;
+                _headerLock.Visible = true;
+                return;
+            }
+
+            _headerTrigger.Visible = _rows.Any(r => r.UsesTriggerKey);
+            _headerCycle.Visible = _rows.Any(r => r.UsesCycleDelay);
+            _headerLock.Visible = _rows.Any(r => r.IsPixelMode);
+        }
+
         private void LayoutHeader(int width)
         {
-            int removeX = Math.Max(FireX + MinFireWidth + BehaviorWidth, width - RemoveReserve);
-            int x = removeX - ColumnGap;
-
+            int x = width - RemoveReserve - ColumnGap;
             x = PlaceHeader(_headerToggle, x, ToggleWidth);
-            x = PlaceHeader(_headerLock, x, LockWidth);
-            x = PlaceHeader(_headerCycle, x, CycleDelayWidth);
+
+            if (_headerLock.Visible)
+                x = PlaceHeader(_headerLock, x, LockWidth);
+
+            if (_headerCycle.Visible)
+                x = PlaceHeader(_headerCycle, x, CycleDelayWidth);
+
             x = PlaceHeader(_headerKey, x, KeyDelayWidth);
             x = PlaceHeader(_headerBehavior, x, BehaviorWidth);
 
-            int fireWidth = Math.Max(MinFireWidth, x - ColumnGap - FireX);
-            _headerFire.Location = new Point(FireX, 4);
+            int modeLeft = _headerBehavior.Left;
+            int fireLeft = _headerTrigger.Visible ? FireX : TriggerX;
+            int fireRight = modeLeft - ColumnGap;
+            int fireWidth = Math.Max(MinFireWidth, fireRight - fireLeft);
+
+            _headerFire.Location = new Point(fireLeft, 4);
             _headerFire.Width = fireWidth;
 
-            _headerTrigger.Location = new Point(TriggerX, 4);
-            _headerTrigger.Width = TriggerWidth;
+            if (_headerTrigger.Visible)
+            {
+                _headerTrigger.Location = new Point(TriggerX, 4);
+                _headerTrigger.Width = TriggerWidth;
+            }
 
             _headerActive.Location = new Point(ActiveX, 4);
             _headerActive.Width = ActiveWidth;

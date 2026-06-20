@@ -311,6 +311,12 @@ namespace PoE.dlls.Macros.UI
             };
         }
 
+        public bool IsPixelMode => _trigger.Behavior is MacroBehavior.JE or MacroBehavior.JNE;
+
+        public bool UsesCycleDelay => _trigger.Behavior != MacroBehavior.Single;
+
+        public bool UsesTriggerKey => _trigger.Behavior is MacroBehavior.Single or MacroBehavior.Loop;
+
         public void SetWidth(int width)
         {
             if (Width == width && _appliedLayoutWidth == width)
@@ -327,36 +333,51 @@ namespace PoE.dlls.Macros.UI
 
         private void ApplyColumnLayout(int width)
         {
-            int removeX = Math.Max(FireX + MinFireWidth + BehaviorWidth, width - RemoveReserve);
-            if (_remove.Location.X != removeX)
-                _remove.Location = new Point(removeX, 18);
+            _remove.Location = new Point(width - RemoveReserve, 18);
 
-            int x = removeX - ColumnGap;
-            x = PlaceFieldIfVisible(_toggleKey, x, ToggleWidth);
-            x = PlaceFieldIfVisible(_lockDelay, x, LockWidth);
-            x = PlaceFieldIfVisible(_cycleDelay, x, CycleDelayWidth);
-            x = PlaceFieldIfVisible(_keyDelay, x, KeyDelayWidth);
+            int x = width - RemoveReserve - ColumnGap;
+            x = PlaceField(_toggleKey, x, ToggleWidth);
+
+            if (_lockDelay.Visible)
+                x = PlaceField(_lockDelay, x, LockWidth);
+
+            if (_cycleDelay.Visible)
+                x = PlaceField(_cycleDelay, x, CycleDelayWidth);
+
+            x = PlaceField(_keyDelay, x, KeyDelayWidth);
             x = PlaceField(_behavior, x, BehaviorWidth);
 
-            int fireWidth = Math.Max(MinFireWidth, x - ColumnGap - FireX);
-            _fireSequence.Location = new Point(FireX, _fireSequence.Location.Y);
+            int modeLeft = _behavior.Left;
+            int fireLeft = _triggerKey.Visible ? FireX : TriggerX;
+            int fireRight = modeLeft - ColumnGap;
+            int fireWidth = Math.Max(MinFireWidth, fireRight - fireLeft);
+            if (fireLeft + fireWidth > fireRight)
+                fireWidth = Math.Max(0, fireRight - fireLeft);
+
+            _fireSequence.Location = new Point(fireLeft, _fireSequence.Location.Y);
             _fireSequence.Width = fireWidth;
 
-            _pixelRow.Width = Math.Max(TriggerWidth, removeX - TriggerX);
+            _pixelRow.Width = Math.Max(TriggerWidth, modeLeft - TriggerX);
             _pixelRow.Location = new Point(TriggerX, Height - PixelRowHeight);
             LayoutPixelRowControls();
+
+            _behavior.BringToFront();
+            _keyDelay.BringToFront();
+            if (_cycleDelay.Visible)
+                _cycleDelay.BringToFront();
+            if (_lockDelay.Visible)
+                _lockDelay.BringToFront();
+            _toggleKey.BringToFront();
+            _remove.BringToFront();
         }
 
         private static int PlaceField(Control control, int rightEdge, int fieldWidth)
         {
             rightEdge -= fieldWidth;
             control.Location = new Point(rightEdge, 14);
-            control.Width = fieldWidth;
+            control.Size = new Size(fieldWidth, 30);
             return rightEdge - ColumnGap;
         }
-
-        private static int PlaceFieldIfVisible(Control control, int rightEdge, int fieldWidth) =>
-            control.Visible ? PlaceField(control, rightEdge, fieldWidth) : rightEdge;
 
         private void LayoutPixelRowControls()
         {
@@ -409,13 +430,13 @@ namespace PoE.dlls.Macros.UI
 
         private void ApplyBehaviorVisibility()
         {
-            bool pixelMode = _trigger.Behavior is MacroBehavior.JE or MacroBehavior.JNE;
+            bool pixelMode = IsPixelMode;
             bool hideTrigger = _trigger.Behavior is MacroBehavior.Repeat or MacroBehavior.JE or MacroBehavior.JNE;
-            bool hideCycle = _trigger.Behavior == MacroBehavior.Single;
+            bool hideCycle = !UsesCycleDelay;
 
-            _triggerKey.Visible = !hideTrigger;
-            _cycleDelay.Visible = !hideCycle;
-            _lockDelay.Visible = pixelMode;
+            SetOptionalFieldVisible(_triggerKey, !hideTrigger);
+            SetOptionalFieldVisible(_cycleDelay, !hideCycle);
+            SetOptionalFieldVisible(_lockDelay, pixelMode);
             _pixelRow.Visible = pixelMode;
 
             int previousHeight = Height;
@@ -427,6 +448,16 @@ namespace PoE.dlls.Macros.UI
 
             if (Height != previousHeight)
                 RowHeightChanged?.Invoke(this, EventArgs.Empty);
+        }
+
+        private static void SetOptionalFieldVisible(Control control, bool visible)
+        {
+            control.Visible = visible;
+            control.Enabled = visible;
+            control.TabStop = visible;
+
+            if (control is FlatTextBox flat)
+                flat._textBox.TabStop = visible;
         }
 
         private void PickColorAtCoordinate()

@@ -1,33 +1,30 @@
-Item Class: Sceptres
-Rarity: Magic
-Synthesised Flame Shaper's Karui Sceptre of the Apt
+Item Class: Gloves
+Rarity: Rare
+Soul Vise
+Slink Gloves
 --------
-Sceptre
 Quality: +20% (augmented)
-Physical Damage: 37-55
-Critical Strike Chance: 7.00%
-Attacks per Second: 1.50
-Weapon Range: 1.1 metres
+Evasion Rating: 323 (augmented)
 --------
 Requirements:
-Level: 60
-Str: 65 (augmented) (unmet)
-Int: 65 (augmented) (unmet)
+Level: 70
+Dex: 95
 --------
-Sockets: B-B-B 
+Sockets: G-G-G-G 
 --------
-Item Level: 83
+Item Level: 82
 --------
-Quality does not increase Physical Damage (enchant)
-Grants 1% increased Area of Effect per 4% Quality (enchant)
+{ Eater of Worlds Implicit Modifier (Lesser) }
+Projectiles Pierce an additional Target
 --------
-{ Implicit Modifier — Damage, Physical }
-Enemies you Kill have a 15% chance to Explode, dealing a tenth of their maximum Life as Physical Damage
---------
-{ Prefix Modifier "Flame Shaper's" (Tier: 1) — Elemental, Fire, Caster, Gem }
-+1 to Level of all Fire Spell Skill Gems
-{ Suffix Modifier "of the Apt" (Tier: 1) }
-32% reduced Attribute Requirements
-(Attributes are Strength, Dexterity, and Intelligence)
---------
-Synthesised Item
+{ Prefix Modifier "Athlete's" (Tier: 1) — Life }
++125(115-129) to maximum Life
+{ Master Crafted Prefix Modifier "Upgraded" — Damage }
+27(24-28)% increased Damage during any Flask Effect
+{ Suffix Modifier "of Exile" (Tier: 2) — Chaos, Resistance }
++28(26-30)% to Chaos Resistance
+{ Suffix Modifier "of the Furnace" (Tier: 4) — Elemental, Fire, Resistance }
++34(30-35)% to Fire Resistance
+{ Suffix Modifier "of the Tempest" (Tier: 4) — Elemental, Lightning, Resistance }
++35(30-35)% to Lightning Resistance
+Eater of Worlds Item

@@ -75,7 +75,7 @@ namespace PoE.dlls.Gamble.Modes
                 return;
             }
 
-            await PickUpOrbAsync(EldritchInfluence.SearingExarch);
+            await PickUpOrbAsync(SelectOrb(modifiers));
 
             bool afterSlam = false;
             int? baselineHash = null;
