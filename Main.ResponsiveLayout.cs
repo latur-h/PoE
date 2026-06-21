@@ -254,7 +254,7 @@ namespace PoE
                 return;
 
             const int margin = 7;
-            const int topBarHeight = 40;
+            const int topBarHeight = 78;
             const int profileBarHeight = 34;
 
             int width = tabPage_Macros.ClientSize.Width;
@@ -269,6 +269,12 @@ namespace PoE
             textBox_MacrosEnableKey.Location = new Point(132, y + 2);
             checkBox_MacrosFeatureEnabled.Location = new Point(230, y + 8);
             label_MacrosHelp.Location = new Point(318, y + 6);
+
+            checkBox_MacroOverlayEnabled.Location = new Point(margin, y + 38);
+            label_MacroOverlayCorner.Location = new Point(158, y + 42);
+            comboBox_MacroOverlayCorner.Location = new Point(220, y + 38);
+            comboBox_MacroOverlayCorner.Enabled = checkBox_MacroOverlayEnabled.Checked;
+
             y += topBarHeight;
 
             _macroProfileBar.Location = new Point(margin, y);

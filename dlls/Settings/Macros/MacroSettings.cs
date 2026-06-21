@@ -6,6 +6,10 @@ namespace PoE.dlls.Settings.Macros
 
         public bool FeatureEnabled { get; set; } = true;
 
+        public bool OverlayEnabled { get; set; }
+
+        public MacroOverlayCorner OverlayCorner { get; set; } = MacroOverlayCorner.TopLeft;
+
         public MacroProfile GlobalProfile { get; set; } = new() { Name = MacroProfile.GlobalName };
 
         public string ActiveBuildProfileName { get; set; } = MacroProfile.GlobalName;

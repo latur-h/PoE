@@ -11,13 +11,19 @@ namespace PoE
         private FlatTextBox textBox_MacrosEnableKey = null!;
         private Label label_MacrosEnableKey = null!;
         private CheckBox checkBox_MacrosFeatureEnabled = null!;
+        private CheckBox checkBox_MacroOverlayEnabled = null!;
+        private Label label_MacroOverlayCorner = null!;
+        private FlatComboBox comboBox_MacroOverlayCorner = null!;
         private Label label_MacrosHelp = null!;
         private MacroProfileBar _macroProfileBar = null!;
         private MacrosPanel _macrosPanel = null!;
+        private MacroOverlayForm? _macroOverlay;
         private ToolTip toolTip_Macros = null!;
         private MacroKeyFieldBinder? _macrosEnableKeyBinder;
         private bool _macrosTabUiReady;
         private bool _suppressMacrosFeatureCheckbox;
+        private bool _suppressMacroOverlayCheckbox;
+        private bool _suppressMacroOverlayCorner;
 
         private void InitializeMacrosTab()
         {
@@ -57,6 +63,37 @@ namespace PoE
             };
             checkBox_MacrosFeatureEnabled.CheckedChanged += (_, _) => OnMacrosFeatureEnabledChanged();
 
+            checkBox_MacroOverlayEnabled = new CheckBox
+            {
+                AutoSize = true,
+                Location = new Point(7, 42),
+                Text = "Status overlay",
+                ForeColor = StaticColors.ForeGround,
+                BackColor = StaticColors.BackGround,
+                Font = new Font("Segoe UI", 12F),
+            };
+            checkBox_MacroOverlayEnabled.CheckedChanged += (_, _) => OnMacroOverlayEnabledChanged();
+
+            label_MacroOverlayCorner = new Label
+            {
+                AutoSize = true,
+                Location = new Point(158, 46),
+                Text = "Corner",
+                ForeColor = StaticColors.ForeGround,
+                BackColor = StaticColors.BackGround,
+                Font = new Font("Segoe UI", 12F),
+            };
+
+            comboBox_MacroOverlayCorner = new FlatComboBox
+            {
+                Location = new Point(220, 42),
+                Size = new Size(130, 30),
+                Font = new Font("Segoe UI", 12F),
+                DropDownStyle = ComboBoxStyle.DropDownList,
+            };
+            comboBox_MacroOverlayCorner.Items.AddRange(["Top left", "Top right", "Bottom left", "Bottom right"]);
+            comboBox_MacroOverlayCorner.SelectedIndexChanged += (_, _) => OnMacroOverlayCornerChanged();
+
             label_MacrosHelp = new Label
             {
                 AutoSize = true,
@@ -75,7 +112,11 @@ namespace PoE
             };
             _macroProfileBar.Bind(_settings.Macros);
             _macroProfileBar.ProfileChanging += (_, _) => _macrosPanel.Commit();
-            _macroProfileBar.ProfileChanged += (_, _) => LoadSelectedProfileIntoUi();
+            _macroProfileBar.ProfileChanged += (_, _) =>
+            {
+                LoadSelectedProfileIntoUi();
+                RefreshMacroOverlay();
+            };
 
             _macrosPanel = new MacrosPanel
             {
@@ -87,6 +128,9 @@ namespace PoE
             tabPage_Macros.Controls.Add(label_MacrosEnableKey);
             tabPage_Macros.Controls.Add(textBox_MacrosEnableKey);
             tabPage_Macros.Controls.Add(checkBox_MacrosFeatureEnabled);
+            tabPage_Macros.Controls.Add(checkBox_MacroOverlayEnabled);
+            tabPage_Macros.Controls.Add(label_MacroOverlayCorner);
+            tabPage_Macros.Controls.Add(comboBox_MacroOverlayCorner);
             tabPage_Macros.Controls.Add(label_MacrosHelp);
             tabPage_Macros.Controls.Add(_macroProfileBar);
             tabPage_Macros.Controls.Add(_macrosPanel);
@@ -117,6 +161,14 @@ namespace PoE
                 "Shows whether macros are currently enabled. Click to toggle, or use the feature hotkey.");
 
             toolTip_Macros.SetToolTip(
+                checkBox_MacroOverlayEnabled,
+                "Show a transparent on-screen overlay listing runtime macros. Green = on, red = off.");
+
+            toolTip_Macros.SetToolTip(
+                comboBox_MacroOverlayCorner,
+                "Screen corner for the macro status overlay.");
+
+            toolTip_Macros.SetToolTip(
                 _macroProfileBar,
                 "Global is always active at runtime. Pick another profile to also run its macros alongside Global.");
 
@@ -136,6 +188,91 @@ namespace PoE
                 _hotkeys.Change("Macros enable", sendKey);
         }
 
+        private void OnMacroOverlayEnabledChanged()
+        {
+            if (_suppressMacroOverlayCheckbox)
+                return;
+
+            _settings.Macros.OverlayEnabled = checkBox_MacroOverlayEnabled.Checked;
+            comboBox_MacroOverlayCorner.Enabled = checkBox_MacroOverlayEnabled.Checked;
+            RefreshMacroOverlay();
+        }
+
+        private void OnMacroOverlayCornerChanged()
+        {
+            if (_suppressMacroOverlayCorner)
+                return;
+
+            _settings.Macros.OverlayCorner = ResolveOverlayCorner(comboBox_MacroOverlayCorner.SelectedIndex);
+            RefreshMacroOverlay();
+        }
+
+        private static MacroOverlayCorner ResolveOverlayCorner(int selectedIndex) =>
+            selectedIndex switch
+            {
+                1 => MacroOverlayCorner.TopRight,
+                2 => MacroOverlayCorner.BottomLeft,
+                3 => MacroOverlayCorner.BottomRight,
+                _ => MacroOverlayCorner.TopLeft,
+            };
+
+        private static int OverlayCornerToIndex(MacroOverlayCorner corner) =>
+            corner switch
+            {
+                MacroOverlayCorner.TopRight => 1,
+                MacroOverlayCorner.BottomLeft => 2,
+                MacroOverlayCorner.BottomRight => 3,
+                _ => 0,
+            };
+
+        private void RefreshMacroOverlayCheckbox()
+        {
+            _suppressMacroOverlayCheckbox = true;
+            checkBox_MacroOverlayEnabled.Checked = _settings.Macros.OverlayEnabled;
+            _suppressMacroOverlayCheckbox = false;
+        }
+
+        private void RefreshMacroOverlayCorner()
+        {
+            _suppressMacroOverlayCorner = true;
+            comboBox_MacroOverlayCorner.SelectedIndex = OverlayCornerToIndex(_settings.Macros.OverlayCorner);
+            _suppressMacroOverlayCorner = false;
+        }
+
+        private void EnsureMacroOverlay()
+        {
+            if (_macroOverlay is not null && !_macroOverlay.IsDisposed)
+                return;
+
+            _macroOverlay = new MacroOverlayForm(this);
+        }
+
+        private void RefreshMacroOverlay()
+        {
+            if (!_macrosTabUiReady)
+                return;
+
+            if (!_settings.Macros.OverlayEnabled)
+            {
+                if (_macroOverlay is not null && !_macroOverlay.IsDisposed && _macroOverlay.Visible)
+                    _macroOverlay.Hide();
+
+                return;
+            }
+
+            EnsureMacroOverlay();
+            _macroOverlay!.Apply(_settings.Macros, _macroEngine);
+        }
+
+        private void DisposeMacroOverlay()
+        {
+            if (_macroOverlay is null)
+                return;
+
+            _macroOverlay.Dispose();
+            _macroOverlay = null;
+        }
+
         private void OnMacrosFeatureEnabledChanged()
         {
             if (_suppressMacrosFeatureCheckbox)
@@ -144,6 +281,7 @@ namespace PoE
             _settings.Macros.FeatureEnabled = checkBox_MacrosFeatureEnabled.Checked;
             _macroEngine.SetFeatureEnabled(checkBox_MacrosFeatureEnabled.Checked);
             ApplyMacrosRuntime();
+            RefreshMacroOverlay();
         }
 
         private void RefreshMacrosFeatureCheckbox()
@@ -158,8 +296,11 @@ namespace PoE
             MacroSettingsHelper.EnsureInitialized(_settings.Macros);
             _macrosEnableKeyBinder?.LoadFromStored(_settings.Macros.EnableKey);
             RefreshMacrosFeatureCheckbox();
+            RefreshMacroOverlayCheckbox();
+            RefreshMacroOverlayCorner();
             _macroProfileBar.RefreshProfiles();
             LoadSelectedProfileIntoUi();
+            RefreshMacroOverlay();
         }
 
         private void LoadSelectedProfileIntoUi()
@@ -177,6 +318,7 @@ namespace PoE
             var runtime = MacroRuntimeSettingsBuilder.Build(_settings.Macros);
             _macroEngine.ApplySettings(runtime);
             _macroHotkeyBinder.BindAll(_settings);
+            RefreshMacroOverlay();
         }
 
         private bool TryCommitMacrosTab(bool showConflictDialog)
@@ -268,6 +410,7 @@ namespace PoE
             RefreshMacrosFeatureCheckbox();
             SyncPersistedActivesFromEngine();
             _macrosPanel.SyncActiveFromEngine(_macroEngine);
+            RefreshMacroOverlay();
         }
 
         private void SyncPersistedActivesFromEngine()
