@@ -114,13 +114,6 @@ namespace PoE
                 Anchor = AnchorStyles.Top | AnchorStyles.Left | AnchorStyles.Right,
             };
             _macroProfileBar.Bind(_settings.Macros);
-            _macroProfileBar.ProfileChanging += (_, _) => _macrosPanel.Commit();
-            _macroProfileBar.ProfileRemoved += (_, profile) => _macrosPanel.DropProfileView(profile);
-            _macroProfileBar.ProfileChanged += (_, _) =>
-            {
-                LoadSelectedProfileIntoUi();
-                RefreshMacroOverlay();
-            };
 
             _macrosPanel = new MacrosPanel
             {
@@ -128,6 +121,14 @@ namespace PoE
             };
             _macrosPanel.Changed += (_, _) => ApplyMacrosRuntime();
             _macrosPanel.CaptureArmed += (_, _) => ClearCoordinateRecording();
+
+            _macroProfileBar.ProfileChanging += (_, _) => _macrosPanel.Commit();
+            _macroProfileBar.ProfileRemoved += (_, profile) => _macrosPanel.DropProfileView(profile);
+            _macroProfileBar.ProfileChanged += (_, _) =>
+            {
+                LoadSelectedProfileIntoUi();
+                RefreshMacroOverlay();
+            };
 
             tabPage_Macros.Controls.Add(label_MacrosEnableKey);
             tabPage_Macros.Controls.Add(textBox_MacrosEnableKey);

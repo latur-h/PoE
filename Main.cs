@@ -358,6 +358,8 @@ namespace PoE
         {
             gambleRulesPanel.PreloadPresetsWithContent(_settings.Modifiers);
             _macrosPanel.PreloadProfilesWithContent(_settings.Macros);
+            if (_macrosTabUiReady)
+                _macrosPanel.EnsureLayout();
         }
 
         private void InitializeGamblePresetBar()

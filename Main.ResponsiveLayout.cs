@@ -12,7 +12,7 @@ namespace PoE
 
         private const int SettingsGambleHeight = 190;
         private const int SettingsFlaskHeight = 158;
-        private const int SettingsGameDataHeight = 132;
+        private const int SettingsGameDataMinHeight = 150;
         private const int SettingsInputHeight = 62;
         private const int SettingsSectionGap = 10;
 
@@ -283,10 +283,13 @@ namespace PoE
 
             var panelLocation = new Point(margin, y);
             var panelSize = new Size(innerWidth, Math.Max(160, height - y - margin));
+            bool panelBoundsChanged = _macrosPanel.Location != panelLocation || _macrosPanel.Size != panelSize;
             if (_macrosPanel.Location != panelLocation)
                 _macrosPanel.Location = panelLocation;
             if (_macrosPanel.Size != panelSize)
                 _macrosPanel.Size = panelSize;
+            if (panelBoundsChanged)
+                _macrosPanel.RequestLayout();
         }
 
         private void LayoutSettingsTab()
@@ -306,8 +309,8 @@ namespace PoE
             y = PlaceSettingsSeparator(_separatorGambleFlask, margin, y, innerWidth);
             y = PlaceSettingsSection(groupBox_FlaskSettings, margin, y, innerWidth, SettingsFlaskHeight);
             y = PlaceSettingsSeparator(_separatorFlaskGameData, margin, y, innerWidth);
-            y = PlaceSettingsSection(groupBox_GameData, margin, y, innerWidth, SettingsGameDataHeight);
-            LayoutGameDataSettingsGroup();
+            int gameDataHeight = Math.Max(SettingsGameDataMinHeight, LayoutGameDataSettingsGroup(innerWidth));
+            y = PlaceSettingsSection(groupBox_GameData, margin, y, innerWidth, gameDataHeight);
             y = PlaceSettingsSeparator(_separatorGameDataInput, margin, y, innerWidth);
             PlaceSettingsSection(groupBox_Input, margin, y, innerWidth, SettingsInputHeight);
             LayoutInputSettingsGroup();

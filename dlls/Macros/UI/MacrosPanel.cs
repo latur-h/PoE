@@ -8,7 +8,6 @@ namespace PoE.dlls.Macros.UI
     public sealed class MacrosPanel : UserControl
     {
         private const int CompactRowHeight = 72;
-        private const int ExpandedRowHeight = 110;
         private const int HeaderHeight = 28;
         private const int AddBarHeight = 36;
         private const int ColumnGap = 6;
@@ -25,6 +24,7 @@ namespace PoE.dlls.Macros.UI
         private const int CycleDelayWidth = 48;
         private const int LockWidth = 48;
         private const int ToggleWidth = 62;
+        private const int LayoutDebounceMs = 100;
 
         private static readonly Font UiFont = new("Segoe UI", 12F, FontStyle.Regular, GraphicsUnit.Point);
 
@@ -46,22 +46,23 @@ namespace PoE.dlls.Macros.UI
         private MacroSettings? _macroSettings;
         private MacroRowControl? _captureRow;
         private bool _suppressEvents;
+        private bool _layoutPending;
         private int _lastLayoutWidth = -1;
+        private int _lastLayoutRowCount = -1;
         private bool _uiReady;
-        private readonly System.Windows.Forms.Timer _widthLayoutTimer;
+        private readonly System.Windows.Forms.Timer _layoutTimer;
 
         public MacrosPanel()
         {
             SuspendLayout();
             BackColor = StaticColors.BackGround;
 
-            _widthLayoutTimer = new System.Windows.Forms.Timer { Interval = 64 };
-            _widthLayoutTimer.Tick += (_, _) =>
+            _layoutTimer = new System.Windows.Forms.Timer { Interval = LayoutDebounceMs };
+            _layoutTimer.Tick += (_, _) =>
             {
-                _widthLayoutTimer.Stop();
-                TryLayoutForWidthChange(force: true);
+                _layoutTimer.Stop();
+                PerformRowLayout();
             };
-            Resize += (_, _) => ScheduleWidthLayout();
 
             var header = new Panel { Dock = DockStyle.Top, Height = HeaderHeight, BackColor = StaticColors.BackGround };
             _headerActive = CreateHeaderLabel("On");
@@ -115,6 +116,7 @@ namespace PoE.dlls.Macros.UI
             _scrollPanel.HorizontalScroll.Enabled = false;
             _scrollPanel.HorizontalScroll.Visible = false;
             _scrollPanel.Controls.Add(_rowsHost);
+            _scrollPanel.Resize += (_, _) => RequestLayout();
 
             Controls.Add(_scrollPanel);
             Controls.Add(_addButton);
@@ -125,7 +127,21 @@ namespace PoE.dlls.Macros.UI
             ResumeLayout(false);
         }
 
-        public void EnsureLayout() => LayoutRows();
+        public void RequestLayout()
+        {
+            if (!_uiReady)
+                return;
+
+            _layoutPending = true;
+            _layoutTimer.Stop();
+            _layoutTimer.Start();
+        }
+
+        public void EnsureLayout()
+        {
+            _layoutPending = true;
+            PerformRowLayout();
+        }
 
         public void PreloadProfilesWithContent(MacroSettings settings)
         {
@@ -165,15 +181,6 @@ namespace PoE.dlls.Macros.UI
             var keep = keepProfiles.ToHashSet();
             foreach (MacroProfile profile in _views.Keys.Where(p => !keep.Contains(p)).ToList())
                 DropProfileView(profile);
-        }
-
-        private void ScheduleWidthLayout()
-        {
-            if (!_uiReady)
-                return;
-
-            _widthLayoutTimer.Stop();
-            _widthLayoutTimer.Start();
         }
 
         public event EventHandler? Changed;
@@ -248,11 +255,39 @@ namespace PoE.dlls.Macros.UI
 
             _activeView = EnsureProfileView(profile);
             _visibleProfile = profile;
+            SyncActiveViewFromProfile();
             _activeView.Host.Visible = true;
             _activeView.Host.BringToFront();
-            LayoutRows();
-            if (IsHandleCreated)
-                BeginInvoke(LayoutRows);
+            _lastLayoutWidth = -1;
+            _lastLayoutRowCount = -1;
+            RequestLayout();
+        }
+
+        private void SyncActiveViewFromProfile()
+        {
+            if (_visibleProfile is null || _activeView is null)
+                return;
+
+            if (_activeView.Rows.Count == _visibleProfile.Triggers.Count)
+                return;
+
+            var host = _activeView.Host;
+            foreach (MacroRowControl row in _activeView.Rows)
+                row.Dispose();
+
+            _activeView.Rows.Clear();
+            host.Controls.Clear();
+
+            _suppressEvents = true;
+            try
+            {
+                foreach (MacroTrigger trigger in _visibleProfile.Triggers)
+                    CreateRowControl(host, trigger, _activeView.Rows);
+            }
+            finally
+            {
+                _suppressEvents = false;
+            }
         }
 
         private ProfileView EnsureProfileView(MacroProfile profile)
@@ -266,7 +301,7 @@ namespace PoE.dlls.Macros.UI
             var host = new Panel
             {
                 Location = new Point(0, 0),
-                Width = Math.Max(0, _scrollPanel.ClientSize.Width),
+                Width = Math.Max(1, _scrollPanel.ClientSize.Width),
                 Visible = false,
                 BackColor = StaticColors.BackGround,
             };
@@ -287,7 +322,6 @@ namespace PoE.dlls.Macros.UI
 
             var view = new ProfileView(host, rows);
             _views[profile] = view;
-            LayoutProfileView(view);
             return view;
         }
 
@@ -297,9 +331,11 @@ namespace PoE.dlls.Macros.UI
                 return;
 
             CreateRowControl(_activeView.Host, trigger, _activeView.Rows);
-            LayoutRows();
             NotifyChanged();
-            _scrollPanel.AutoScrollPosition = new Point(0, _rowsHost.Height);
+            RequestLayout();
+
+            if (_rowsHost.Height > 0)
+                _scrollPanel.AutoScrollPosition = new Point(0, _rowsHost.Height);
         }
 
         private void CreateRowControl(Panel host, MacroTrigger trigger, List<MacroRowControl> rows)
@@ -310,7 +346,7 @@ namespace PoE.dlls.Macros.UI
             var row = new MacroRowControl(trigger, _macroSettings);
             row.RemoveRequested += (_, _) => RemoveRow(row);
             row.Changed += (_, _) => NotifyChanged();
-            row.RowHeightChanged += (_, _) => LayoutRows();
+            row.RowHeightChanged += (_, _) => RequestLayout();
             row.CaptureArmed += (_, _) =>
             {
                 foreach (MacroRowControl other in rows)
@@ -342,47 +378,36 @@ namespace PoE.dlls.Macros.UI
             _activeView.Rows.RemoveAt(index);
             _activeView.Host.Controls.Remove(row);
             row.Dispose();
-            LayoutRows();
             NotifyChanged();
+            RequestLayout();
         }
 
-        private void LayoutRows()
+        private void PerformRowLayout()
         {
             if (_activeView is null)
                 return;
 
-            int width = GetLayoutWidth();
-            if (width <= 0)
+            int width = ResolveLayoutWidth();
+            int rowCount = _activeView.Rows.Count;
+            if (!_layoutPending && width == _lastLayoutWidth && rowCount == _lastLayoutRowCount)
                 return;
 
+            _layoutPending = false;
             _lastLayoutWidth = width;
+            _lastLayoutRowCount = rowCount;
             LayoutProfileView(_activeView, width);
         }
 
-        private void TryLayoutForWidthChange(bool force = false)
+        private int ResolveLayoutWidth()
         {
-            if (_activeView is null)
-                return;
-
-            int width = GetLayoutWidth();
-            if (width <= 0)
-                return;
-
-            if (!force && width == _lastLayoutWidth)
-                return;
-
-            _lastLayoutWidth = width;
-            LayoutProfileView(_activeView, width);
+            int width = GetLayoutWidth(_scrollPanel, this);
+            return width > 0 ? width : Math.Max(ClientSize.Width, 1);
         }
 
-        private void LayoutProfileView(ProfileView view, int? widthOverride = null)
+        private void LayoutProfileView(ProfileView view, int width)
         {
-            int width = widthOverride ?? GetLayoutWidth();
-            if (width <= 0)
-                return;
-
-            SuspendLayout();
             _rowsHost.SuspendLayout();
+            view.Host.SuspendLayout();
             try
             {
                 UpdateHeaderColumnVisibility(view.Rows);
@@ -391,28 +416,26 @@ namespace PoE.dlls.Macros.UI
                 int y = 0;
                 foreach (MacroRowControl row in view.Rows)
                 {
-                    if (row.Location.Y != y)
-                        row.Location = new Point(0, y);
-
+                    row.Location = new Point(0, y);
                     row.SetWidth(width);
                     y += row.Height + 4;
                 }
 
                 view.Host.Location = new Point(0, 0);
-                if (view.Host.Width != width)
-                    view.Host.Width = width;
-
-                int hostHeight = Math.Max(CompactRowHeight, y);
-                if (view.Host.Height != hostHeight)
-                    view.Host.Height = hostHeight;
+                view.Host.Width = width;
+                view.Host.Height = Math.Max(CompactRowHeight, y);
 
                 if (ReferenceEquals(view, _activeView))
-                    _rowsHost.Height = hostHeight;
+                {
+                    _rowsHost.Location = new Point(0, 0);
+                    _rowsHost.Width = width;
+                    _rowsHost.Height = view.Host.Height;
+                }
             }
             finally
             {
+                view.Host.ResumeLayout(false);
                 _rowsHost.ResumeLayout(false);
-                ResumeLayout(false);
             }
         }
 
@@ -497,12 +520,16 @@ namespace PoE.dlls.Macros.UI
             return host.ClientSize.Width;
         }
 
-        private int GetLayoutWidth() => GetLayoutWidth(_scrollPanel, this);
+        protected override void OnHandleCreated(EventArgs e)
+        {
+            base.OnHandleCreated(e);
+            RequestLayout();
+        }
 
         protected override void Dispose(bool disposing)
         {
             if (disposing)
-                _widthLayoutTimer.Dispose();
+                _layoutTimer.Dispose();
 
             base.Dispose(disposing);
         }

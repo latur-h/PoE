@@ -32,6 +32,7 @@ namespace PoE.dlls.Logger.UI
 
         private List<LogEntry> _filtered = [];
         private LevelFilter _levelFilterValue = LevelFilter.InfoPlus;
+        private int _lastRenderedCount;
 
         public LogsPanel(LogBuffer buffer)
         {
@@ -84,7 +85,11 @@ namespace PoE.dlls.Logger.UI
             };
 
             var clearButton = CreateToolbarButton("Clear", new Point(364, 2));
-            clearButton.Click += (_, _) => _buffer.Clear();
+            clearButton.Click += (_, _) =>
+            {
+                _lastRenderedCount = 0;
+                _buffer.Clear();
+            };
 
             var copyButton = CreateToolbarButton("Copy", new Point(424, 2));
             copyButton.Click += (_, _) => CopyVisible();
@@ -172,6 +177,7 @@ namespace PoE.dlls.Logger.UI
         {
             string search = _searchBox.Text.Trim();
             var snapshot = _buffer.Snapshot();
+            bool wasEmpty = _lastRenderedCount == 0;
 
             _filtered = snapshot
                 .Where(PassesCategoryFilter)
@@ -179,26 +185,53 @@ namespace PoE.dlls.Logger.UI
                 .Where(e => e.MatchesSearch(search))
                 .ToList();
 
-            _listView.VirtualListSize = _filtered.Count;
-            _listView.Invalidate();
+            _listView.BeginUpdate();
+            try
+            {
+                _listView.VirtualListSize = _filtered.Count;
+                if (_filtered.Count > 0)
+                    _listView.RedrawItems(0, _filtered.Count - 1, true);
+                else
+                    _listView.Invalidate();
+            }
+            finally
+            {
+                _listView.EndUpdate();
+            }
+
+            _lastRenderedCount = _filtered.Count;
             UpdateMessageColumnWidth();
 
             _countLabel.Text = $"{_filtered.Count} / {_buffer.Count}";
 
-            ScrollToTail();
+            if (_filtered.Count == 0)
+                return;
+
+            if (wasEmpty)
+                ScrollToHead();
+            else
+                ScrollToTail();
         }
 
         private void OnRetrieveVirtualItem(object? sender, RetrieveVirtualItemEventArgs e)
         {
             var entry = _filtered[e.ItemIndex];
+            Color color = SeverityColor(entry.Severity);
             var item = new ListViewItem(entry.TimeText)
             {
-                ForeColor = SeverityColor(entry.Severity),
+                ForeColor = color,
+                BackColor = StaticColors.BackGround,
                 UseItemStyleForSubItems = true,
             };
             item.SubItems.Add(entry.CategoryCode);
             item.SubItems.Add(entry.SeverityCode.Trim());
             item.SubItems.Add(entry.Message);
+            foreach (ListViewItem.ListViewSubItem subItem in item.SubItems)
+            {
+                subItem.ForeColor = color;
+                subItem.BackColor = StaticColors.BackGround;
+            }
+
             e.Item = item;
         }
 
@@ -251,6 +284,29 @@ namespace PoE.dlls.Logger.UI
                 .Select(i => _filtered[i].FormatLine());
 
             Clipboard.SetText(string.Join(Environment.NewLine, lines));
+        }
+
+        private void ScrollToHead()
+        {
+            if (_filtered.Count == 0)
+                return;
+
+            void Scroll()
+            {
+                try
+                {
+                    _listView.EnsureVisible(0);
+                }
+                catch
+                {
+                    // Virtual list may not have materialized the row yet.
+                }
+            }
+
+            if (InvokeRequired)
+                BeginInvoke(Scroll);
+            else
+                Scroll();
         }
 
         private void ScrollToTail()

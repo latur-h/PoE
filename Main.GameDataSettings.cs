@@ -87,12 +87,12 @@ namespace PoE
             UpdateModCacheStatusLabel();
         }
 
-        private void LayoutGameDataSettingsGroup()
+        private int LayoutGameDataSettingsGroup(int sectionWidth)
         {
             const int rowGap = 8;
             const int innerPad = 12;
 
-            int innerWidth = groupBox_GameData.Width - innerPad * 2;
+            int innerWidth = Math.Max(120, sectionWidth - innerPad * 2);
             int y = innerPad + 8;
 
             label_GameFolder.Location = new Point(innerPad, y + 4);
@@ -106,6 +106,15 @@ namespace PoE
             y += button_RefreshModCache.Height + rowGap;
             label_ModCacheStatus.Location = new Point(innerPad, y);
             label_ModCacheStatus.Width = innerWidth;
+            label_ModCacheStatus.Height = Math.Max(
+                42,
+                TextRenderer.MeasureText(
+                    label_ModCacheStatus.Text,
+                    label_ModCacheStatus.Font,
+                    new Size(innerWidth, int.MaxValue),
+                    TextFormatFlags.WordBreak).Height);
+
+            return y + label_ModCacheStatus.Height + innerPad;
         }
 
         private void BrowseGameFolder()
@@ -211,10 +220,8 @@ namespace PoE
             if (!string.IsNullOrWhiteSpace(lastMessage))
             {
                 label_ModCacheStatus.Text = lastMessage;
-                return;
             }
-
-            if (_modSuggestions.IsReady)
+            else if (_modSuggestions.IsReady)
             {
                 int count = _settings.GameData.ModCacheEntryCount > 0
                     ? _settings.GameData.ModCacheEntryCount
@@ -229,16 +236,18 @@ namespace PoE
                     : "Refresh mod list again to populate map modifier tags for Map / Map Exalt / Map T17 autocomplete.";
 
                 label_ModCacheStatus.Text = $"{count} modifier names/descriptions available. {refreshed}. {mapHint}";
-                return;
             }
-
-            if (string.IsNullOrWhiteSpace(_settings.GameData.GameFolderPath))
+            else if (string.IsNullOrWhiteSpace(_settings.GameData.GameFolderPath))
             {
                 label_ModCacheStatus.Text = "Set the game folder and click Refresh mod list to enable rule autocomplete.";
-                return;
+            }
+            else
+            {
+                label_ModCacheStatus.Text = "No cached mod list yet. Click Refresh mod list to read game files.";
             }
 
-            label_ModCacheStatus.Text = "No cached mod list yet. Click Refresh mod list to read game files.";
+            if (IsHandleCreated)
+                LayoutSettingsTab();
         }
     }
 }
