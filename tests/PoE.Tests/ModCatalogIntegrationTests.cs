@@ -65,6 +65,16 @@ public class ModCatalogIntegrationTests
             entries,
             e => e.EldritchInfluence == ModEldritchInfluence.EaterOfWorlds
                  && e.ModContent.Contains("Arcane Surge", StringComparison.OrdinalIgnoreCase));
+        Assert.Contains(
+            entries,
+            e => e.EldritchInfluence == ModEldritchInfluence.SearingExarch
+                 && e.ModContent.Contains("While a Pinnacle Atlas Boss is in your Presence", StringComparison.OrdinalIgnoreCase)
+                 && e.ModContent.Contains("Attack Speed", StringComparison.OrdinalIgnoreCase));
+        Assert.Contains(
+            entries,
+            e => e.EldritchInfluence == ModEldritchInfluence.SearingExarch
+                 && e.ModContent.Contains("While a Unique Enemy is in your Presence", StringComparison.OrdinalIgnoreCase)
+                 && e.ModContent.Contains("Attack Speed", StringComparison.OrdinalIgnoreCase));
 
         int flaskRows = entries.Count(e => e.ItemKind == ModItemKind.Flask);
         int jewelRows = entries.Count(e => e.ItemKind == ModItemKind.Jewel);

@@ -9,6 +9,15 @@ namespace PoE.dlls.GameData
         private const int GenerationExarchImplicit = 28;
         private const int GenerationEaterImplicit = 29;
 
+        private const string UniqueMonsterPresenceStat = "local_influence_mod_requires_unique_monster_presence";
+        private const string CelestialBossPresenceStat = "local_influence_mod_requires_celestial_boss_presence";
+
+        private static readonly HashSet<string> EldritchPresenceRequirementStats = new(StringComparer.OrdinalIgnoreCase)
+        {
+            UniqueMonsterPresenceStat,
+            CelestialBossPresenceStat,
+        };
+
         private static readonly string[] StatKeyColumns =
         [
             "StatsKey1", "StatsKey2", "StatsKey3", "StatsKey4", "StatsKey5", "StatsKey6",
@@ -91,7 +100,7 @@ namespace PoE.dlls.GameData
                     if (string.IsNullOrWhiteSpace(eldritchName))
                         continue;
 
-                    IReadOnlyList<string> lines = BuildDescriptionLines(mods, statIds, statTemplates, row);
+                    IReadOnlyList<string> lines = BuildEldritchDescriptionLines(mods, statIds, statTemplates, row);
                     if (lines.Count == 0)
                         continue;
 
@@ -498,6 +507,76 @@ namespace PoE.dlls.GameData
                 return ModCatalogTagHelper.HasAbyssJewelPositiveSpawn(positiveSpawnTags);
 
             return ModCatalogTagHelper.HasAllowedPositiveSpawn(positiveSpawnTags);
+        }
+
+        private static IReadOnlyList<string> BuildEldritchDescriptionLines(
+            LibDat2DatTable mods,
+            string?[] statIds,
+            Dictionary<string, string> statTemplates,
+            int row)
+        {
+            var lines = new List<string>(StatKeyColumns.Length * 2);
+            var seen = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+            var effectTemplates = new List<string>();
+            var modStatIds = new List<string?>(StatKeyColumns.Length);
+
+            foreach (string column in StatKeyColumns)
+            {
+                int? statRow = mods.GetForeignKey(row, column);
+                if (statRow is null or < 0)
+                    continue;
+
+                string? statId = StatId(statIds, statRow.Value);
+                modStatIds.Add(statId);
+                if (string.IsNullOrWhiteSpace(statId) || EldritchPresenceRequirementStats.Contains(statId))
+                    continue;
+
+                if (!statTemplates.TryGetValue(statId, out string? template) || string.IsNullOrWhiteSpace(template))
+                    continue;
+
+                if (seen.Add(template))
+                {
+                    lines.Add(template);
+                    effectTemplates.Add(template);
+                }
+            }
+
+            string? presencePrefix = ResolveEldritchPresencePrefix(modStatIds);
+            if (presencePrefix is null)
+                return lines;
+
+            foreach (string template in effectTemplates)
+            {
+                string presenceLine = $"{presencePrefix}, {template}";
+                if (seen.Add(presenceLine))
+                    lines.Add(presenceLine);
+            }
+
+            return lines;
+        }
+
+        private static string? ResolveEldritchPresencePrefix(IReadOnlyList<string?> modStatIds)
+        {
+            bool pinnacle = false;
+            bool unique = false;
+            foreach (string? statId in modStatIds)
+            {
+                if (string.IsNullOrWhiteSpace(statId))
+                    continue;
+
+                if (string.Equals(statId, CelestialBossPresenceStat, StringComparison.OrdinalIgnoreCase))
+                    pinnacle = true;
+                else if (string.Equals(statId, UniqueMonsterPresenceStat, StringComparison.OrdinalIgnoreCase))
+                    unique = true;
+            }
+
+            if (pinnacle)
+                return "While a Pinnacle Atlas Boss is in your Presence";
+
+            if (unique)
+                return "While a Unique Enemy is in your Presence";
+
+            return null;
         }
 
         private static IReadOnlyList<string> BuildDescriptionLines(
