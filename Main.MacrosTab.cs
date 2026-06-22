@@ -115,6 +115,7 @@ namespace PoE
             };
             _macroProfileBar.Bind(_settings.Macros);
             _macroProfileBar.ProfileChanging += (_, _) => _macrosPanel.Commit();
+            _macroProfileBar.ProfileRemoved += (_, profile) => _macrosPanel.DropProfileView(profile);
             _macroProfileBar.ProfileChanged += (_, _) =>
             {
                 LoadSelectedProfileIntoUi();
@@ -367,6 +368,9 @@ namespace PoE
             RefreshMacroOverlayCheckbox();
             RefreshMacroOverlayCorner();
             _macroProfileBar.RefreshProfiles();
+            var keepProfiles = new List<MacroProfile> { _settings.Macros.GlobalProfile };
+            keepProfiles.AddRange(_settings.Macros.BuildProfiles);
+            _macrosPanel.PurgeProfileViewsExcept(keepProfiles);
             LoadSelectedProfileIntoUi();
             RefreshMacroOverlay();
         }

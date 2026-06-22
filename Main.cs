@@ -348,10 +348,16 @@ namespace PoE
             var store = _settings.Modifiers.GetModeStore(_settings.Modifiers.GambleType);
 
             gamblePresetBar.RefreshPresets();
-            gambleRulesPanel.PurgeViewsExcept(store.Presets);
+            gambleRulesPanel.PurgeViewsExcept(_settings.Modifiers.GambleType, store.Presets);
             gambleRulesPanel.Bind(_settings.Modifiers.GetActivePreset());
             gambleRulesPanel.RefreshGambleTypeLayout();
             UpdateGambleBulkPanelVisibility();
+        }
+
+        private void PreloadTabContentCaches()
+        {
+            gambleRulesPanel.PreloadPresetsWithContent(_settings.Modifiers);
+            _macrosPanel.PreloadProfilesWithContent(_settings.Macros);
         }
 
         private void InitializeGamblePresetBar()

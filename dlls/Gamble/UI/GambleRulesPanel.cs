@@ -36,7 +36,7 @@ namespace PoE.dlls.Gamble.UI
         private readonly Panel _scrollPanel;
         private readonly Panel _rowsHost;
         private readonly Button _addButton;
-        private readonly Dictionary<GamblePreset, PresetView> _views = [];
+        private readonly Dictionary<GambleType, Dictionary<GamblePreset, PresetView>> _viewsByMode = [];
 
         private GamblePreset? _visiblePreset;
         private PresetView? _activeView;
@@ -123,7 +123,7 @@ namespace PoE.dlls.Gamble.UI
             _headerTier.Visible = !eldritch;
             _headerContent.Location = new Point(ContentColumnX(eldritch), 4);
 
-            foreach (var view in _views.Values)
+            foreach (var view in GetModeViews(type).Values)
             {
                 foreach (var row in view.Rows)
                 {
@@ -131,7 +131,7 @@ namespace PoE.dlls.Gamble.UI
                     row.ApplyEldritchMode(eldritch);
                     if (_modSuggestions is not null)
                     {
-                        SpawnTagAutocomplete.SetEldritchArmourScope(row.TypeFilterTextBox, IsEldritchMode);
+                        SpawnTagAutocomplete.SetEldritchArmourScope(row.TypeFilterTextBox, () => eldritch);
                         SpawnTagAutocomplete.Refresh(row.TypeFilterTextBox, _modSuggestions);
                     }
                 }
@@ -162,29 +162,53 @@ namespace PoE.dlls.Gamble.UI
             RefreshGambleTypeLayout();
         }
 
-        public void PurgeViewsExcept(IEnumerable<GamblePreset> keepPresets)
+        public void PreloadPresetsWithContent(UIModifiers modifiers)
         {
-            var keep = keepPresets.ToHashSet();
-            foreach (var preset in _views.Keys.Where(p => !keep.Contains(p)).ToList())
-                DropPresetView(preset);
+            foreach (GambleType type in Enum.GetValues<GambleType>())
+            {
+                GambleModeStore store = modifiers.GetModeStore(type);
+                GamblePresetHelper.NormalizeModeStore(store);
+
+                foreach (GamblePreset preset in store.Presets)
+                {
+                    if (!GamblePresetContentHelper.HasContent(preset))
+                        continue;
+
+                    EnsureView(type, preset);
+                }
+            }
         }
 
-        public void DropPresetView(GamblePreset preset)
+        public void PurgeViewsExcept(GambleType type, IEnumerable<GamblePreset> keepPresets)
         {
-            if (!_views.Remove(preset, out PresetView? view))
+            var keep = keepPresets.ToHashSet();
+            foreach (GamblePreset preset in GetModeViews(type).Keys.Where(p => !keep.Contains(p)).ToList())
+                DropPresetView(type, preset);
+        }
+
+        public void PurgeViewsExcept(IEnumerable<GamblePreset> keepPresets) =>
+            PurgeViewsExcept(GetGambleType(), keepPresets);
+
+        public void DropPresetView(GambleType type, GamblePreset preset)
+        {
+            Dictionary<GamblePreset, PresetView> views = GetModeViews(type);
+            if (!views.Remove(preset, out PresetView? view))
                 return;
 
-            if (ReferenceEquals(_visiblePreset, preset))
+            if (ReferenceEquals(_visiblePreset, preset) && GetGambleType() == type)
             {
                 _visiblePreset = null;
                 _activeView = null;
             }
 
             _rowsHost.Controls.Remove(view.Host);
-            foreach (var row in view.Rows)
+            foreach (GambleRuleRowControl row in view.Rows)
                 row.Dispose();
             view.Host.Dispose();
         }
+
+        public void DropPresetView(GamblePreset preset) =>
+            DropPresetView(GetGambleType(), preset);
 
         public void Commit()
         {
@@ -196,19 +220,21 @@ namespace PoE.dlls.Gamble.UI
 
         private void ShowPreset(GamblePreset preset)
         {
-            foreach (var view in _views.Values)
+            GambleType type = GetGambleType();
+            foreach (PresetView view in GetModeViews(type).Values)
                 view.Host.Visible = false;
 
-            _activeView = GetOrCreateView(preset);
+            _activeView = EnsureView(type, preset);
             _visiblePreset = preset;
             _activeView.Host.Visible = true;
             _activeView.Host.BringToFront();
             LayoutActiveView();
         }
 
-        private PresetView GetOrCreateView(GamblePreset preset)
+        private PresetView EnsureView(GambleType type, GamblePreset preset)
         {
-            if (_views.TryGetValue(preset, out PresetView? existing))
+            Dictionary<GamblePreset, PresetView> views = GetModeViews(type);
+            if (views.TryGetValue(preset, out PresetView? existing))
                 return existing;
 
             var host = new Panel
@@ -224,7 +250,7 @@ namespace PoE.dlls.Gamble.UI
             try
             {
                 for (int i = 0; i < preset.Rules.Count; i++)
-                    CreateRowControl(host, preset.Rules[i], rows);
+                    CreateRowControl(host, preset.Rules[i], rows, type);
             }
             finally
             {
@@ -233,13 +259,24 @@ namespace PoE.dlls.Gamble.UI
 
             _rowsHost.Controls.Add(host);
 
-            foreach (var row in rows)
-                AttachRowSuggestions(row);
+            foreach (GambleRuleRowControl row in rows)
+                AttachRowSuggestions(row, type);
 
             var view = new PresetView(host, rows);
-            _views[preset] = view;
+            views[preset] = view;
             LayoutView(view);
             return view;
+        }
+
+        private Dictionary<GamblePreset, PresetView> GetModeViews(GambleType type)
+        {
+            if (!_viewsByMode.TryGetValue(type, out Dictionary<GamblePreset, PresetView>? views))
+            {
+                views = [];
+                _viewsByMode[type] = views;
+            }
+
+            return views;
         }
 
         private void AddRow(GambleRuleRow rule)
@@ -247,8 +284,8 @@ namespace PoE.dlls.Gamble.UI
             if (_visiblePreset is null || _activeView is null || _activeView.Rows.Count >= GambleModeLayout.MaxRules)
                 return;
 
-            CreateRowControl(_activeView.Host, rule, _activeView.Rows);
-            AttachRowSuggestions(_activeView.Rows[^1]);
+            CreateRowControl(_activeView.Host, rule, _activeView.Rows, GetGambleType());
+            AttachRowSuggestions(_activeView.Rows[^1], GetGambleType());
             LayoutActiveView();
 
             if (!_suppressEvents)
@@ -257,9 +294,13 @@ namespace PoE.dlls.Gamble.UI
             ScrollToBottom();
         }
 
-        private GambleRuleRowControl CreateRowControl(Panel host, GambleRuleRow rule, List<GambleRuleRowControl> rows)
+        private GambleRuleRowControl CreateRowControl(
+            Panel host,
+            GambleRuleRow rule,
+            List<GambleRuleRowControl> rows,
+            GambleType modeType)
         {
-            var row = new GambleRuleRowControl(rule, GetGambleType, IsEldritchMode);
+            var row = new GambleRuleRowControl(rule, modeType);
             row.RemoveRequested += (_, _) => RemoveRow(row);
             row.Changed += (_, _) =>
             {
@@ -273,23 +314,23 @@ namespace PoE.dlls.Gamble.UI
             return row;
         }
 
-        private void AttachRowSuggestions(GambleRuleRowControl row)
+        private void AttachRowSuggestions(GambleRuleRowControl row, GambleType modeType)
         {
             if (_modSuggestions is null)
                 return;
 
+            bool eldritch = modeType == GambleType.Eldritch;
             SpawnTagAutocomplete.Attach(
                 row.TypeFilterTextBox,
                 _modSuggestions,
                 onFilterChanged: () => ModSuggestionAutocomplete.RequestRefresh(row.ContentTextBox),
-                useEldritchArmourScope: IsEldritchMode);
+                useEldritchArmourScope: () => eldritch);
 
-            ModSuggestionAutocomplete.Attach(row.ContentTextBox, _modSuggestions, () => ResolveSuggestionStrategy(row));
+            ModSuggestionAutocomplete.Attach(row.ContentTextBox, _modSuggestions, () => ResolveSuggestionStrategy(row, modeType));
         }
 
-        private IModSuggestionStrategy ResolveSuggestionStrategy(GambleRuleRowControl row)
+        private static IModSuggestionStrategy ResolveSuggestionStrategy(GambleRuleRowControl row, GambleType type)
         {
-            GambleType type = _getGambleType?.Invoke() ?? GambleType.Alt;
             if (type == GambleType.Eldritch)
                 return EldritchModSuggestionStrategy.For(row.GetEldritchInfluence(), row.GetItemTypeFilter());
 
@@ -431,8 +472,7 @@ namespace PoE.dlls.Gamble.UI
                 "Eater of Worlds",
             ];
 
-            private readonly Func<GambleType> _getGambleType;
-            private readonly Func<bool> _isEldritchMode;
+            private readonly GambleType _modeType;
             private GambleRuleRow _rule;
             private readonly FlatComboBox _role;
             private readonly FlatTextBox _typeFilter;
@@ -444,10 +484,9 @@ namespace PoE.dlls.Gamble.UI
             public event EventHandler? RemoveRequested;
             public event EventHandler? Changed;
 
-            public GambleRuleRowControl(GambleRuleRow rule, Func<GambleType> getGambleType, Func<bool> isEldritchMode)
+            public GambleRuleRowControl(GambleRuleRow rule, GambleType modeType)
             {
-                _getGambleType = getGambleType;
-                _isEldritchMode = isEldritchMode;
+                _modeType = modeType;
                 _rule = rule;
                 BackColor = StaticColors.BackGround;
                 Height = 34;
@@ -462,7 +501,7 @@ namespace PoE.dlls.Gamble.UI
                 _role.SelectedIndexChanged += (_, _) =>
                 {
                     RuleRole role = GetSelectedRole();
-                    _rule.Priority = RuleRoleMapper.ToPriority(_getGambleType(), role);
+                    _rule.Priority = RuleRoleMapper.ToPriority(_modeType, role);
                     Changed?.Invoke(this, EventArgs.Empty);
                 };
 
@@ -506,7 +545,7 @@ namespace PoE.dlls.Gamble.UI
                         ? EldritchInfluence.EaterOfWorlds
                         : EldritchInfluence.SearingExarch;
                     Changed?.Invoke(this, EventArgs.Empty);
-                    if (_isEldritchMode())
+                    if (_modeType == GambleType.Eldritch)
                         ModSuggestionAutocomplete.RequestRefresh(_content._textBox);
                 };
 
@@ -530,8 +569,8 @@ namespace PoE.dlls.Gamble.UI
                 Controls.Add(_content);
                 Controls.Add(_remove);
 
-                ApplyGambleType(_getGambleType());
-                ApplyEldritchMode(_isEldritchMode());
+                ApplyGambleType(_modeType);
+                ApplyEldritchMode(_modeType == GambleType.Eldritch);
             }
 
             internal void ApplyGambleType(GambleType type)
@@ -565,7 +604,7 @@ namespace PoE.dlls.Gamble.UI
             }
 
             private RuleRole GetSelectedRole() =>
-                RuleRoleMapper.FromDisplayName(_getGambleType(), _role.SelectedItem?.ToString());
+                RuleRoleMapper.FromDisplayName(_modeType, _role.SelectedItem?.ToString());
 
             internal EldritchInfluence GetEldritchInfluence() =>
                 _influence.SelectedIndex == 1
@@ -589,7 +628,7 @@ namespace PoE.dlls.Gamble.UI
 
             public GambleRuleRow ToRule()
             {
-                GambleType type = _getGambleType();
+                GambleType type = _modeType;
                 decimal priority = RuleRoleMapper.ToPriority(type, GetSelectedRole());
 
                 int tier = _rule.Tier;
@@ -603,7 +642,7 @@ namespace PoE.dlls.Gamble.UI
                     ItemTypeFilter = ModSpawnTagFilter.Normalize(_typeFilter._textBox.Text) ?? string.Empty,
                     Tier = tier,
                     Content = _content._textBox.Text,
-                    EldritchInfluence = _isEldritchMode()
+                    EldritchInfluence = _modeType == GambleType.Eldritch
                         ? (_influence.SelectedIndex == 1 ? EldritchInfluence.EaterOfWorlds : EldritchInfluence.SearingExarch)
                         : _rule.EldritchInfluence,
                 };

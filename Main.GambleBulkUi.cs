@@ -348,7 +348,11 @@ namespace PoE
         {
             _gambleTabUiReady = true;
             LoadGambleModeIntoUi();
-            Shown += (_, _) => LayoutGambleTab();
+            Shown += (_, _) =>
+            {
+                LayoutGambleTab();
+                PreloadTabContentCaches();
+            };
         }
 
         private void LoadGambleBulkIntoUi()

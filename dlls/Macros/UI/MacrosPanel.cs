@@ -31,7 +31,7 @@ namespace PoE.dlls.Macros.UI
         private readonly Panel _scrollPanel;
         private readonly Panel _rowsHost;
         private readonly Button _addButton;
-        private readonly List<MacroRowControl> _rows = [];
+        private readonly Dictionary<MacroProfile, ProfileView> _views = [];
         private readonly Label _headerActive;
         private readonly Label _headerTrigger;
         private readonly Label _headerFire;
@@ -41,7 +41,8 @@ namespace PoE.dlls.Macros.UI
         private readonly Label _headerLock;
         private readonly Label _headerToggle;
 
-        private MacroProfile? _profile;
+        private MacroProfile? _visibleProfile;
+        private ProfileView? _activeView;
         private MacroSettings? _macroSettings;
         private MacroRowControl? _captureRow;
         private bool _suppressEvents;
@@ -126,6 +127,46 @@ namespace PoE.dlls.Macros.UI
 
         public void EnsureLayout() => LayoutRows();
 
+        public void PreloadProfilesWithContent(MacroSettings settings)
+        {
+            MacroSettingsHelper.EnsureInitialized(settings);
+            _macroSettings ??= settings;
+
+            if (MacroProfileContentHelper.HasContent(settings.GlobalProfile))
+                EnsureProfileView(settings.GlobalProfile);
+
+            foreach (MacroProfile profile in settings.BuildProfiles)
+            {
+                if (MacroProfileContentHelper.HasContent(profile))
+                    EnsureProfileView(profile);
+            }
+        }
+
+        public void DropProfileView(MacroProfile profile)
+        {
+            if (!_views.Remove(profile, out ProfileView? view))
+                return;
+
+            if (ReferenceEquals(_visibleProfile, profile))
+            {
+                _visibleProfile = null;
+                _activeView = null;
+                _captureRow = null;
+            }
+
+            _rowsHost.Controls.Remove(view.Host);
+            foreach (MacroRowControl row in view.Rows)
+                row.Dispose();
+            view.Host.Dispose();
+        }
+
+        public void PurgeProfileViewsExcept(IEnumerable<MacroProfile> keepProfiles)
+        {
+            var keep = keepProfiles.ToHashSet();
+            foreach (MacroProfile profile in _views.Keys.Where(p => !keep.Contains(p)).ToList())
+                DropProfileView(profile);
+        }
+
         private void ScheduleWidthLayout()
         {
             if (!_uiReady)
@@ -140,45 +181,30 @@ namespace PoE.dlls.Macros.UI
 
         public void Bind(MacroProfile profile, MacroSettings macroSettings)
         {
-            DisarmCapture();
-            Commit();
-            ClearRows();
+            if (_visibleProfile is not null && !ReferenceEquals(_visibleProfile, profile))
+                Commit();
 
-            _profile = profile;
             _macroSettings = macroSettings;
-            _suppressEvents = true;
-            try
-            {
-                foreach (var trigger in profile.Triggers)
-                    CreateRowControl(trigger);
-            }
-            finally
-            {
-                _suppressEvents = false;
-            }
-
-            LayoutRows();
-            if (IsHandleCreated)
-                BeginInvoke(LayoutRows);
+            ShowProfile(profile);
         }
 
         public void Commit()
         {
-            if (_profile is null)
+            if (_visibleProfile is null || _activeView is null)
                 return;
 
-            _profile.Triggers = _rows.Select(r => r.ToPersistedTrigger()).ToList();
+            _visibleProfile.Triggers = _activeView.Rows.Select(r => r.ToPersistedTrigger()).ToList();
         }
 
         public IReadOnlyList<MacroTrigger> GetRuntimeTriggers() =>
-            _rows.Select(r => r.ToRuntimeTrigger()).ToList();
+            ActiveRows.Select(r => r.ToRuntimeTrigger()).ToList();
 
         public void RefreshActiveStates() =>
             SyncActiveFromEngine(null);
 
         public void SyncActiveFromEngine(MacroEngine? engine)
         {
-            foreach (var row in _rows)
+            foreach (MacroRowControl row in ActiveRows)
             {
                 if (engine is null)
                 {
@@ -213,38 +239,81 @@ namespace PoE.dlls.Macros.UI
 
         public bool HasCaptureArmed => _captureRow is not null;
 
-        private void ClearRows()
+        private IReadOnlyList<MacroRowControl> ActiveRows => _activeView?.Rows ?? [];
+
+        private void ShowProfile(MacroProfile profile)
         {
-            foreach (var row in _rows)
+            foreach (ProfileView view in _views.Values)
+                view.Host.Visible = false;
+
+            _activeView = EnsureProfileView(profile);
+            _visibleProfile = profile;
+            _activeView.Host.Visible = true;
+            _activeView.Host.BringToFront();
+            LayoutRows();
+            if (IsHandleCreated)
+                BeginInvoke(LayoutRows);
+        }
+
+        private ProfileView EnsureProfileView(MacroProfile profile)
+        {
+            if (_views.TryGetValue(profile, out ProfileView? existing))
+                return existing;
+
+            if (_macroSettings is null)
+                throw new InvalidOperationException("Macro settings must be bound before creating profile views.");
+
+            var host = new Panel
             {
-                _rowsHost.Controls.Remove(row);
-                row.Dispose();
+                Location = new Point(0, 0),
+                Width = Math.Max(0, _scrollPanel.ClientSize.Width),
+                Visible = false,
+                BackColor = StaticColors.BackGround,
+            };
+
+            var rows = new List<MacroRowControl>();
+            _suppressEvents = true;
+            try
+            {
+                foreach (MacroTrigger trigger in profile.Triggers)
+                    CreateRowControl(host, trigger, rows);
+            }
+            finally
+            {
+                _suppressEvents = false;
             }
 
-            _rows.Clear();
-            _rowsHost.Height = 0;
+            _rowsHost.Controls.Add(host);
+
+            var view = new ProfileView(host, rows);
+            _views[profile] = view;
+            LayoutProfileView(view);
+            return view;
         }
 
         private void AddRow(MacroTrigger trigger)
         {
-            if (_profile is null || _macroSettings is null)
+            if (_visibleProfile is null || _activeView is null || _macroSettings is null)
                 return;
 
-            CreateRowControl(trigger);
+            CreateRowControl(_activeView.Host, trigger, _activeView.Rows);
             LayoutRows();
             NotifyChanged();
             _scrollPanel.AutoScrollPosition = new Point(0, _rowsHost.Height);
         }
 
-        private void CreateRowControl(MacroTrigger trigger)
+        private void CreateRowControl(Panel host, MacroTrigger trigger, List<MacroRowControl> rows)
         {
+            if (_macroSettings is null)
+                return;
+
             var row = new MacroRowControl(trigger, _macroSettings);
             row.RemoveRequested += (_, _) => RemoveRow(row);
             row.Changed += (_, _) => NotifyChanged();
             row.RowHeightChanged += (_, _) => LayoutRows();
             row.CaptureArmed += (_, _) =>
             {
-                foreach (var other in _rows)
+                foreach (MacroRowControl other in rows)
                 {
                     if (!ReferenceEquals(other, row))
                         other.ClearCaptureUi();
@@ -254,21 +323,24 @@ namespace PoE.dlls.Macros.UI
                 CaptureArmed?.Invoke(this, EventArgs.Empty);
             };
 
-            _rows.Add(row);
-            _rowsHost.Controls.Add(row);
+            rows.Add(row);
+            host.Controls.Add(row);
         }
 
         private void RemoveRow(MacroRowControl row)
         {
+            if (_activeView is null)
+                return;
+
             if (_captureRow == row)
                 _captureRow = null;
 
-            int index = _rows.IndexOf(row);
+            int index = _activeView.Rows.IndexOf(row);
             if (index < 0)
                 return;
 
-            _rows.RemoveAt(index);
-            _rowsHost.Controls.Remove(row);
+            _activeView.Rows.RemoveAt(index);
+            _activeView.Host.Controls.Remove(row);
             row.Dispose();
             LayoutRows();
             NotifyChanged();
@@ -276,16 +348,22 @@ namespace PoE.dlls.Macros.UI
 
         private void LayoutRows()
         {
+            if (_activeView is null)
+                return;
+
             int width = GetLayoutWidth();
             if (width <= 0)
                 return;
 
             _lastLayoutWidth = width;
-            LayoutRowsCore(width);
+            LayoutProfileView(_activeView, width);
         }
 
         private void TryLayoutForWidthChange(bool force = false)
         {
+            if (_activeView is null)
+                return;
+
             int width = GetLayoutWidth();
             if (width <= 0)
                 return;
@@ -294,20 +372,24 @@ namespace PoE.dlls.Macros.UI
                 return;
 
             _lastLayoutWidth = width;
-            LayoutRowsCore(width);
+            LayoutProfileView(_activeView, width);
         }
 
-        private void LayoutRowsCore(int width)
+        private void LayoutProfileView(ProfileView view, int? widthOverride = null)
         {
+            int width = widthOverride ?? GetLayoutWidth();
+            if (width <= 0)
+                return;
+
             SuspendLayout();
             _rowsHost.SuspendLayout();
             try
             {
-                UpdateHeaderColumnVisibility();
+                UpdateHeaderColumnVisibility(view.Rows);
                 LayoutHeader(width);
 
                 int y = 0;
-                foreach (var row in _rows)
+                foreach (MacroRowControl row in view.Rows)
                 {
                     if (row.Location.Y != y)
                         row.Location = new Point(0, y);
@@ -316,12 +398,15 @@ namespace PoE.dlls.Macros.UI
                     y += row.Height + 4;
                 }
 
-                _rowsHost.Location = new Point(0, 0);
-                if (_rowsHost.Width != width)
-                    _rowsHost.Width = width;
+                view.Host.Location = new Point(0, 0);
+                if (view.Host.Width != width)
+                    view.Host.Width = width;
 
                 int hostHeight = Math.Max(CompactRowHeight, y);
-                if (_rowsHost.Height != hostHeight)
+                if (view.Host.Height != hostHeight)
+                    view.Host.Height = hostHeight;
+
+                if (ReferenceEquals(view, _activeView))
                     _rowsHost.Height = hostHeight;
             }
             finally
@@ -331,9 +416,9 @@ namespace PoE.dlls.Macros.UI
             }
         }
 
-        private void UpdateHeaderColumnVisibility()
+        private void UpdateHeaderColumnVisibility(IReadOnlyList<MacroRowControl> rows)
         {
-            if (_rows.Count == 0)
+            if (rows.Count == 0)
             {
                 _headerTrigger.Visible = true;
                 _headerCycle.Visible = true;
@@ -341,9 +426,9 @@ namespace PoE.dlls.Macros.UI
                 return;
             }
 
-            _headerTrigger.Visible = _rows.Any(r => r.UsesTriggerKey);
-            _headerCycle.Visible = _rows.Any(r => r.UsesCycleDelay);
-            _headerLock.Visible = _rows.Any(r => r.IsPixelMode);
+            _headerTrigger.Visible = rows.Any(r => r.UsesTriggerKey);
+            _headerCycle.Visible = rows.Any(r => r.UsesCycleDelay);
+            _headerLock.Visible = rows.Any(r => r.IsPixelMode);
         }
 
         private void LayoutHeader(int width)
@@ -388,10 +473,10 @@ namespace PoE.dlls.Macros.UI
 
         private void NotifyChanged()
         {
-            if (_suppressEvents || _profile is null)
+            if (_suppressEvents || _visibleProfile is null || _activeView is null)
                 return;
 
-            _profile.Triggers = _rows.Select(r => r.ToPersistedTrigger()).ToList();
+            _visibleProfile.Triggers = _activeView.Rows.Select(r => r.ToPersistedTrigger()).ToList();
             Changed?.Invoke(this, EventArgs.Empty);
         }
 
@@ -420,6 +505,12 @@ namespace PoE.dlls.Macros.UI
                 _widthLayoutTimer.Dispose();
 
             base.Dispose(disposing);
+        }
+
+        private sealed class ProfileView(Panel host, List<MacroRowControl> rows)
+        {
+            public Panel Host { get; } = host;
+            public List<MacroRowControl> Rows { get; } = rows;
         }
     }
 }
