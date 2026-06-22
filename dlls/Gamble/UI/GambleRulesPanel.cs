@@ -12,8 +12,8 @@ namespace PoE.dlls.Gamble.UI
         private const int HeaderHeight = 28;
         private const int AddBarHeight = 36;
         private const int ColumnGap = 7;
-        private const int PriorityColumnWidth = 72;
-        private const int TypeColumnX = PriorityColumnWidth + ColumnGap;
+        private const int RoleColumnWidth = 88;
+        private const int TypeColumnX = RoleColumnWidth + ColumnGap;
         private const int TypeColumnWidth = 121;
         private const int InfluenceColumnX = TypeColumnX + TypeColumnWidth + ColumnGap;
         private const int InfluenceColumnWidth = 158;
@@ -25,6 +25,7 @@ namespace PoE.dlls.Gamble.UI
             eldritch ? EldritchContentColumnX : TierColumnX + TierColumnWidth + ColumnGap;
 
         private readonly Panel _header;
+        private readonly Label _headerRole;
         private readonly Label _headerType;
         private readonly Label _headerInfluence;
         private readonly Label _headerTier;
@@ -60,12 +61,13 @@ namespace PoE.dlls.Gamble.UI
             };
 
             _header = header;
+            _headerRole = CreateHeaderLabel("Role", 0, RoleColumnWidth);
             _headerType = CreateHeaderLabel("Item type", TypeColumnX, TypeColumnWidth);
             _headerInfluence = CreateHeaderLabel("Influence", InfluenceColumnX, InfluenceColumnWidth);
             _headerTier = CreateHeaderLabel("Tier", TierColumnX, TierColumnWidth);
             _headerContent = CreateHeaderLabel("Modifier content", ContentColumnX(false), 287);
 
-            header.Controls.Add(CreateHeaderLabel("Priority", 0, PriorityColumnWidth));
+            header.Controls.Add(_headerRole);
             header.Controls.Add(_headerType);
             header.Controls.Add(_headerInfluence);
             header.Controls.Add(_headerTier);
@@ -112,7 +114,10 @@ namespace PoE.dlls.Gamble.UI
 
         public void RefreshGambleTypeLayout()
         {
-            bool eldritch = IsEldritchMode();
+            GambleType type = GetGambleType();
+            bool eldritch = type == GambleType.Eldritch;
+            bool roleVisible = RuleRoleMapper.IsRoleColumnVisible(type);
+            _headerRole.Visible = roleVisible;
             _headerType.Visible = true;
             _headerInfluence.Visible = eldritch;
             _headerTier.Visible = !eldritch;
@@ -122,6 +127,7 @@ namespace PoE.dlls.Gamble.UI
             {
                 foreach (var row in view.Rows)
                 {
+                    row.ApplyGambleType(type);
                     row.ApplyEldritchMode(eldritch);
                     if (_modSuggestions is not null)
                     {
@@ -133,6 +139,8 @@ namespace PoE.dlls.Gamble.UI
 
             LayoutActiveView();
         }
+
+        private GambleType GetGambleType() => _getGambleType?.Invoke() ?? GambleType.Alt;
 
         private GambleRuleRow CreateDefaultRow()
         {
@@ -251,7 +259,7 @@ namespace PoE.dlls.Gamble.UI
 
         private GambleRuleRowControl CreateRowControl(Panel host, GambleRuleRow rule, List<GambleRuleRowControl> rows)
         {
-            var row = new GambleRuleRowControl(rule, IsEldritchMode);
+            var row = new GambleRuleRowControl(rule, GetGambleType, IsEldritchMode);
             row.RemoveRequested += (_, _) => RemoveRow(row);
             row.Changed += (_, _) =>
             {
@@ -423,9 +431,10 @@ namespace PoE.dlls.Gamble.UI
                 "Eater of Worlds",
             ];
 
+            private readonly Func<GambleType> _getGambleType;
             private readonly Func<bool> _isEldritchMode;
             private GambleRuleRow _rule;
-            private readonly FlatTextBox _priority;
+            private readonly FlatComboBox _role;
             private readonly FlatTextBox _typeFilter;
             private readonly FlatComboBox _influence;
             private readonly FlatTextBox _tier;
@@ -435,19 +444,25 @@ namespace PoE.dlls.Gamble.UI
             public event EventHandler? RemoveRequested;
             public event EventHandler? Changed;
 
-            public GambleRuleRowControl(GambleRuleRow rule, Func<bool> isEldritchMode)
+            public GambleRuleRowControl(GambleRuleRow rule, Func<GambleType> getGambleType, Func<bool> isEldritchMode)
             {
+                _getGambleType = getGambleType;
                 _isEldritchMode = isEldritchMode;
                 _rule = rule;
                 BackColor = StaticColors.BackGround;
                 Height = 34;
 
-                _priority = CreateTextBox(new Point(0, 2), new Size(PriorityColumnWidth, 30), HorizontalAlignment.Center);
-                _priority._textBox.Text = rule.Priority.ToString();
-                _priority._textBox.KeyUp += (_, _) =>
+                _role = new FlatComboBox
                 {
-                    if (TryParsePriority(_priority._textBox))
-                        _rule.Priority = decimal.Parse(_priority._textBox.Text);
+                    Location = new Point(0, 2),
+                    Size = new Size(RoleColumnWidth, 30),
+                    Font = UiFont,
+                    DropDownStyle = ComboBoxStyle.DropDownList,
+                };
+                _role.SelectedIndexChanged += (_, _) =>
+                {
+                    RuleRole role = GetSelectedRole();
+                    _rule.Priority = RuleRoleMapper.ToPriority(_getGambleType(), role);
                     Changed?.Invoke(this, EventArgs.Empty);
                 };
 
@@ -508,15 +523,49 @@ namespace PoE.dlls.Gamble.UI
                 };
                 _remove.Click += (_, _) => RemoveRequested?.Invoke(this, EventArgs.Empty);
 
-                Controls.Add(_priority);
+                Controls.Add(_role);
                 Controls.Add(_typeFilter);
                 Controls.Add(_influence);
                 Controls.Add(_tier);
                 Controls.Add(_content);
                 Controls.Add(_remove);
 
+                ApplyGambleType(_getGambleType());
                 ApplyEldritchMode(_isEldritchMode());
             }
+
+            internal void ApplyGambleType(GambleType type)
+            {
+                bool roleVisible = RuleRoleMapper.IsRoleColumnVisible(type);
+                _role.Visible = roleVisible;
+                if (!roleVisible)
+                    return;
+
+                ConfigureRoleCombo(type);
+            }
+
+            private void ConfigureRoleCombo(GambleType type)
+            {
+                _role.Items.Clear();
+                foreach (RuleRole role in RuleRoleMapper.GetRolesForMode(type))
+                    _role.Items.Add(RuleRoleMapper.GetDisplayName(role));
+
+                SelectRole(RuleRoleMapper.FromPriority(type, _rule.Priority, _rule.Content));
+            }
+
+            private void SelectRole(RuleRole role)
+            {
+                string label = RuleRoleMapper.GetDisplayName(role);
+                int index = _role.Items.IndexOf(label);
+                if (index < 0)
+                    index = 0;
+
+                if (_role.SelectedIndex != index)
+                    _role.SelectedIndex = index;
+            }
+
+            private RuleRole GetSelectedRole() =>
+                RuleRoleMapper.FromDisplayName(_getGambleType(), _role.SelectedItem?.ToString());
 
             internal EldritchInfluence GetEldritchInfluence() =>
                 _influence.SelectedIndex == 1
@@ -540,9 +589,8 @@ namespace PoE.dlls.Gamble.UI
 
             public GambleRuleRow ToRule()
             {
-                decimal priority = _rule.Priority;
-                if (decimal.TryParse(_priority._textBox.Text, out decimal parsedPriority))
-                    priority = parsedPriority;
+                GambleType type = _getGambleType();
+                decimal priority = RuleRoleMapper.ToPriority(type, GetSelectedRole());
 
                 int tier = _rule.Tier;
                 if (int.TryParse(_tier._textBox.Text, out int parsedTier) && parsedTier > 0 && parsedTier < 10)
@@ -579,18 +627,6 @@ namespace PoE.dlls.Gamble.UI
                     Font = UiFont,
                     TextAlign = align,
                 };
-            }
-
-            private static bool TryParsePriority(TextBox textBox)
-            {
-                if (decimal.TryParse(textBox.Text, out _))
-                {
-                    textBox.ForeColor = StaticColors.ForeGround;
-                    return true;
-                }
-
-                textBox.ForeColor = Color.Red;
-                return false;
             }
 
             private static bool TryParseTier(TextBox textBox)

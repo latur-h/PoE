@@ -37,7 +37,7 @@ namespace PoE.dlls.Gamble.UI
             "  Maps:35;      →  checks More Maps: +NN% (augmented)\r\n" +
             "  Scarabs:30;   →  checks More Scarabs: +NN% (augmented)\r\n\r\n" +
             "• Comparison: map % must be greater than or equal to your minimum (47 passes for Currency:40).\r\n" +
-            "• Every segment in the row must pass. Multiple stat rows (priority between -1 and 1) must all pass.\r\n\r\n" +
+            "• Every segment in the row must pass. Multiple Stat rows must all pass.\r\n\r\n" +
             "Does not match:\r\n" +
             "• More Currency:40 in the rule (wrong — use Currency:40)\r\n" +
             "• Plain Item Quantity: +87% without More (use format A: q80r60ps25)\r\n" +
@@ -74,11 +74,11 @@ namespace PoE.dlls.Gamble.UI
                 "3. Hold Shift and spam left-click Alteration on the item; copy after each click.\r\n" +
                 "4. Release Shift when done or cancelled."),
             OrbsTabCoordinatesSection("Default item, Alt orb"),
-            Section("Priority",
-                "• 1 or higher — Required: every such rule must match at least one mod\r\n" +
-                "• Between 0 and 1 (e.g. 0.5) — Optional: if you use any optional rules, at least one must match\r\n" +
-                "-1 or lower — Reject: if any mod matches, roll is rejected (checked first)\r\n" +
-                "• 0 is not optional"),
+            Section("Role",
+                "• Required — every such rule must match at least one mod\r\n" +
+                "• Optional — if you use any optional rules, at least one must match\r\n" +
+                "• Exclude — if any mod matches, roll is rejected (checked first)\r\n" +
+                "• None — row inactive"),
             Section("Type & Tier",
                 "• Type — Prefix, Suffix, Implicit, or Any\r\n" +
                 "• Tier — maximum tier allowed (lower number = better mod)"),
@@ -101,8 +101,8 @@ namespace PoE.dlls.Gamble.UI
                 "• Aug — rules not met and the item has exactly one prefix or suffix mod (add second mod)\r\n" +
                 "• Alt — rules not met and the item has two or more prefix/suffix mods (reroll)\r\n" +
                 "• Success — required rules met and optional rules satisfied (if any)"),
-            Section("Priority",
-                "Same as Alt: 1+ required, fractional optional (not 0), -1 or lower reject (checked first)."),
+            Section("Role",
+                "Same as Alt: Required, Optional, Exclude (checked first), or None (inactive)."),
             Section("Type & Tier",
                 "Same filters as Alt."),
             ItemModContentSection(),
@@ -118,11 +118,11 @@ namespace PoE.dlls.Gamble.UI
                 "1. Copy the item — if it matches, stop.\r\n" +
                 "2. Right-click Chaos on the item, hold Shift, spam Chaos clicks with copy between clicks."),
             OrbsTabCoordinatesSection("Default item, Chaos orb"),
-            Section("Priority",
-                "• 1 or higher — Required\r\n" +
-                "• Between 0 and 1 — Optional (if any optional rows exist, at least one must match)\r\n" +
-                "-1 or lower — Reject: if any mod matches, roll is rejected (checked first)\r\n" +
-                "• 0 is not optional"),
+            Section("Role",
+                "• Required — must match\r\n" +
+                "• Optional — at least one optional must match when any optional rows exist\r\n" +
+                "• Exclude — reject if any mod matches (checked first)\r\n" +
+                "• None — row inactive"),
             Section("Type & Tier",
                 "• Type — Prefix, Suffix, Implicit, or Any\r\n" +
                 "• Tier — maximum tier allowed"),
@@ -139,11 +139,11 @@ namespace PoE.dlls.Gamble.UI
                 "1. Copy the item — if it matches, stop.\r\n" +
                 "2. Right-click Essence on the item, hold Shift, click with copy between clicks."),
             OrbsTabCoordinatesSection("Essence item, Essence orb"),
-            Section("Priority",
-                "• 1 or higher — Required\r\n" +
-                "• Between 0 and 1 — Optional\r\n" +
-                "-1 or lower — Reject: if any mod matches, roll is rejected (checked first)\r\n" +
-                "• 0 is not optional"),
+            Section("Role",
+                "• Required — must match\r\n" +
+                "• Optional — at least one optional must match when any optional rows exist\r\n" +
+                "• Exclude — reject if any mod matches (checked first)\r\n" +
+                "• None — row inactive"),
             Section("Type & Tier",
                 "Type and Tier filters apply (same as Chaos)."),
             ItemModContentSection(),
@@ -160,7 +160,7 @@ namespace PoE.dlls.Gamble.UI
                 "2. If they do not match: right-click Chromatic, hold Shift, click the item until colours match."),
             OrbsTabCoordinatesSection("Default item, Chromatic orb"),
             Section("Rules",
-                "Only the first row with non-empty Content is used. Priority, Type, and Tier are ignored."),
+                "Only the first row with non-empty Content is used. Role, Type, and Tier are ignored."),
             Section("Content",
                 "Uppercase colour pattern:\r\n" +
                 "• R — Red\r\n" +
@@ -181,10 +181,11 @@ namespace PoE.dlls.Gamble.UI
                 "2. Right-click Alchemy on the map once (make it rare).\r\n" +
                 "3. Loop with Shift held: Alt+click Scouring (remove mods) → click Alchemy (reroll) → copy → evaluate."),
             OrbsTabCoordinatesSection("Default item, Alchemy orb, Scouring orb, Vaal orb (optional corrupt)"),
-            Section("Priority",
-                "• 0 (or any value between -1 and 1) — Map stat threshold in Content (see below)\r\n" +
-                "• 1 or higher — Include: mod name must match\r\n" +
-                "-1 or lower — Exclude: if any mod name matches, roll is rejected\r\n\r\n" +
+            Section("Role",
+                "• Stat — map threshold in Content (see below)\r\n" +
+                "• Include — mod name must match\r\n" +
+                "• Exclude — if any mod name matches, roll is rejected\r\n" +
+                "• None — row inactive\r\n\r\n" +
                 "Type and Tier columns are ignored for map mod rules."),
             Section("Stat format A (compact)",
                 "q80r60ps25 — minimum Item Quantity %, Item Rarity %, and Monster Pack Size % from lines like Item Quantity: +87% (augmented).\r\n" +
@@ -218,7 +219,7 @@ namespace PoE.dlls.Gamble.UI
                 "No Scouring/Alchemy cycle (unlike standard Map mode)."),
             OrbsTabCoordinatesSection("Default item, Chaos orb, Vaal orb (optional corrupt)"),
             Section("Mod rules",
-                "Same as Map mode: exclude on mod names (priority ≤ -1), optional include (priority ≥ 1). Type and Tier are ignored."),
+                "Same as Map mode: Exclude on mod names, optional Include, Stat rows for thresholds. Type and Tier are ignored."),
             Section("Stat format A (compact)",
                 "q80r60ps25 — same quantity / rarity / pack size minimums as Map mode."),
             MoreStatRulesSection(),
@@ -245,7 +246,7 @@ namespace PoE.dlls.Gamble.UI
                 "5. Stop when the map is rare, has 6 mods, and all rules pass."),
             OrbsTabCoordinatesSection("Default item, Alchemy orb, Scouring orb, Exalt orb, Vaal orb (optional corrupt)"),
             Section("Rules",
-                "Same as Map mode: stat rows (priority between -1 and 1), exclude (priority ≤ -1), optional include (priority ≥ 1). Type and Tier are ignored for map mod rows."),
+                "Same as Map mode: Stat rows, Exclude, optional Include. Type and Tier are ignored for map mod rows."),
             Section("Stat format A (compact)",
                 "q80r60ps25 — minimum Item Quantity / Rarity / Pack Size from normal map stat lines."),
             MoreStatRulesSection(),
@@ -269,10 +270,11 @@ namespace PoE.dlls.Gamble.UI
                 "2. If not valid: click the Harvest craft button, then the item, then copy again.\r\n" +
                 "3. Repeat until match or cancel. No Shift+orb spam."),
             OrbsTabCoordinatesSection("Harvest item, Craft button"),
-            Section("Priority",
-                "• 1 or higher — Required\r\n" +
-                "• Between 0 and 1 — Optional\r\n" +
-                "-1 or lower — Reject: if any mod matches, roll is rejected (checked first)"),
+            Section("Role",
+                "• Required — must match\r\n" +
+                "• Optional — at least one optional must match when any optional rows exist\r\n" +
+                "• Exclude — reject if any mod matches (checked first)\r\n" +
+                "• None — row inactive"),
             Section("Type & Tier",
                 "Both apply — same as Chaos/Essence."),
             ItemModContentSection("Typical reforge outcome lines."),
@@ -290,10 +292,11 @@ namespace PoE.dlls.Gamble.UI
                 "3. Loop: copy → evaluate → slam (switch to Eater orb when Exarch line is satisfied).\r\n" +
                 "4. Release Shift when done or cancelled."),
             OrbsTabCoordinatesSection("Default item, Searing Exarch orb, Eater of Worlds orb"),
-            Section("Priority",
-                "• 1 or higher — Required on the matching implicit line\r\n" +
-                "• Between 0 and 1 — Optional\r\n" +
-                "-1 or lower — Reject: if any mod on the item matches, roll is rejected (checked first)"),
+            Section("Role",
+                "• Required on the matching implicit line\r\n" +
+                "• Optional\r\n" +
+                "• Exclude — if any mod on the item matches, roll is rejected (checked first)\r\n" +
+                "• None — row inactive"),
             Section("Rules",
                 "Each rule targets one influence (Searing Exarch or Eater of Worlds). Required/optional apply only to the matching implicit line.\r\n" +
                 "Reject rules apply to all mods on the item. Tier and Type columns are hidden for implicit matching."),

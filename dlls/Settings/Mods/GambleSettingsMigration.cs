@@ -117,6 +117,7 @@ namespace PoE.dlls.Settings.Mods
                     Rules = ExtractRules(legacy)
                 }
             ];
+            NormalizePresetRulePriorities(type, store);
         }
 
         private static List<GambleRuleRow> ExtractRules(IUIMods legacy)
@@ -147,7 +148,7 @@ namespace PoE.dlls.Settings.Mods
 
             rows.Add(new GambleRuleRow
             {
-                Priority = priority,
+                Priority = RuleRoleMapper.NormalizePriority(priority),
                 ModifierType = type,
                 Tier = tier,
                 Content = content
@@ -172,6 +173,19 @@ namespace PoE.dlls.Settings.Mods
 
                 var store = stores[type];
                 GamblePresetHelper.NormalizeModeStore(store);
+                NormalizePresetRulePriorities(type, store);
+            }
+        }
+
+        private static void NormalizePresetRulePriorities(GambleType type, GambleModeStore store)
+        {
+            foreach (GamblePreset preset in store.Presets)
+            {
+                foreach (GambleRuleRow rule in preset.Rules)
+                {
+                    RuleRole role = RuleRoleMapper.FromPriority(type, rule.Priority, rule.Content);
+                    rule.Priority = RuleRoleMapper.ToPriority(type, role);
+                }
             }
         }
     }
