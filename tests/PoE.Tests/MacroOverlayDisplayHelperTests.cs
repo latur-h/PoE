@@ -1,13 +1,20 @@
+using PoE.dlls.Flasks;
 using PoE.dlls.Macros;
+using AppSettings = PoE.dlls.Settings.Settings;
 using PoE.dlls.Settings.Macros;
 using PoE.dlls.Automation;
-using PoE.dlls.InteropServices;
 using Xunit;
 
 namespace PoE.Tests
 {
     public class MacroOverlayDisplayHelperTests
     {
+        private static (MacroEngine Engine, FlaskManager FlaskManager) CreateRuntime()
+        {
+            var inputHost = new InputSimulatorHost();
+            return (new MacroEngine(inputHost), new FlaskManager(inputHost));
+        }
+
         [Fact]
         public void BuildRows_marks_active_triggers_green_state()
         {
@@ -28,32 +35,33 @@ namespace PoE.Tests
                 FireSequence = "LButton Up",
             };
 
-            var settings = new MacroSettings
+            var settings = new AppSettings
             {
-                FeatureEnabled = true,
-                GlobalProfile = new MacroProfile
+                Macros = new MacroSettings
                 {
-                    Name = MacroProfile.GlobalName,
-                    Triggers = [triggerOn, triggerOff],
+                    FeatureEnabled = true,
+                    GlobalProfile = new MacroProfile
+                    {
+                        Name = MacroProfile.GlobalName,
+                        Triggers = [triggerOn, triggerOff],
+                    },
                 },
             };
 
-            var inputHost = new InputSimulatorHost();
-            var engine = new MacroEngine(inputHost);
-            engine.ApplySettings(MacroRuntimeSettingsBuilder.Build(settings));
+            var (engine, flaskManager) = CreateRuntime();
+            engine.ApplySettings(MacroRuntimeSettingsBuilder.Build(settings.Macros));
 
-            IReadOnlyList<MacroOverlayDisplayHelper.MacroOverlayRow> rows =
-                MacroOverlayDisplayHelper.BuildRows(settings, engine);
+            IReadOnlyList<OverlayRow> rows = MacroOverlayDisplayHelper.BuildRows(settings, engine, flaskManager);
 
-            Assert.Equal(2, rows.Count);
-            Assert.True(rows[0].IsOn);
-            Assert.False(rows[1].IsOn);
-            Assert.Contains("Loop", rows[0].Label);
-            Assert.Contains("Single", rows[1].Label);
+            Assert.Contains(rows, r => r.Kind == OverlayRowKind.Section && r.Label == "Macros");
+            OverlayRow macroOn = Assert.Single(rows, r => r.Label.Contains("Loop"));
+            OverlayRow macroOff = Assert.Single(rows, r => r.Label.Contains("Single"));
+            Assert.True(macroOn.IsOn);
+            Assert.False(macroOff.IsOn);
         }
 
         [Fact]
-        public void BuildRows_turns_all_off_when_feature_disabled()
+        public void BuildRows_turns_all_macros_off_when_feature_disabled()
         {
             var trigger = new MacroTrigger
             {
@@ -64,24 +72,61 @@ namespace PoE.Tests
                 FireSequence = "LButton Down",
             };
 
-            var settings = new MacroSettings
+            var settings = new AppSettings
             {
-                FeatureEnabled = false,
-                GlobalProfile = new MacroProfile
+                Macros = new MacroSettings
                 {
-                    Name = MacroProfile.GlobalName,
-                    Triggers = [trigger],
+                    FeatureEnabled = false,
+                    GlobalProfile = new MacroProfile
+                    {
+                        Name = MacroProfile.GlobalName,
+                        Triggers = [trigger],
+                    },
                 },
             };
 
-            var inputHost = new InputSimulatorHost();
-            var engine = new MacroEngine(inputHost);
-            engine.ApplySettings(MacroRuntimeSettingsBuilder.Build(settings));
+            var (engine, flaskManager) = CreateRuntime();
+            engine.ApplySettings(MacroRuntimeSettingsBuilder.Build(settings.Macros));
 
-            MacroOverlayDisplayHelper.MacroOverlayRow row =
-                Assert.Single(MacroOverlayDisplayHelper.BuildRows(settings, engine));
+            OverlayRow macroRow = MacroOverlayDisplayHelper.BuildRows(settings, engine, flaskManager)
+                .First(r => r.Kind == OverlayRowKind.Status && r.Label.Contains("F1"));
 
-            Assert.False(row.IsOn);
+            Assert.False(macroRow.IsOn);
+        }
+
+        [Fact]
+        public void BuildRows_shows_only_enabled_flasks_colored_by_drink_state()
+        {
+            var settings = new AppSettings
+            {
+                Macros = new MacroSettings
+                {
+                    GlobalProfile = new MacroProfile
+                    {
+                        Name = MacroProfile.GlobalName,
+                        Triggers = [],
+                    },
+                },
+            };
+            settings.Flasks["1"].Active = true;
+            settings.Flasks["1"].FlaskType = "HP";
+            settings.Flasks["1"].Percent = 55;
+            settings.Flasks["1"].Key = "1";
+            settings.Flasks["2"].Active = false;
+            settings.Flasks["2"].FlaskType = "Utility";
+            settings.Flasks["2"].Key = "2";
+
+            var (engine, flaskManager) = CreateRuntime();
+            engine.ApplySettings(MacroRuntimeSettingsBuilder.Build(settings.Macros));
+
+            IReadOnlyList<OverlayRow> rowsStopped = MacroOverlayDisplayHelper.BuildRows(settings, engine, flaskManager);
+            Assert.Contains(rowsStopped, r => r.Kind == OverlayRowKind.Section && r.Label == "Flasks");
+            OverlayRow flask1Stopped = Assert.Single(rowsStopped, r => r.Label.StartsWith("Flask 1", StringComparison.Ordinal));
+            Assert.DoesNotContain(rowsStopped, r => r.Label.StartsWith("Flask 2", StringComparison.Ordinal));
+            Assert.False(flask1Stopped.IsOn);
+            Assert.Contains("HP 55%", flask1Stopped.Label);
+
+            Assert.False(flaskManager.IsDrinking);
         }
     }
 }

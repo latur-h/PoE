@@ -138,11 +138,11 @@ namespace PoE
                 _settings.Flasks["5"].Percent = slider_Flask5.Value;
             };
 
-            checkBox_Flask1.CheckedChanged += (s, e) => _settings.Flasks["1"].Active = checkBox_Flask1.Checked;
-            checkBox_Flask2.CheckedChanged += (s, e) => _settings.Flasks["2"].Active = checkBox_Flask2.Checked;
-            checkBox_Flask3.CheckedChanged += (s, e) => _settings.Flasks["3"].Active = checkBox_Flask3.Checked;
-            checkBox_Flask4.CheckedChanged += (s, e) => _settings.Flasks["4"].Active = checkBox_Flask4.Checked;
-            checkBox_Flask5.CheckedChanged += (s, e) => _settings.Flasks["5"].Active = checkBox_Flask5.Checked;
+            checkBox_Flask1.CheckedChanged += (_, _) => OnFlaskActiveChanged("1", checkBox_Flask1.Checked);
+            checkBox_Flask2.CheckedChanged += (_, _) => OnFlaskActiveChanged("2", checkBox_Flask2.Checked);
+            checkBox_Flask3.CheckedChanged += (_, _) => OnFlaskActiveChanged("3", checkBox_Flask3.Checked);
+            checkBox_Flask4.CheckedChanged += (_, _) => OnFlaskActiveChanged("4", checkBox_Flask4.Checked);
+            checkBox_Flask5.CheckedChanged += (_, _) => OnFlaskActiveChanged("5", checkBox_Flask5.Checked);
 
             comboBox_Flask1.Items.AddRange(Enum.GetNames<FlaskType>());
             comboBox_Flask1.SelectedIndex = 0;
@@ -569,7 +569,7 @@ namespace PoE
 
             _hotkeys.Stop();
             DisposeMacroOverlay();
-            DisposeForegroundWindowMonitor();
+            DisposeOverlayMonitoring();
             _macroEngine.Stop();
             gambleRulesPanel.Commit();
             SaveWindowSize();

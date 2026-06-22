@@ -17,20 +17,21 @@ namespace PoE.dlls.Flasks
         private CancellationTokenSource? cts;
         private CancellationToken token;
 
+        public bool IsDrinking => cts is not null && !token.IsCancellationRequested;
+
+        public event Action? DrinkingStateChanged;
+
         public FlaskManager(InputSimulatorHost inputHost)
         {
             _inputHost = inputHost;
-
-            cts = new CancellationTokenSource();
-            token = cts.Token;
         }
 
         public void ApplySettings(UIFlaskControls controls) => Timing.Apply(controls);
 
         public void Flush()
         {
-            if (cts is not null && !token.IsCancellationRequested)
-                cts?.Cancel();
+            if (cts is not null && !cts.Token.IsCancellationRequested)
+                cts.Cancel();
 
             flasks.Clear();
         }
@@ -57,6 +58,7 @@ namespace PoE.dlls.Flasks
 
             cts = new CancellationTokenSource();
             token = cts.Token;
+            DrinkingStateChanged?.Invoke();
 
             while (!token.IsCancellationRequested)
             {
@@ -75,6 +77,7 @@ namespace PoE.dlls.Flasks
             FlaskLog.DrinkStopped();
             cts.Dispose();
             cts = null;
+            DrinkingStateChanged?.Invoke();
         }
 
         public void Stop()
@@ -83,6 +86,7 @@ namespace PoE.dlls.Flasks
 
             FlaskLog.StopRequested();
             cts.Cancel();
+            DrinkingStateChanged?.Invoke();
         }
 
         internal IReadOnlyList<IFlask> RegisteredFlasksForTests => flasks;

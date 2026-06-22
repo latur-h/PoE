@@ -1,4 +1,5 @@
 using PoE.dlls.Automation;
+using PoE.dlls.Flasks;
 using PoE.dlls.Macros;
 using PoE.dlls.Macros.UI;
 using PoE.dlls.KeyBindings;
@@ -139,6 +140,7 @@ namespace PoE
 
             SetupMacrosHints();
             EnsureForegroundWindowMonitor();
+            _flaskManager.DrinkingStateChanged += OnFlaskDrinkingStateChanged;
             LoadMacrosTabIntoUi();
             _macrosTabUiReady = true;
         }
@@ -164,6 +166,23 @@ namespace PoE
             RefreshMacroOverlay();
         }
 
+        private void OnFlaskDrinkingStateChanged()
+        {
+            if (InvokeRequired)
+            {
+                BeginInvoke(OnFlaskDrinkingStateChanged);
+                return;
+            }
+
+            RefreshMacroOverlay();
+        }
+
+        private void OnFlaskActiveChanged(string slot, bool active)
+        {
+            _settings.Flasks[slot].Active = active;
+            RefreshMacroOverlay();
+        }
+
         private void SetupMacrosHints()
         {
             toolTip_Macros = new ToolTip(components);
@@ -186,7 +205,7 @@ namespace PoE
 
             toolTip_Macros.SetToolTip(
                 checkBox_MacroOverlayEnabled,
-                "Show a transparent on-screen overlay listing runtime macros while the configured game process is focused. Green = on, red = off.");
+                "Show enabled macros and flasks on a transparent overlay while the game is focused. Flask rows are green while auto-drink is running, red when stopped. Clicks pass through to the game.");
 
             toolTip_Macros.SetToolTip(
                 comboBox_MacroOverlayCorner,
@@ -292,7 +311,9 @@ namespace PoE
             }
 
             EnsureMacroOverlay();
-            _macroOverlay!.Apply(_settings.Macros, _macroEngine);
+            _macroOverlay!.Apply(
+                MacroOverlayDisplayHelper.BuildRows(_settings, _macroEngine, _flaskManager),
+                _settings.Macros.OverlayCorner);
         }
 
         private void DisposeMacroOverlay()
@@ -302,6 +323,12 @@ namespace PoE
 
             _macroOverlay.Dispose();
             _macroOverlay = null;
+        }
+
+        private void DisposeOverlayMonitoring()
+        {
+            DisposeForegroundWindowMonitor();
+            _flaskManager.DrinkingStateChanged -= OnFlaskDrinkingStateChanged;
         }
 
         private void DisposeForegroundWindowMonitor()
