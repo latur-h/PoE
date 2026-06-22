@@ -569,6 +569,7 @@ namespace PoE
 
             _hotkeys.Stop();
             DisposeMacroOverlay();
+            DisposeForegroundWindowMonitor();
             _macroEngine.Stop();
             gambleRulesPanel.Commit();
             SaveWindowSize();

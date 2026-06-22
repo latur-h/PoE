@@ -76,6 +76,7 @@ namespace PoE
 
             _inputHost.Configure(_settings.InputProcessName);
             _userSettings.SaveSettings();
+            RefreshMacroOverlay();
         }
     }
 }

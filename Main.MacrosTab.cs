@@ -1,3 +1,4 @@
+using PoE.dlls.Automation;
 using PoE.dlls.Macros;
 using PoE.dlls.Macros.UI;
 using PoE.dlls.KeyBindings;
@@ -18,6 +19,7 @@ namespace PoE
         private MacroProfileBar _macroProfileBar = null!;
         private MacrosPanel _macrosPanel = null!;
         private MacroOverlayForm? _macroOverlay;
+        private ForegroundWindowMonitor? _foregroundWindowMonitor;
         private ToolTip toolTip_Macros = null!;
         private MacroKeyFieldBinder? _macrosEnableKeyBinder;
         private bool _macrosTabUiReady;
@@ -136,8 +138,30 @@ namespace PoE
             tabPage_Macros.Controls.Add(_macrosPanel);
 
             SetupMacrosHints();
+            EnsureForegroundWindowMonitor();
             LoadMacrosTabIntoUi();
             _macrosTabUiReady = true;
+        }
+
+        private void EnsureForegroundWindowMonitor()
+        {
+            if (_foregroundWindowMonitor is not null)
+                return;
+
+            _foregroundWindowMonitor = new ForegroundWindowMonitor();
+            _foregroundWindowMonitor.ForegroundChanged += OnForegroundWindowChanged;
+            _foregroundWindowMonitor.Start();
+        }
+
+        private void OnForegroundWindowChanged()
+        {
+            if (InvokeRequired)
+            {
+                BeginInvoke(OnForegroundWindowChanged);
+                return;
+            }
+
+            RefreshMacroOverlay();
         }
 
         private void SetupMacrosHints()
@@ -162,7 +186,7 @@ namespace PoE
 
             toolTip_Macros.SetToolTip(
                 checkBox_MacroOverlayEnabled,
-                "Show a transparent on-screen overlay listing runtime macros. Green = on, red = off.");
+                "Show a transparent on-screen overlay listing runtime macros while the configured game process is focused. Green = on, red = off.");
 
             toolTip_Macros.SetToolTip(
                 comboBox_MacroOverlayCorner,
@@ -247,16 +271,23 @@ namespace PoE
             _macroOverlay = new MacroOverlayForm(this);
         }
 
+        private bool ShouldShowMacroOverlay() =>
+            _settings.Macros.OverlayEnabled && _macroEngine.IsGameForeground();
+
+        private void HideMacroOverlay()
+        {
+            if (_macroOverlay is not null && !_macroOverlay.IsDisposed && _macroOverlay.Visible)
+                _macroOverlay.Hide();
+        }
+
         private void RefreshMacroOverlay()
         {
             if (!_macrosTabUiReady)
                 return;
 
-            if (!_settings.Macros.OverlayEnabled)
+            if (!ShouldShowMacroOverlay())
             {
-                if (_macroOverlay is not null && !_macroOverlay.IsDisposed && _macroOverlay.Visible)
-                    _macroOverlay.Hide();
-
+                HideMacroOverlay();
                 return;
             }
 
@@ -271,6 +302,16 @@ namespace PoE
 
             _macroOverlay.Dispose();
             _macroOverlay = null;
+        }
+
+        private void DisposeForegroundWindowMonitor()
+        {
+            if (_foregroundWindowMonitor is null)
+                return;
+
+            _foregroundWindowMonitor.ForegroundChanged -= OnForegroundWindowChanged;
+            _foregroundWindowMonitor.Dispose();
+            _foregroundWindowMonitor = null;
         }
 
         private void OnMacrosFeatureEnabledChanged()
