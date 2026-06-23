@@ -250,6 +250,7 @@ namespace PoE
             InitializeGambleBulkUi();
             InitializeGameDataSettingsUi();
             InitializeInputSettingsUi();
+            InitializeAppUpdateSettingsUi();
             InitializeSettingsSeparators();
             InitializeOrbsTab();
             InitializeMacrosTab();
@@ -336,6 +337,7 @@ namespace PoE
             ValidateAllStoredKeys();
 
             SetupSettingsHints();
+            SetupAppUpdateHints();
 
             FinalizeGambleTabUi();
 
@@ -346,6 +348,7 @@ namespace PoE
             LayoutMacrosTab();
             LayoutSettingsTab();
 
+            BeginStartupUpdateCheck();
             _ = Init();
         }
 
@@ -582,6 +585,7 @@ namespace PoE
             }
 
             _hotkeys.Stop();
+            CancelUpdateOperation();
             DisposeMacroOverlay();
             DisposeBulkMapHighlightOverlay();
             DisposeOverlayMonitoring();

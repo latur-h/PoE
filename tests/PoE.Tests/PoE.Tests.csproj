@@ -12,6 +12,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\..\PoE.csproj" />
+    <ProjectReference Include="..\..\tools\PoE.Updater\PoE.Updater.csproj" />
     <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.14.1" />
     <PackageReference Include="Poss.Win.Automation.Core" Version="1.0.5" />
     <PackageReference Include="Poss.Win.Automation.Input" Version="1.0.5" />

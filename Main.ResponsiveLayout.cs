@@ -6,10 +6,12 @@ namespace PoE
 {
     public partial class Main
     {
+        private Panel? _separatorUpdateGamble;
         private Panel? _separatorGambleFlask;
         private Panel? _separatorFlaskGameData;
         private Panel? _separatorGameDataInput;
 
+        private const int SettingsUpdateHeight = 76;
         private const int SettingsGambleHeight = 190;
         private const int SettingsFlaskHeight = 158;
         private const int SettingsGameDataMinHeight = 150;
@@ -303,12 +305,14 @@ namespace PoE
             if (width <= 0)
                 return;
 
-            if (groupBox_Input is null || groupBox_GameData is null)
+            if (groupBox_Input is null || groupBox_GameData is null || groupBox_Update is null)
                 return;
 
             int innerWidth = Math.Max(200, width - margin * 2);
             int y = margin;
 
+            y = PlaceSettingsSection(groupBox_Update, margin, y, innerWidth, SettingsUpdateHeight);
+            y = PlaceSettingsSeparator(_separatorUpdateGamble, margin, y, innerWidth);
             y = PlaceSettingsSection(groupBox_GambleSettings, margin, y, innerWidth, SettingsGambleHeight);
             y = PlaceSettingsSeparator(_separatorGambleFlask, margin, y, innerWidth);
             y = PlaceSettingsSection(groupBox_FlaskSettings, margin, y, innerWidth, SettingsFlaskHeight);
@@ -318,6 +322,7 @@ namespace PoE
             y = PlaceSettingsSeparator(_separatorGameDataInput, margin, y, innerWidth);
             PlaceSettingsSection(groupBox_Input, margin, y, innerWidth, SettingsInputHeight);
             LayoutInputSettingsGroup();
+            LayoutAppUpdateSettingsGroup();
         }
 
         private void InitializeSettingsSeparators()
@@ -325,10 +330,12 @@ namespace PoE
             if (_separatorGambleFlask is not null)
                 return;
 
+            _separatorUpdateGamble = CreateSettingsSeparator();
             _separatorGambleFlask = CreateSettingsSeparator();
             _separatorFlaskGameData = CreateSettingsSeparator();
             _separatorGameDataInput = CreateSettingsSeparator();
 
+            tabPage_Settings.Controls.Add(_separatorUpdateGamble);
             tabPage_Settings.Controls.Add(_separatorGambleFlask);
             tabPage_Settings.Controls.Add(_separatorFlaskGameData);
             tabPage_Settings.Controls.Add(_separatorGameDataInput);
