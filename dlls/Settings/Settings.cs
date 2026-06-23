@@ -1,6 +1,7 @@
 ﻿using PoE.dlls.GameData;
 using PoE.dlls.Settings.Macros;
 using PoE.dlls.Settings.Mods;
+using PoE.dlls.Settings.Notes;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -16,6 +17,7 @@ namespace PoE.dlls.Settings
         public UIModifiers Modifiers { get; set; }
         public GameDataSettings GameData { get; set; } = new();
         public MacroSettings Macros { get; set; } = new();
+        public NotesSettings Notes { get; set; } = new();
         public string InputProcessName { get; set; } = string.Empty;
         public int WindowWidth { get; set; }
         public int WindowHeight { get; set; }

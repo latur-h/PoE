@@ -253,9 +253,15 @@ namespace PoE
             InitializeSettingsSeparators();
             InitializeOrbsTab();
             InitializeMacrosTab();
+            InitializeNotesTab();
             SetupGambleModeHelp();
 
-            tabControl_Main.Selecting += MacrosTab_Selecting;
+            tabControl_Main.Selecting += (_, e) =>
+            {
+                MacrosTab_Selecting(_, e);
+                if (!e.Cancel)
+                    NotesTab_CommitIfLeaving(e);
+            };
 
             comboBox_GambleType.SelectedIndexChanged += (s, e) =>
             {
@@ -580,6 +586,7 @@ namespace PoE
             DisposeOverlayMonitoring();
             _macroEngine.Stop();
             gambleRulesPanel.Commit();
+            _notesPanel?.Commit();
             SaveWindowSize();
 
             _userSettings.SaveSettings();

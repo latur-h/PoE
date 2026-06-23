@@ -1,0 +1,108 @@
+using PoE.dlls.Style;
+
+namespace PoE.dlls.UI
+{
+    public sealed class ProfileNameDialog : Form
+    {
+        private static readonly Font UiFont = new("Segoe UI", 12F, FontStyle.Regular, GraphicsUnit.Point);
+
+        private readonly FlatTextBox _nameBox;
+        private readonly Label _errorLabel;
+        private readonly Func<string, string?> _validate;
+
+        public ProfileNameDialog(string title, string suggestedName, Func<string, string?> validate)
+        {
+            _validate = validate;
+
+            FormBorderStyle = FormBorderStyle.FixedDialog;
+            StartPosition = FormStartPosition.CenterParent;
+            MaximizeBox = false;
+            MinimizeBox = false;
+            ShowInTaskbar = false;
+            ClientSize = new Size(340, 140);
+            BackColor = StaticColors.BackGround;
+            ForeColor = StaticColors.ForeGround;
+            Text = title;
+
+            var label = new Label
+            {
+                AutoSize = true,
+                Location = new Point(12, 14),
+                Text = "Profile name",
+                ForeColor = StaticColors.ForeGround,
+                BackColor = StaticColors.BackGround,
+                Font = UiFont,
+            };
+
+            _nameBox = new FlatTextBox
+            {
+                Location = new Point(12, 40),
+                Size = new Size(316, 30),
+                Font = UiFont,
+            };
+            _nameBox._textBox.Text = suggestedName;
+
+            _errorLabel = new Label
+            {
+                AutoSize = true,
+                Location = new Point(12, 76),
+                ForeColor = Color.Red,
+                BackColor = StaticColors.BackGround,
+                Font = UiFont,
+                Visible = false,
+            };
+
+            var okButton = new Button
+            {
+                Text = "OK",
+                DialogResult = DialogResult.None,
+                Location = new Point(172, 96),
+                Size = new Size(75, 28),
+                FlatStyle = FlatStyle.Flat,
+                BackColor = StaticColors.BackGround,
+                ForeColor = StaticColors.ForeGround,
+            };
+            okButton.FlatAppearance.BorderColor = StaticColors.ForeGround;
+            okButton.Click += (_, _) => TryAccept();
+
+            var cancelButton = new Button
+            {
+                Text = "Cancel",
+                DialogResult = DialogResult.Cancel,
+                Location = new Point(253, 96),
+                Size = new Size(75, 28),
+                FlatStyle = FlatStyle.Flat,
+                BackColor = StaticColors.BackGround,
+                ForeColor = StaticColors.ForeGround,
+            };
+            cancelButton.FlatAppearance.BorderColor = StaticColors.ForeGround;
+
+            AcceptButton = okButton;
+            CancelButton = cancelButton;
+
+            Controls.Add(label);
+            Controls.Add(_nameBox);
+            Controls.Add(_errorLabel);
+            Controls.Add(okButton);
+            Controls.Add(cancelButton);
+        }
+
+        public string? ProfileName { get; private set; }
+
+        private void TryAccept()
+        {
+            string name = _nameBox._textBox.Text.Trim();
+            string? error = _validate(name);
+            if (!string.IsNullOrEmpty(error))
+            {
+                _errorLabel.Text = error;
+                _errorLabel.Visible = true;
+                return;
+            }
+
+            ProfileName = name;
+            DialogResult = DialogResult.OK;
+            Close();
+        }
+    }
+}

@@ -67,6 +67,7 @@ namespace PoE
             comboBox_Flask1 = new FlatComboBox();
             slider_Flask1 = new Slider();
             label_Flask1_Slider = new Label();
+            tabPage_Notes = new TabPage();
             tabPage_Gamble = new TabPage();
             label_GambleType = new Label();
             comboBox_GambleType = new FlatComboBox();
@@ -119,6 +120,7 @@ namespace PoE
             // tabControl_Main
             // 
             tabControl_Main.Controls.Add(tabPage_Main);
+            tabControl_Main.Controls.Add(tabPage_Notes);
             tabControl_Main.Controls.Add(tabPage_Gamble);
             tabControl_Main.Controls.Add(tabPage_Orbs);
             tabControl_Main.Controls.Add(tabPage_Macros);
@@ -152,6 +154,16 @@ namespace PoE
             tabPage_Main.TabIndex = 0;
             tabPage_Main.Text = "Main";
             tabPage_Main.UseVisualStyleBackColor = true;
+            // 
+            // tabPage_Notes
+            // 
+            tabPage_Notes.Location = new Point(4, 36);
+            tabPage_Notes.Name = "tabPage_Notes";
+            tabPage_Notes.Padding = new Padding(3);
+            tabPage_Notes.Size = new Size(936, 411);
+            tabPage_Notes.TabIndex = 1;
+            tabPage_Notes.Text = "Notes";
+            tabPage_Notes.UseVisualStyleBackColor = true;
             // 
             // label_Active
             // 
@@ -925,6 +937,7 @@ namespace PoE
 
         private FlatTabControl tabControl_Main;
         private TabPage tabPage_Main;
+        private TabPage tabPage_Notes;
         private TabPage tabPage_Settings;
         private TabPage tabPage_Logs;
         private FlatComboBox comboBox_Flask1;

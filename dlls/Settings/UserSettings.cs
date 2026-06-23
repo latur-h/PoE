@@ -7,6 +7,7 @@ using Newtonsoft.Json;
 using PoE.dlls.Logger;
 using PoE.dlls.Settings.Macros;
 using PoE.dlls.Settings.Mods;
+using PoE.dlls.Settings.Notes;
 
 namespace PoE.dlls.Settings
 {
@@ -49,8 +50,10 @@ namespace PoE.dlls.Settings
                 Settings.FlaskControls ??= new UIFlaskControls();
                 Settings.GameData ??= new PoE.dlls.GameData.GameDataSettings();
                 Settings.Macros ??= new MacroSettings();
+                Settings.Notes ??= new NotesSettings();
                 GambleSettingsMigration.EnsureMigrated(Settings.Modifiers);
                 MacroSettingsHelper.EnsureInitialized(Settings.Macros);
+                NotesSettingsHelper.EnsureInitialized(Settings.Notes);
             }
             catch (Exception ex)
             {

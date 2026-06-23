@@ -46,6 +46,14 @@ Poss.Win.Automation.Input (1.0.5)
   License: MIT (see package metadata on NuGet)
   https://www.nuget.org/packages/Poss.Win.Automation.Core
 
+Markdig
+  License: BSD-2-Clause
+  https://github.com/xoofx/markdig
+
+Microsoft.Web.WebView2
+  License: Microsoft Software License (see package / Edge WebView2 terms)
+  https://developer.microsoft.com/microsoft-edge/webview2/
+
 
 External data (downloaded at runtime, not shipped)
 --------------------------------------------------
