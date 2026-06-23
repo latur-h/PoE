@@ -189,6 +189,7 @@ namespace PoE
             Gambler = new Gambler(this, _inputHost, TimeSpan.FromMilliseconds(_settings.Modifiers.Delay), _settings.Modifiers.Speed,
                 gambleType, coords.Item, coords.Base, coords.Second, coords.Third, rules, mapSession, _modCacheDatabase);
 
+            ClearBulkMapHighlight();
             await Gambler.StartGambling();
 
             Gambler = null;
@@ -198,6 +199,7 @@ namespace PoE
             if (Gambler is not null && Gambler.IsRunning())
                 Gambler.StopGambling();
 
+            ClearBulkMapHighlight();
             return Task.CompletedTask;
         }
         #endregion

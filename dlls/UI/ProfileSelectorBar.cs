@@ -117,6 +117,14 @@ namespace PoE.dlls.UI
             _suppressEvents = false;
         }
 
+        public void AttachHints(ToolTip toolTip, string profileHint, string addHint, string removeHint)
+        {
+            toolTip.SetToolTip(_label, profileHint);
+            toolTip.SetToolTip(_combo, profileHint);
+            toolTip.SetToolTip(_addButton, addHint);
+            toolTip.SetToolTip(_removeButton, removeHint);
+        }
+
         private void OnSelectionChanged()
         {
             if (_suppressEvents || _binding is null || _combo.SelectedItem is not string name)

@@ -14,6 +14,8 @@ namespace PoE
         private CheckBox? _checkBox_BulkInventory;
         private CheckBox? _checkBox_CorruptOnSuccess;
         private CheckBox? _checkBox_CorruptEightMods;
+        private Label? _label_BrokenMapDisposition;
+        private FlatComboBox? _comboBox_BrokenMapDisposition;
         private Label? _label_GambleGridStatus;
         private Label? _label_GambleCellAnchor;
         private Button? _button_GambleCellAnchorRec;
@@ -37,7 +39,7 @@ namespace PoE
         private bool _showGambleBulkPanel;
         private bool _bulkNextCellCaptureArmed;
 
-        private const int GambleBulkPanelHeight = 172;
+        private const int GambleBulkPanelHeight = 196;
         private const int GambleEmptyRegisterButtonWidth = 72;
 
         private void InitializeGambleBulkUi()
@@ -77,6 +79,22 @@ namespace PoE
                 ForeColor = StaticColors.ForeGround,
                 Text = "8 mods",
             };
+
+            _label_BrokenMapDisposition = new Label
+            {
+                AutoSize = true,
+                Font = new Font("Segoe UI", 11F),
+                ForeColor = StaticColors.ForeGround,
+                Text = "Broken",
+            };
+
+            _comboBox_BrokenMapDisposition = new FlatComboBox
+            {
+                DropDownStyle = ComboBoxStyle.DropDownList,
+                Font = new Font("Segoe UI", 11F),
+                Size = new Size(100, 30),
+            };
+            _comboBox_BrokenMapDisposition.Items.AddRange(["Stash", "Highlight"]);
 
             _label_GambleGridStatus = new Label
             {
@@ -213,6 +231,8 @@ namespace PoE
             _groupBox_GambleBulk.Controls.Add(_checkBox_BulkInventory);
             _groupBox_GambleBulk.Controls.Add(_checkBox_CorruptOnSuccess);
             _groupBox_GambleBulk.Controls.Add(_checkBox_CorruptEightMods);
+            _groupBox_GambleBulk.Controls.Add(_label_BrokenMapDisposition);
+            _groupBox_GambleBulk.Controls.Add(_comboBox_BrokenMapDisposition);
             _groupBox_GambleBulk.Controls.Add(_label_GambleGridStatus);
             _groupBox_GambleBulk.Controls.Add(_label_GambleCellAnchor);
             _groupBox_GambleBulk.Controls.Add(_button_GambleCellAnchorRec);
@@ -255,6 +275,13 @@ namespace PoE
 
             _checkBox_CorruptEightMods.CheckedChanged += (_, _) =>
                 _settings.Modifiers.MapBulk.CorruptRequireEightMods = _checkBox_CorruptEightMods.Checked;
+
+            _comboBox_BrokenMapDisposition.SelectedIndexChanged += (_, _) =>
+            {
+                _settings.Modifiers.MapBulk.BrokenMapDisposition = ResolveBrokenMapDisposition(_comboBox_BrokenMapDisposition.SelectedIndex);
+                if (_settings.Modifiers.MapBulk.BrokenMapDisposition == BulkMapBrokenDisposition.Stash)
+                    ClearBulkMapHighlight();
+            };
 
             _checkBox_BulkFastEmptyColor.CheckedChanged += (_, _) =>
                 _settings.Modifiers.MapBulk.FastEmptyColorCheck = _checkBox_BulkFastEmptyColor.Checked;
@@ -307,6 +334,8 @@ namespace PoE
             if (_checkBox_BulkInventory is null
                 || _checkBox_CorruptOnSuccess is null
                 || _checkBox_CorruptEightMods is null
+                || _label_BrokenMapDisposition is null
+                || _comboBox_BrokenMapDisposition is null
                 || _label_GambleGridStatus is null
                 || _label_GambleCellAnchor is null
                 || _button_GambleCellAnchorRec is null
@@ -328,6 +357,8 @@ namespace PoE
             toolTip.SetToolTip(_checkBox_BulkInventory, GambleBulkHelp.Short.BulkInventory);
             toolTip.SetToolTip(_checkBox_CorruptOnSuccess, GambleBulkHelp.Short.CorruptOnSuccess);
             toolTip.SetToolTip(_checkBox_CorruptEightMods, GambleBulkHelp.Short.CorruptRequireEightMods);
+            toolTip.SetToolTip(_label_BrokenMapDisposition, GambleBulkHelp.Short.BrokenMapDisposition);
+            toolTip.SetToolTip(_comboBox_BrokenMapDisposition, GambleBulkHelp.Short.BrokenMapDisposition);
             toolTip.SetToolTip(_label_GambleGridStatus, GambleBulkHelp.Short.GridArea);
             toolTip.SetToolTip(_label_GambleCellAnchor, GambleBulkHelp.Short.FirstCell);
             toolTip.SetToolTip(_button_GambleCellAnchorRec, GambleBulkHelp.Short.FirstCell);
@@ -365,6 +396,7 @@ namespace PoE
             _checkBox_CorruptOnSuccess!.Checked = bulk.CorruptOnSuccess;
             _checkBox_CorruptEightMods!.Checked = bulk.CorruptRequireEightMods;
             _checkBox_CorruptEightMods.Enabled = bulk.CorruptOnSuccess;
+            _comboBox_BrokenMapDisposition!.SelectedIndex = BrokenMapDispositionToIndex(bulk.BrokenMapDisposition);
             _textBox_GambleCellAnchor!._textBox.Text = $"{bulk.CellAnchor.X}, {bulk.CellAnchor.Y}";
             _textBox_GambleCellAnchor._textBox.ForeColor = StaticColors.ForeGround;
             _textBox_GambleNextX!._textBox.Text = bulk.NextX.ToString();
@@ -623,5 +655,11 @@ namespace PoE
 
             return Task.CompletedTask;
         }
+
+        private static int BrokenMapDispositionToIndex(BulkMapBrokenDisposition disposition) =>
+            disposition == BulkMapBrokenDisposition.Highlight ? 1 : 0;
+
+        private static BulkMapBrokenDisposition ResolveBrokenMapDisposition(int selectedIndex) =>
+            selectedIndex == 1 ? BulkMapBrokenDisposition.Highlight : BulkMapBrokenDisposition.Stash;
     }
 }

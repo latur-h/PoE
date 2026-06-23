@@ -583,6 +583,7 @@ namespace PoE
 
             _hotkeys.Stop();
             DisposeMacroOverlay();
+            DisposeBulkMapHighlightOverlay();
             DisposeOverlayMonitoring();
             _macroEngine.Stop();
             gambleRulesPanel.Commit();

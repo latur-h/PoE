@@ -93,7 +93,7 @@ namespace PoE.dlls.Gamble.Bulk
                 if (!_token.IsCancellationRequested)
                 {
                     await ExecuteVaalBatchAsync();
-                    await ExecuteStashBrokenBatchAsync();
+                    await ExecuteBrokenMapDispositionAsync();
                 }
 
                 if (_token.IsCancellationRequested)
@@ -145,6 +145,11 @@ namespace PoE.dlls.Gamble.Bulk
             if (RequiresEightModsAfterCorrupt())
                 GamblerLog.Info(GambleBulkHelp.Short.CorruptRequireEightMods);
 
+            if (UsesHighlightDisposition())
+                GamblerLog.Info(GambleBulkHelp.Short.BrokenMapHighlight);
+            else
+                GamblerLog.Info(GambleBulkHelp.Short.BrokenMapStash);
+
             if (_bulkGrid is { FastEmptyColorCheck: true })
                 GamblerLog.Info(GambleBulkHelp.Short.FastEmptyColorCheck);
         }
@@ -169,6 +174,9 @@ namespace PoE.dlls.Gamble.Bulk
 
         private bool RequiresEightModsAfterCorrupt() =>
             _corruptOnSuccess && _bulkGrid?.CorruptRequireEightMods == true;
+
+        private bool UsesHighlightDisposition() =>
+            _bulkGrid?.BrokenMapDisposition == BulkMapBrokenDisposition.Highlight;
 
         private async Task PrecheckAllAsync()
         {
@@ -222,7 +230,7 @@ namespace PoE.dlls.Gamble.Bulk
             }
         }
 
-        private static void AssignCorruptedMapAction(BulkMapSlot slot, MapRulesResult eval)
+        private void AssignCorruptedMapAction(BulkMapSlot slot, MapRulesResult eval)
         {
             if (eval.RulesPassed)
             {
@@ -230,7 +238,8 @@ namespace PoE.dlls.Gamble.Bulk
                 return;
             }
 
-            GamblerLog.Warn($"Corrupted map at {slot.Position.X},{slot.Position.Y} failed rules — queued for stash");
+            GamblerLog.Warn(
+                $"Corrupted map at {slot.Position.X},{slot.Position.Y} failed rules — queued for {(UsesHighlightDisposition() ? "highlight" : "stash")}");
             slot.NextAction = BulkMapAction.StashBroken;
         }
 
@@ -500,9 +509,29 @@ namespace PoE.dlls.Gamble.Bulk
                     continue;
                 }
 
-                GamblerLog.Warn($"Broken map at {slot.Position.X},{slot.Position.Y} after Vaal — queued for stash");
+                GamblerLog.Warn(
+                    $"Broken map at {slot.Position.X},{slot.Position.Y} after Vaal — queued for {(UsesHighlightDisposition() ? "highlight" : "stash")}");
                 slot.NextAction = BulkMapAction.StashBroken;
             }
+        }
+
+        private async Task ExecuteBrokenMapDispositionAsync()
+        {
+            if (UsesHighlightDisposition())
+            {
+                await ReleaseShiftAndReturnHeldOrbAsync();
+
+                foreach (BulkMapSlot slot in _slots.Where(s => s.IsActive && s.NextAction == BulkMapAction.StashBroken))
+                {
+                    slot.IsFinished = true;
+                    slot.NextAction = BulkMapAction.Done;
+                }
+
+                _main.ApplyBulkMapHighlight(_slots, _bulkGrid);
+                return;
+            }
+
+            await ExecuteStashBrokenBatchAsync();
         }
 
         private async Task ExecuteStashBrokenBatchAsync()

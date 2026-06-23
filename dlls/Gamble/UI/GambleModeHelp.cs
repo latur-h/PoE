@@ -207,6 +207,7 @@ namespace PoE.dlls.Gamble.UI
             GambleBulkHelp.DetailedTiming(),
             GambleBulkHelp.DetailedCorruptOnSuccess(),
             GambleBulkHelp.DetailedCorruptedMaps(),
+            GambleBulkHelp.DetailedBrokenMapHighlight(),
         ]);
 
         private static GambleModeHelpContent MapT17 => new("Map T17 — Elevated map rolling",
@@ -232,6 +233,7 @@ namespace PoE.dlls.Gamble.UI
             GambleBulkHelp.DetailedTiming(),
             GambleBulkHelp.DetailedCorruptOnSuccess(),
             GambleBulkHelp.DetailedCorruptedMaps(),
+            GambleBulkHelp.DetailedBrokenMapHighlight(),
         ]);
 
         private static GambleModeHelpContent MapExalt => new("Map Exalt — Six-mod map rolling",
@@ -259,6 +261,7 @@ namespace PoE.dlls.Gamble.UI
             GambleBulkHelp.DetailedTiming(),
             GambleBulkHelp.DetailedCorruptOnSuccess(),
             GambleBulkHelp.DetailedCorruptedMaps(),
+            GambleBulkHelp.DetailedBrokenMapHighlight(),
         ]);
 
         private static GambleModeHelpContent Harvest => new("Harvest — Harvest crafting",

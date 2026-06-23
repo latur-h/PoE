@@ -9,6 +9,7 @@ namespace PoE.dlls.Notes.UI
     {
         private readonly ProfileSelectorBar _profileBar;
         private readonly MarkdownDocumentEditor _editor;
+        private readonly Label _helpLabel;
 
         private NotesSettings? _settings;
 
@@ -24,6 +25,16 @@ namespace PoE.dlls.Notes.UI
             _profileBar.SelectionChanging += (_, _) => CommitActiveProfile();
             _profileBar.SelectionChanged += (_, _) => LoadActiveProfile();
 
+            _helpLabel = new Label
+            {
+                AutoSize = true,
+                Text = "ⓘ",
+                Font = new Font("Segoe UI", 14F, FontStyle.Bold),
+                ForeColor = StaticColors.ForeGround,
+                BackColor = StaticColors.BackGround,
+                Cursor = Cursors.Hand,
+            };
+
             _editor = new MarkdownDocumentEditor
             {
                 Dock = DockStyle.Fill,
@@ -31,7 +42,29 @@ namespace PoE.dlls.Notes.UI
             _editor.MarkdownChanged += (_, _) => OnEditorChanged();
 
             Controls.Add(_editor);
+            Controls.Add(_helpLabel);
             Controls.Add(_profileBar);
+
+            Resize += (_, _) => LayoutHelpIcon();
+        }
+
+        public void SetupHints(ToolTip toolTip, IWin32Window helpOwner)
+        {
+            _helpLabel.Click += (_, _) => NotesHelpDialog.ShowHelp(helpOwner);
+            toolTip.SetToolTip(_helpLabel, NotesHelp.Short.OpenHelp);
+            _profileBar.AttachHints(
+                toolTip,
+                NotesHelp.Short.Profiles,
+                NotesHelp.Short.AddProfile,
+                NotesHelp.Short.RemoveProfile);
+            _editor.AttachHints(toolTip, NotesHelp.Short.Editor, NotesHelp.Short.CopyChips);
+            LayoutHelpIcon();
+        }
+
+        private void LayoutHelpIcon()
+        {
+            _helpLabel.Location = new Point(Math.Max(0, Width - 102), 4);
+            _helpLabel.BringToFront();
         }
 
         public event EventHandler? Changed;

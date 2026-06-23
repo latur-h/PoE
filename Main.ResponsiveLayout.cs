@@ -185,9 +185,13 @@ namespace PoE
                     _checkBox_CorruptOnSuccess.Location = new Point(10, 50);
                 if (_checkBox_CorruptEightMods is not null)
                     _checkBox_CorruptEightMods.Location = new Point(10, 72);
+                if (_label_BrokenMapDisposition is not null)
+                    _label_BrokenMapDisposition.Location = new Point(10, 98);
+                if (_comboBox_BrokenMapDisposition is not null)
+                    _comboBox_BrokenMapDisposition.Location = new Point(68, 94);
                 if (_label_GambleGridStatus is not null)
                 {
-                    _label_GambleGridStatus.Location = new Point(10, 94);
+                    _label_GambleGridStatus.Location = new Point(10, 122);
                     _label_GambleGridStatus.MaximumSize = new Size(width - 24, 0);
                 }
 
@@ -213,17 +217,17 @@ namespace PoE
                 if (_textBox_GambleRefreshDelay is not null)
                     _textBox_GambleRefreshDelay.Location = new Point(310, 84);
                 if (_checkBox_BulkFastEmptyColor is not null)
-                    _checkBox_BulkFastEmptyColor.Location = new Point(10, 118);
+                    _checkBox_BulkFastEmptyColor.Location = new Point(10, 146);
 
                 int bulkInnerRight = width - margin * 2 - 10;
                 if (_button_GambleEmptySlotsRegister is not null)
                     _button_GambleEmptySlotsRegister.Location = new Point(
                         bulkInnerRight - GambleEmptyRegisterButtonWidth,
-                        134);
+                        162);
                 if (_label_GambleEmptySlotsStatus is not null)
                 {
                     int registerLeft = bulkInnerRight - GambleEmptyRegisterButtonWidth - 8;
-                    _label_GambleEmptySlotsStatus.Location = new Point(10, 138);
+                    _label_GambleEmptySlotsStatus.Location = new Point(10, 166);
                     _label_GambleEmptySlotsStatus.MaximumSize = new Size(Math.Max(120, registerLeft - 10), 0);
                 }
             }

@@ -11,7 +11,16 @@ namespace PoE.dlls.Gamble.UI
                 "After rules pass, Vaal corrupt each map. Bulk: broken maps are stashed after the orb is released; single: logs Broken map.";
 
             public const string CorruptRequireEightMods =
-                "With corrupt enabled: after Vaal, re-check rules plus at least 8 affix mods. Maps below 8 affixes are stashed as broken.";
+                "With corrupt enabled: after Vaal, re-check rules plus at least 8 affix mods. Maps below 8 affixes are broken (stash or highlight).";
+
+            public const string BrokenMapDisposition =
+                "Broken maps: Stash sends failed maps to stash (Ctrl+LMB). Highlight draws colored circles on the grid instead.";
+
+            public const string BrokenMapStash =
+                "Broken maps are stashed with Ctrl+LMB after the bulk session.";
+
+            public const string BrokenMapHighlight =
+                "Broken maps stay on the grid. After the session, circles show red (failed rules), green (passed, under 8 mods), orange (passed, 8+ mods). Overlay is click-through and hides when PoE is not focused.";
 
             public const string CorruptedMap =
                 "Already-corrupted maps are evaluated only — no orb slams. Failed rules are queued for stash.";
@@ -95,6 +104,16 @@ namespace PoE.dlls.Gamble.UI
             "• Next X must be greater than 0.\r\n" +
             "• Next Y may be 0 when maps are in a single row.\r\n\r\n" +
             "Cell centers are: First + (column × Next X, row × Next Y), kept inside the grid area.");
+
+        public static GambleModeHelpSection DetailedBrokenMapHighlight() => new(
+            "Broken maps — Highlight mode",
+            "When Broken is set to Highlight, failed maps are not stashed during the session.\r\n\r\n" +
+            "After the bulk run finishes, a small transparent click-through overlay draws colored circles on each non-empty grid cell:\r\n" +
+            "• Red — rules failed\r\n" +
+            "• Green — rules passed, under 8 affix mods\r\n" +
+            "• Orange — rules passed, 8+ affix mods\r\n\r\n" +
+            "The overlay only covers the grid area (not the full screen), passes mouse clicks to the game, and hides when PoE is not the foreground window. Stopping gamble also clears highlights.\r\n\r\n" +
+            "With Stash mode instead, broken maps are sent to stash with Ctrl+LMB after the session.");
 
         public static GambleModeHelpSection DetailedTiming() => new(
             "Delay vs Refresh ms",

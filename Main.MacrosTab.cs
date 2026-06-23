@@ -166,6 +166,7 @@ namespace PoE
             }
 
             RefreshMacroOverlay();
+            RequestRefreshBulkMapHighlight();
         }
 
         private void OnFlaskDrinkingStateChanged()

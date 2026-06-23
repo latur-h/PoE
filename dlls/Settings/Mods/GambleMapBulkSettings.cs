@@ -11,6 +11,9 @@ namespace PoE.dlls.Settings.Mods
         /// <summary>After Vaal corrupt, require at least 8 affix mods before keeping the map.</summary>
         public bool CorruptRequireEightMods { get; set; }
 
+        /// <summary>When rules fail on a corrupted/broken map: stash into inventory or highlight on screen.</summary>
+        public BulkMapBrokenDisposition BrokenMapDisposition { get; set; } = BulkMapBrokenDisposition.Stash;
+
         public Coordinates GridStart { get; set; } = new(0, 0);
 
         public Coordinates GridEnd { get; set; } = new(0, 0);

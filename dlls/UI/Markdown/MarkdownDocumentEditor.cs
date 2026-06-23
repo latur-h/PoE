@@ -126,6 +126,14 @@ namespace PoE.dlls.UI.Markdown
             _preview.CoreWebView2.NavigateToString(MarkdownHtmlRenderer.ToPreviewDocument(_markdown));
         }
 
+        public void AttachHints(ToolTip toolTip, string editorHint, string copyChipHint)
+        {
+            toolTip.SetToolTip(_surface, editorHint);
+            toolTip.SetToolTip(_preview, editorHint);
+            toolTip.SetToolTip(_editor, editorHint);
+            toolTip.SetToolTip(_statusLabel, $"{editorHint} {copyChipHint}");
+        }
+
         [DefaultValue(false)]
         public bool ReadOnly { get; set; }
 
