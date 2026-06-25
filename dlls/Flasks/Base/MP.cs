@@ -26,6 +26,8 @@ namespace PoE.dlls.Flasks.Base
             Flask = new Flask(FlaskType.MP, x, y, pixel, key);
         }
 
+        public bool IsReady => true;
+
         public async Task Drink()
         {
             if (Flask.LastUsed + _timing.HpMpCooldown > DateTimeOffset.Now)

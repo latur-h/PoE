@@ -13,8 +13,8 @@ namespace PoE.dlls.Flasks
             {
                 FlaskType.HP => SampleTopOnly(GetHpCoordinates(resolution, numberOrPercent)),
                 FlaskType.MP => SampleTopOnly(GetMpCoordinates(resolution, numberOrPercent)),
-                FlaskType.Utility => SampleDual(GetUtilityCoordinates(resolution, numberOrPercent)),
-                FlaskType.Tincture => SampleDual(GetTinctureCoordinates(resolution, numberOrPercent)),
+                FlaskType.Utility => SampleTopOnly(GetUtilityTopCoordinates(resolution, numberOrPercent)),
+                FlaskType.Tincture => SampleTopOnly(GetTinctureTopCoordinates(resolution, numberOrPercent)),
                 _ => throw new NotSupportedException("Unsupported flask type."),
             };
         }
@@ -23,13 +23,6 @@ namespace PoE.dlls.Flasks
         {
             Color top = InteropHelper.GetColorAt(point.x, point.y);
             return new FlaskRegistration { TopArgb = top.ToArgb(), BottomArgb = Color.Empty.ToArgb() };
-        }
-
-        private static FlaskRegistration SampleDual((int topX, int topY, int bottomX, int bottomY) points)
-        {
-            Color top = InteropHelper.GetColorAt(points.topX, points.topY);
-            Color bottom = InteropHelper.GetColorAt(points.bottomX, points.bottomY);
-            return new FlaskRegistration { TopArgb = top.ToArgb(), BottomArgb = bottom.ToArgb() };
         }
 
         private static (int x, int y) GetHpCoordinates(ResolutionType resolution, int percent) =>
@@ -56,6 +49,12 @@ namespace PoE.dlls.Flasks
             };
         }
 
+        private static (int x, int y) GetUtilityTopCoordinates(ResolutionType resolution, int number)
+        {
+            (int topX, int topY, _, _) = GetUtilityCoordinates(resolution, number);
+            return (topX, topY);
+        }
+
         private static (int topX, int topY, int bottomX, int bottomY) GetTinctureCoordinates(ResolutionType resolution, int number)
         {
             number--;
@@ -64,6 +63,12 @@ namespace PoE.dlls.Flasks
                 ResolutionType.QHD => (458 + 61 * number, 1326, 417 + 61 * number, 1432),
                 _ => (0, 0, 0, 0),
             };
+        }
+
+        private static (int x, int y) GetTinctureTopCoordinates(ResolutionType resolution, int number)
+        {
+            (int topX, int topY, _, _) = GetTinctureCoordinates(resolution, number);
+            return (topX, topY);
         }
     }
 }

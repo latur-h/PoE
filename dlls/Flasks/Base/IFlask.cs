@@ -9,9 +9,12 @@ namespace PoE.dlls.Flasks.Base
 {
     internal interface IFlask
     {
-        public Flask Flask { get; set; }
-        public InputSimulator Input { get; }
+        Flask Flask { get; set; }
 
-        public Task Drink();
+        InputSimulator Input { get; }
+
+        bool IsReady { get; }
+
+        Task Drink();
     }
 }

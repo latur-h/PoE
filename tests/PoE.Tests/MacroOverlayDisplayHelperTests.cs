@@ -56,8 +56,8 @@ namespace PoE.Tests
             Assert.Contains(rows, r => r.Kind == OverlayRowKind.Section && r.Label == "Macros");
             OverlayRow macroOn = Assert.Single(rows, r => r.Label.Contains("Loop"));
             OverlayRow macroOff = Assert.Single(rows, r => r.Label.Contains("Single"));
-            Assert.True(macroOn.IsOn);
-            Assert.False(macroOff.IsOn);
+            Assert.Equal(OverlayRowState.On, macroOn.State);
+            Assert.Equal(OverlayRowState.Off, macroOff.State);
         }
 
         [Fact]
@@ -91,7 +91,36 @@ namespace PoE.Tests
             OverlayRow macroRow = MacroOverlayDisplayHelper.BuildRows(settings, engine, flaskManager)
                 .First(r => r.Kind == OverlayRowKind.Status && r.Label.Contains("F1"));
 
-            Assert.False(macroRow.IsOn);
+            Assert.Equal(OverlayRowState.Off, macroRow.State);
+        }
+
+        [Fact]
+        public void BuildRows_marks_unregistered_flask_as_warning()
+        {
+            var settings = new AppSettings
+            {
+                Macros = new MacroSettings
+                {
+                    GlobalProfile = new MacroProfile
+                    {
+                        Name = MacroProfile.GlobalName,
+                        Triggers = [],
+                    },
+                },
+            };
+            settings.Flasks["1"].Active = true;
+            settings.Flasks["1"].FlaskType = "Utility";
+            settings.Flasks["1"].Key = "1";
+            settings.Flasks["1"].IsRegistered = false;
+
+            var (engine, flaskManager) = CreateRuntime();
+            engine.ApplySettings(MacroRuntimeSettingsBuilder.Build(settings.Macros));
+
+            OverlayRow flaskRow = MacroOverlayDisplayHelper.BuildRows(settings, engine, flaskManager)
+                .Single(r => r.Label.StartsWith("Flask 1", StringComparison.Ordinal));
+
+            Assert.Equal(OverlayRowState.Warning, flaskRow.State);
+            Assert.Contains("Not reg", flaskRow.Label);
         }
 
         [Fact]
@@ -112,6 +141,7 @@ namespace PoE.Tests
             settings.Flasks["1"].FlaskType = "HP";
             settings.Flasks["1"].Percent = 55;
             settings.Flasks["1"].Key = "1";
+            settings.Flasks["1"].IsRegistered = true;
             settings.Flasks["2"].Active = false;
             settings.Flasks["2"].FlaskType = "Utility";
             settings.Flasks["2"].Key = "2";
@@ -123,7 +153,8 @@ namespace PoE.Tests
             Assert.Contains(rowsStopped, r => r.Kind == OverlayRowKind.Section && r.Label == "Flasks");
             OverlayRow flask1Stopped = Assert.Single(rowsStopped, r => r.Label.StartsWith("Flask 1", StringComparison.Ordinal));
             Assert.DoesNotContain(rowsStopped, r => r.Label.StartsWith("Flask 2", StringComparison.Ordinal));
-            Assert.False(flask1Stopped.IsOn);
+            Assert.Equal(OverlayRowState.Off, flask1Stopped.State);
+            Assert.Contains("Reg", flask1Stopped.Label);
             Assert.Contains("HP 55%", flask1Stopped.Label);
 
             Assert.False(flaskManager.IsDrinking);

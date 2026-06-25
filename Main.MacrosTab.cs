@@ -3,6 +3,7 @@ using PoE.dlls.Flasks;
 using PoE.dlls.Macros;
 using PoE.dlls.Macros.UI;
 using PoE.dlls.KeyBindings;
+using PoE.dlls.Settings;
 using PoE.dlls.Settings.Macros;
 using PoE.dlls.Style;
 
@@ -21,6 +22,7 @@ namespace PoE
         private MacrosPanel _macrosPanel = null!;
         private MacroOverlayForm? _macroOverlay;
         private ForegroundWindowMonitor? _foregroundWindowMonitor;
+        private System.Windows.Forms.Timer? _flaskOverlayTimer;
         private ToolTip toolTip_Macros = null!;
         private MacroKeyFieldBinder? _macrosEnableKeyBinder;
         private bool _macrosTabUiReady;
@@ -177,12 +179,50 @@ namespace PoE
                 return;
             }
 
+            if (_flaskManager.IsDrinking)
+            {
+                _flaskOverlayTimer ??= new System.Windows.Forms.Timer { Interval = 400 };
+                _flaskOverlayTimer.Tick -= OnFlaskOverlayTimerTick;
+                _flaskOverlayTimer.Tick += OnFlaskOverlayTimerTick;
+                _flaskOverlayTimer.Start();
+            }
+            else
+            {
+                _flaskOverlayTimer?.Stop();
+            }
+
             RefreshMacroOverlay();
         }
+
+        private void OnFlaskOverlayTimerTick(object? sender, EventArgs e) => RefreshMacroOverlay();
 
         private void OnFlaskActiveChanged(string slot, bool active)
         {
             _settings.Flasks[slot].Active = active;
+            if (!active)
+                FlaskRegistrationHelper.Clear(_settings.Flasks[slot]);
+
+            ReloadFlaskRuntimeFromSettings();
+            RefreshMacroOverlay();
+        }
+
+        private void OnFlaskTypeChanged(string slot, string? newType)
+        {
+            string normalized = newType ?? string.Empty;
+            UIFlask flask = _settings.Flasks[slot];
+
+            if (!_flaskUiReady)
+            {
+                flask.FlaskType = normalized;
+                return;
+            }
+
+            if (string.Equals(flask.FlaskType, normalized, StringComparison.OrdinalIgnoreCase))
+                return;
+
+            flask.FlaskType = normalized;
+            FlaskRegistrationHelper.Clear(flask);
+            ReloadFlaskRuntimeFromSettings();
             RefreshMacroOverlay();
         }
 
@@ -208,7 +248,8 @@ namespace PoE
 
             toolTip_Macros.SetToolTip(
                 checkBox_MacroOverlayEnabled,
-                "Show enabled macros and flasks on a transparent overlay while the game is focused. Flask rows are green while auto-drink is running, red when stopped. Clicks pass through to the game.");
+                "Show enabled macros and flasks on a transparent overlay while the game is focused. "
+                + "Flasks: amber = not registered, red = idle or waiting (utility effect on / tincture cooldown), green = drink loop active and ready. Clicks pass through.");
 
             toolTip_Macros.SetToolTip(
                 comboBox_MacroOverlayCorner,
@@ -321,6 +362,10 @@ namespace PoE
 
         private void DisposeMacroOverlay()
         {
+            _flaskOverlayTimer?.Stop();
+            _flaskOverlayTimer?.Dispose();
+            _flaskOverlayTimer = null;
+
             if (_macroOverlay is null)
                 return;
 

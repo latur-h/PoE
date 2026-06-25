@@ -1,5 +1,4 @@
 ﻿using PoE.dlls.Automation;
-using PoE.dlls.Flasks;
 using PoE.dlls.InteropServices;
 using Poss.Win.Automation.Input;
 
@@ -26,27 +25,38 @@ namespace PoE.dlls.Flasks.Base
             Color top = saved is not null
                 ? saved.TopColor
                 : InteropHelper.GetColorAt(coordinates.x + coordinates.offset * number, coordinates.y);
-            Color bottom = saved is not null && saved.BottomArgb != Color.Empty.ToArgb()
-                ? saved.BottomColor
-                : ColorTranslator.FromHtml("#F9D799");
 
-            Flask = new Flask(FlaskType.Tincture, coordinates.x + coordinates.offset * number, coordinates.y, coordinates.x_bottom + coordinates.offset * number, coordinates.y_bottom, top, bottom, key);
+            Flask = new Flask(
+                FlaskType.Tincture,
+                coordinates.x + coordinates.offset * number,
+                coordinates.y,
+                coordinates.x_bottom + coordinates.offset * number,
+                coordinates.y_bottom,
+                top,
+                FlaskDualPixelReadiness.TinctureCooldownBottomColor,
+                key);
         }
+
+        public bool IsReady =>
+            FlaskDualPixelReadiness.TinctureIsReady(
+                InteropHelper.GetColorAt(Flask.X, Flask.Y),
+                InteropHelper.GetColorAt(Flask.X_Bottom, Flask.Y_Bottom),
+                Flask.Top);
 
         public async Task Drink()
         {
             if (Flask.LastUsed + _timing.TinctureCooldown > DateTimeOffset.Now)
                 return;
 
-            if (InteropHelper.GetColorAt(Flask.X, Flask.Y) == Flask.Top && InteropHelper.GetColorAt(Flask.X_Bottom, Flask.Y_Bottom) != Flask.Bottom)
-            {
-                Input.Send(Flask.Key + " Down");
-                await Task.Delay(_timing.KeyPressDelay);
-                Input.Send(Flask.Key + " Up");
-                await Task.Delay(_timing.KeyPressDelay);
+            if (!IsReady)
+                return;
 
-                Flask.LastUsed = DateTimeOffset.Now;
-            }
+            Input.Send(Flask.Key + " Down");
+            await Task.Delay(_timing.KeyPressDelay);
+            Input.Send(Flask.Key + " Up");
+            await Task.Delay(_timing.KeyPressDelay);
+
+            Flask.LastUsed = DateTimeOffset.Now;
         }
 
         private (int x, int y, int x_bottom, int y_bottom, int offset) GetCoordinates(ResolutionType resolution)

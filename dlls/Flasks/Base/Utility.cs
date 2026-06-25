@@ -1,5 +1,4 @@
 ﻿using PoE.dlls.Automation;
-using PoE.dlls.Flasks;
 using PoE.dlls.InteropServices;
 using Poss.Win.Automation.Input;
 
@@ -24,27 +23,38 @@ namespace PoE.dlls.Flasks.Base
             number--;
 
             Color top = saved is not null ? saved.TopColor : InteropHelper.GetColorAt(x + offset * number, y);
-            Color bottom = saved is not null && saved.BottomArgb != Color.Empty.ToArgb()
-                ? saved.BottomColor
-                : ColorTranslator.FromHtml("#F9D799");
 
-            Flask = new Flask(FlaskType.Utility, x + offset * number, y, x_bottom + offset * number, y_bottom, top, bottom, key);
+            Flask = new Flask(
+                FlaskType.Utility,
+                x + offset * number,
+                y,
+                x_bottom + offset * number,
+                y_bottom,
+                top,
+                FlaskDualPixelReadiness.UtilityEffectBottomColor,
+                key);
         }
+
+        public bool IsReady =>
+            FlaskDualPixelReadiness.UtilityIsReady(
+                InteropHelper.GetColorAt(Flask.X, Flask.Y),
+                InteropHelper.GetColorAt(Flask.X_Bottom, Flask.Y_Bottom),
+                Flask.Top);
 
         public async Task Drink()
         {
             if (Flask.LastUsed + _timing.UtilityCooldown > DateTimeOffset.Now)
                 return;
 
-            if (InteropHelper.GetColorAt(Flask.X, Flask.Y) == Flask.Top && InteropHelper.GetColorAt(Flask.X_Bottom, Flask.Y_Bottom) != Flask.Bottom)
-            {
-                Input.Send(Flask.Key + " Down");
-                await Task.Delay(_timing.KeyPressDelay);
-                Input.Send(Flask.Key + " Up");
-                await Task.Delay(_timing.KeyPressDelay);
+            if (!IsReady)
+                return;
 
-                Flask.LastUsed = DateTimeOffset.Now;
-            }
+            Input.Send(Flask.Key + " Down");
+            await Task.Delay(_timing.KeyPressDelay);
+            Input.Send(Flask.Key + " Up");
+            await Task.Delay(_timing.KeyPressDelay);
+
+            Flask.LastUsed = DateTimeOffset.Now;
         }
 
         private static (int x, int y, int x_bottom, int y_bottom, int offset) GetCoordinates(ResolutionType resolution)

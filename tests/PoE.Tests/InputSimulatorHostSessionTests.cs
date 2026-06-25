@@ -67,7 +67,7 @@ namespace PoE.Tests
 
             try
             {
-                manager.RegisterFlask(FlaskType.HP, 50, "1");
+                manager.RegisterFlask("1", FlaskType.HP, 50, "1");
             }
             catch (NotSupportedException)
             {

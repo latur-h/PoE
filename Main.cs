@@ -22,6 +22,7 @@ namespace PoE
         private readonly InputSimulatorHost _inputHost;
         private readonly GlobalHotKeyManager _hotkeys;
         private readonly FlaskManager _flaskManager;
+        private bool _flaskUiReady;
         private readonly UserSettings _userSettings;
         private readonly GameDataRefreshService _gameDataRefresh;
         private readonly ModSuggestionService _modSuggestions;
@@ -149,7 +150,7 @@ namespace PoE
             comboBox_Flask1.SelectedIndexChanged += (s, e) =>
             {
                 ApplyFlaskPercentVisibility();
-                _settings.Flasks["1"].FlaskType = comboBox_Flask1.SelectedItem?.ToString() ?? string.Empty;
+                OnFlaskTypeChanged("1", comboBox_Flask1.SelectedItem?.ToString() ?? string.Empty);
             };
 
             comboBox_Flask2.Items.AddRange(Enum.GetNames<FlaskType>());
@@ -157,7 +158,7 @@ namespace PoE
             comboBox_Flask2.SelectedIndexChanged += (s, e) =>
             {
                 ApplyFlaskPercentVisibility();
-                _settings.Flasks["2"].FlaskType = comboBox_Flask2.SelectedItem?.ToString() ?? string.Empty;
+                OnFlaskTypeChanged("2", comboBox_Flask2.SelectedItem?.ToString() ?? string.Empty);
             };
 
             comboBox_Flask3.Items.AddRange(Enum.GetNames<FlaskType>());
@@ -165,7 +166,7 @@ namespace PoE
             comboBox_Flask3.SelectedIndexChanged += (s, e) =>
             {
                 ApplyFlaskPercentVisibility();
-                _settings.Flasks["3"].FlaskType = comboBox_Flask3.SelectedItem?.ToString() ?? string.Empty;
+                OnFlaskTypeChanged("3", comboBox_Flask3.SelectedItem?.ToString() ?? string.Empty);
             };
 
             comboBox_Flask4.Items.AddRange(Enum.GetNames<FlaskType>());
@@ -173,7 +174,7 @@ namespace PoE
             comboBox_Flask4.SelectedIndexChanged += (s, e) =>
             {
                 ApplyFlaskPercentVisibility();
-                _settings.Flasks["4"].FlaskType = comboBox_Flask4.SelectedItem?.ToString() ?? string.Empty;
+                OnFlaskTypeChanged("4", comboBox_Flask4.SelectedItem?.ToString() ?? string.Empty);
             };
 
             comboBox_Flask5.Items.AddRange(Enum.GetNames<FlaskType>());
@@ -181,7 +182,7 @@ namespace PoE
             comboBox_Flask5.SelectedIndexChanged += (s, e) =>
             {
                 ApplyFlaskPercentVisibility();
-                _settings.Flasks["5"].FlaskType = comboBox_Flask5.SelectedItem?.ToString() ?? string.Empty;
+                OnFlaskTypeChanged("5", comboBox_Flask5.SelectedItem?.ToString() ?? string.Empty);
             };
 
             textBox_Flask1._textBox.KeyDown += (s, e) => e.SuppressKeyPress = true;
@@ -224,6 +225,7 @@ namespace PoE
             label_Flask5_Slider.Text = $"{slider_Flask5.Value}";
 
             ApplyFlaskPercentVisibility();
+            _flaskUiReady = true;
 
             label_GambleType.ForeColor = StaticColors.ForeGround;
             label_GamblerGetCoorinatesKey.ForeColor = StaticColors.ForeGround;
@@ -440,7 +442,7 @@ namespace PoE
                 "Mouse movement speed when traveling between stash positions. Higher is faster. Does not change click or key timing.");
 
             SettingsHintHelper.Attach(toolTip_Settings, groupBox_FlaskSettings, label_FlaskRegisterKey, textBox_FlaskRegisterKey,
-                "Hotkey to register active flasks and snapshot their bar pixel colors for drinking detection.");
+                "Register in town with all effects off (2560×1440). HP/MP: snapshot threshold pixels. Utility/Tincture: snapshot top of flask only (full / effect off); bottom uses a fixed in-game color for effect or cooldown. Re-register after changing flask type or moving flasks.");
             SettingsHintHelper.Attach(toolTip_Settings, groupBox_FlaskSettings, label_FlaskDrinkKey, textBox_FlaskDrinkKey,
                 "Hotkey to start the automatic flask drinking loop.");
             SettingsHintHelper.Attach(toolTip_Settings, groupBox_FlaskSettings, label_FlaskStopKey, textBox_FlaskStopKey,

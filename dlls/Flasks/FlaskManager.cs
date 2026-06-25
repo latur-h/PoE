@@ -2,13 +2,13 @@
 using PoE.dlls.Flasks.Base;
 using PoE.dlls.Logger;
 using PoE.dlls.Settings;
-using Poss.Win.Automation.Input;
 
 namespace PoE.dlls.Flasks
 {
     public class FlaskManager
     {
         private readonly List<IFlask> flasks = [];
+        private readonly Dictionary<string, IFlask> flasksBySlot = new(StringComparer.Ordinal);
 
         private readonly InputSimulatorHost _inputHost;
 
@@ -34,20 +34,46 @@ namespace PoE.dlls.Flasks
                 cts.Cancel();
 
             flasks.Clear();
+            flasksBySlot.Clear();
         }
 
-        public void RegisterFlask(FlaskType type, int numer, string key, FlaskRegistration? saved = null)
+        public void RegisterFlask(string slotKey, FlaskType type, int numer, string key, FlaskRegistration? saved = null)
         {
             FlaskLog.Registered(numer, type, key);
 
-            switch (type)
+            IFlask flask = type switch
             {
-                case FlaskType.HP: flasks.Add(new HP(_inputHost, key, numer, Timing, saved)); break;
-                case FlaskType.MP: flasks.Add(new MP(_inputHost, key, numer, Timing, saved)); break;
-                case FlaskType.Utility: flasks.Add(new Utility(_inputHost, key, numer, Timing, saved)); break;
-                case FlaskType.Tincture: flasks.Add(new Tincture(_inputHost, key, numer, Timing, saved)); break;
-                default: throw new NotSupportedException("Unsupported flask type.");
+                FlaskType.HP => new HP(_inputHost, key, numer, Timing, saved),
+                FlaskType.MP => new MP(_inputHost, key, numer, Timing, saved),
+                FlaskType.Utility => new Utility(_inputHost, key, numer, Timing, saved),
+                FlaskType.Tincture => new Tincture(_inputHost, key, numer, Timing, saved),
+                _ => throw new NotSupportedException("Unsupported flask type."),
+            };
+
+            flasks.Add(flask);
+            flasksBySlot[slotKey] = flask;
+        }
+
+        public bool TryGetSlotRuntime(string slotKey, out FlaskSlotRuntime runtime)
+        {
+            if (flasksBySlot.TryGetValue(slotKey, out IFlask? flask))
+            {
+                runtime = new FlaskSlotRuntime
+                {
+                    Slot = slotKey,
+                    IsReady = flask.IsReady,
+                    UsesDualPixel = flask.Flask.Type is FlaskType.Utility or FlaskType.Tincture,
+                };
+                return true;
             }
+
+            runtime = new FlaskSlotRuntime
+            {
+                Slot = slotKey,
+                IsReady = false,
+                UsesDualPixel = false,
+            };
+            return false;
         }
 
         public async Task DrinkFlasks()

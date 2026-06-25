@@ -19,6 +19,7 @@ namespace PoE.dlls.Macros.UI
 
         private static readonly Color OnColor = Color.FromArgb(210, 46, 125, 50);
         private static readonly Color OffColor = Color.FromArgb(210, 198, 40, 40);
+        private static readonly Color WarningColor = Color.FromArgb(210, 218, 145, 0);
         private static readonly Color SectionColor = Color.FromArgb(210, 50, 50, 50);
         private static readonly Font StatusFont = new("Segoe UI", 9F, FontStyle.Bold);
         private static readonly Font SectionFont = new("Segoe UI", 8.25F, FontStyle.Bold);
@@ -99,7 +100,8 @@ namespace PoE.dlls.Macros.UI
                 Color backColor = row.Kind switch
                 {
                     OverlayRowKind.Section => SectionColor,
-                    OverlayRowKind.Status when row.IsOn => OnColor,
+                    OverlayRowKind.Status when row.State == OverlayRowState.On => OnColor,
+                    OverlayRowKind.Status when row.State == OverlayRowState.Warning => WarningColor,
                     _ => OffColor,
                 };
 

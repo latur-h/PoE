@@ -50,6 +50,7 @@ namespace PoE
                 RegisterFlaskSlot("3", captureColors: true);
                 RegisterFlaskSlot("4", captureColors: true);
                 RegisterFlaskSlot("5", captureColors: true);
+                RefreshMacroOverlay();
             });
 
             return Task.CompletedTask;
@@ -99,7 +100,21 @@ namespace PoE
                 };
             }
 
-            _flaskManager.RegisterFlask(type, number, ui.Key, saved);
+            _flaskManager.RegisterFlask(slotKey, type, number, ui.Key, saved);
+        }
+
+        private void ReloadFlaskRuntimeFromSettings()
+        {
+            _flaskManager.Flush();
+
+            if (!_settings.Flasks.Values.Any(f => f.IsRegistered))
+                return;
+
+            RegisterFlaskSlot("1", captureColors: false);
+            RegisterFlaskSlot("2", captureColors: false);
+            RegisterFlaskSlot("3", captureColors: false);
+            RegisterFlaskSlot("4", captureColors: false);
+            RegisterFlaskSlot("5", captureColors: false);
         }
         private Task DrinkFlasks() => _flaskManager.DrinkFlasks();
         private Task StopDrinking()
