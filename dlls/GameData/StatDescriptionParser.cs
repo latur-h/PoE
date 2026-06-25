@@ -15,44 +15,53 @@ namespace PoE.dlls.GameData
 
         private static readonly Regex IdTokenRegex = new(@"([\S]+)", RegexOptions.None);
         private static readonly Regex IntRegex = new(@"[0-9]+", RegexOptions.None);
+        private static readonly Regex NegateLineRegex = new(@"^\s*negate(?:\s+\d+)?\s*$", RegexOptions.IgnoreCase);
+        private static readonly Regex LangHeaderRegex = new(
+            @"\n[\s]*lang """,
+            RegexOptions.Compiled);
 
-        public static Dictionary<string, string> ParseEnglishTemplates(IEnumerable<byte[]> files)
-        {
-            (Dictionary<string, string> templates, _) = ParseEnglishTemplatesFromFiles(
-                files.Select(bytes => (string.Empty, bytes)).ToList());
-            return templates;
-        }
+        private static readonly Regex EnglishLangHeaderRegex = new(
+            @"\n[\s]*lang ""English""",
+            RegexOptions.Compiled | RegexOptions.IgnoreCase);
 
-        public static (Dictionary<string, string> Templates, HashSet<string> MapStatIds) ParseEnglishTemplatesFromFiles(
+        private static readonly Regex IntegerOnlyLineRegex = new(@"^\d+$", RegexOptions.None);
+
+        public static (StatDescriptionCatalog Catalog, HashSet<string> MapStatIds) ParseEnglishTemplatesFromFiles(
             IReadOnlyList<(string Path, byte[] Bytes)> files)
         {
-            var templates = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
+            var catalog = new StatDescriptionCatalog();
             var mapStatIds = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
 
             foreach ((string path, byte[] bytes) in files)
             {
-                var perFile = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
                 string text = Encoding.Unicode.GetString(bytes);
                 if (text.Length > 0 && text[0] == '\uFEFF')
                     text = text[1..];
 
-                ParseFile(text, perFile);
+                var blocks = ParseFile(text).ToList();
+                foreach (StatDescriptionBlock block in blocks)
+                    catalog.AddBlock(block);
 
                 bool isMapSource = path.Contains("map_stat_descriptions", StringComparison.OrdinalIgnoreCase)
                     || path.Contains("atlas_stat_descriptions", StringComparison.OrdinalIgnoreCase);
 
-                foreach ((string id, string template) in perFile)
+                if (!isMapSource)
+                    continue;
+
+                foreach (StatDescriptionBlock block in blocks)
                 {
-                    TryAssignTemplate(templates, id, template);
-                    if (isMapSource && IsUsefulTemplate(template))
-                        mapStatIds.Add(id);
+                    foreach (string statId in block.StatIds)
+                    {
+                        if (block.Translations.Any(t => IsUsefulTemplate(t.Template)))
+                            mapStatIds.Add(statId);
+                    }
                 }
             }
 
-            return (templates, mapStatIds);
+            return (catalog, mapStatIds);
         }
 
-        private static void ParseFile(string data, Dictionary<string, string> map)
+        private static IEnumerable<StatDescriptionBlock> ParseFile(string data)
         {
             int offset = 0;
             Match match = TokenRegex.Match(data, offset);
@@ -64,22 +73,26 @@ namespace PoE.dlls.GameData
                 int blockEnd = next.Success ? next.Index : data.Length;
 
                 if (match.Groups["description"].Success)
-                    ParseDescriptionBlock(data, blockStart, blockEnd, map);
+                {
+                    StatDescriptionBlock? block = ParseDescriptionBlock(data, blockStart, blockEnd);
+                    if (block is not null)
+                        yield return block;
+                }
 
                 match = next;
             }
         }
 
-        private static void ParseDescriptionBlock(string data, int blockStart, int blockEnd, Dictionary<string, string> map)
+        private static StatDescriptionBlock? ParseDescriptionBlock(string data, int blockStart, int blockEnd)
         {
             int offset = data.IndexOf('\n', blockStart);
             if (offset < 0 || offset >= blockEnd)
-                return;
+                return null;
             offset++;
 
             Match idCountMatch = IntRegex.Match(data, offset, blockEnd - offset);
             if (!idCountMatch.Success)
-                return;
+                return null;
 
             int idCount = int.Parse(idCountMatch.Value);
             offset = idCountMatch.Index + idCountMatch.Length;
@@ -88,60 +101,144 @@ namespace PoE.dlls.GameData
             if (lineEnd < 0)
                 lineEnd = blockEnd;
 
-            string idLine = data[offset..lineEnd];
+            string idLine = data[offset..lineEnd].Trim();
             var ids = IdTokenRegex.Matches(idLine).Select(m => m.Value).Take(idCount).ToList();
+            if (ids.Count < idCount)
+            {
+                offset = lineEnd + 1;
+                lineEnd = data.IndexOf('\n', offset, blockEnd - offset);
+                if (lineEnd < 0)
+                    lineEnd = blockEnd;
+
+                idLine = data[offset..lineEnd].Trim();
+                ids = IdTokenRegex.Matches(idLine).Select(m => m.Value).Take(idCount).ToList();
+            }
+
+            if (ids.Count == 0)
+                return null;
+
             offset = lineEnd + 1;
 
-            Match langCountMatch = IntRegex.Match(data, offset, blockEnd - offset);
-            if (!langCountMatch.Success)
-                return;
+            var translations = new List<StatTranslation>();
+            (int defaultStart, int defaultEnd) = GetDefaultEnglishSection(data, offset, blockEnd);
+            if (defaultEnd > defaultStart)
+                ParseTranslationSection(data, defaultStart, defaultEnd, ids.Count, translations);
 
-            int translationCount = int.Parse(langCountMatch.Value);
-            offset = langCountMatch.Index + langCountMatch.Length;
+            (int explicitStart, int explicitEnd) = GetExplicitEnglishSection(data, offset, blockEnd);
+            if (explicitEnd > explicitStart)
+                ParseTranslationSection(data, explicitStart, explicitEnd, ids.Count, translations);
 
-            int englishStart = offset;
-            int englishEnd = blockEnd;
-            int langIndex = data.IndexOf("lang \"English\"", offset, StringComparison.Ordinal);
-            if (langIndex >= 0 && langIndex < blockEnd)
+            if (translations.Count == 0)
+                return null;
+
+            return new StatDescriptionBlock
             {
-                englishStart = data.IndexOf('\n', langIndex);
-                if (englishStart < 0)
-                    return;
-                englishStart++;
-
-                int nextLang = data.IndexOf("\nlang \"", englishStart, StringComparison.Ordinal);
-                if (nextLang >= 0 && nextLang < blockEnd)
-                    englishEnd = nextLang;
-            }
-            else
-            {
-                int nextLang = data.IndexOf("\nlang \"", offset, StringComparison.Ordinal);
-                if (nextLang >= 0 && nextLang < blockEnd)
-                    englishEnd = nextLang;
-            }
-
-            Match translation = TranslationRegex.Match(data, englishStart, englishEnd - englishStart);
-            for (int i = 0; i < translationCount && translation.Success; i++)
-            {
-                string template = SimplifyTemplate(translation.Groups["description"].Value);
-                foreach (string id in ids)
-                    TryAssignTemplate(map, id, template);
-
-                englishStart = translation.Index + translation.Length;
-                translation = TranslationRegex.Match(data, englishStart, englishEnd - englishStart);
-            }
+                StatIds = ids,
+                Translations = translations,
+            };
         }
 
-        private static void TryAssignTemplate(Dictionary<string, string> map, string id, string template)
+        private static (int Start, int End) GetDefaultEnglishSection(string data, int afterIds, int blockEnd)
         {
-            if (!IsUsefulTemplate(template))
-                return;
+            Match langMatch = LangHeaderRegex.Match(data, afterIds, blockEnd - afterIds);
+            int end = langMatch.Success && langMatch.Index < blockEnd ? langMatch.Index : blockEnd;
 
-            if (!map.TryGetValue(id, out string? existing) || IsBetterTemplate(template, existing))
-                map[id] = template;
+            int pos = afterIds;
+            while (pos < end)
+            {
+                string line = ReadLine(data, pos, end, out int nextPos);
+                pos = nextPos;
+                if (string.IsNullOrWhiteSpace(line))
+                    continue;
+
+                if (line.StartsWith("lang \"", StringComparison.OrdinalIgnoreCase))
+                    return (afterIds, afterIds);
+
+                break;
+            }
+
+            return (afterIds, end);
         }
 
-        private static bool IsUsefulTemplate(string template)
+        private static (int Start, int End) GetExplicitEnglishSection(string data, int afterIds, int blockEnd)
+        {
+            Match langMatch = EnglishLangHeaderRegex.Match(data, afterIds, blockEnd - afterIds);
+            if (!langMatch.Success || langMatch.Index >= blockEnd)
+                return (0, 0);
+
+            int start = data.IndexOf('\n', langMatch.Index + 1, blockEnd - langMatch.Index - 1);
+            if (start < 0)
+                return (0, 0);
+            start++;
+
+            Match nextLang = LangHeaderRegex.Match(data, start, blockEnd - start);
+            int end = nextLang.Success && nextLang.Index < blockEnd ? nextLang.Index : blockEnd;
+            return (start, end);
+        }
+
+        private static void ParseTranslationSection(
+            string data,
+            int sectionStart,
+            int sectionEnd,
+            int statCount,
+            List<StatTranslation> translations)
+        {
+            bool negate = false;
+            int pos = sectionStart;
+            while (pos < sectionEnd)
+            {
+                string line = ReadLine(data, pos, sectionEnd, out int nextPos);
+                pos = nextPos;
+
+                if (string.IsNullOrWhiteSpace(line))
+                    continue;
+
+                if (NegateLineRegex.IsMatch(line))
+                {
+                    negate = true;
+                    continue;
+                }
+
+                if (line.StartsWith("canonical_line", StringComparison.OrdinalIgnoreCase)
+                    || line.StartsWith("table_only", StringComparison.OrdinalIgnoreCase)
+                    || line.StartsWith("lang \"", StringComparison.OrdinalIgnoreCase)
+                    || IntegerOnlyLineRegex.IsMatch(line))
+                {
+                    continue;
+                }
+
+                Match translation = TranslationRegex.Match(line);
+                if (!translation.Success)
+                    continue;
+
+                string template = SimplifyTemplate(translation.Groups["description"].Value);
+                if (!IsUsefulTemplate(template))
+                {
+                    negate = false;
+                    continue;
+                }
+
+                translations.Add(new StatTranslation
+                {
+                    Limits = StatLimit.ParseGroup(translation.Groups["minmax"].Value, statCount),
+                    Negate = negate,
+                    Template = template,
+                });
+                negate = false;
+            }
+        }
+
+        private static string ReadLine(string data, int start, int end, out int nextPos)
+        {
+            int lineEnd = data.IndexOf('\n', start, end - start);
+            if (lineEnd < 0)
+                lineEnd = end;
+
+            nextPos = lineEnd < end ? lineEnd + 1 : end;
+            return data[start..lineEnd].Trim();
+        }
+
+        internal static bool IsUsefulTemplate(string template)
         {
             if (string.IsNullOrWhiteSpace(template))
                 return false;
@@ -150,19 +247,6 @@ namespace PoE.dlls.GameData
                 return false;
 
             return true;
-        }
-
-        private static bool IsBetterTemplate(string candidate, string existing)
-        {
-            if (!IsUsefulTemplate(existing))
-                return true;
-
-            bool candidateHasValue = candidate.Contains('#') || candidate.Contains('%');
-            bool existingHasValue = existing.Contains('#') || existing.Contains('%');
-            if (candidateHasValue != existingHasValue)
-                return candidateHasValue;
-
-            return candidate.Length > existing.Length;
         }
 
         internal static string SimplifyTemplate(string template)

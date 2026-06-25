@@ -38,9 +38,9 @@ namespace PoE.dlls.GameData
             GameDataLog.Info($"Loaded dat tables — Mods: {mods.RowCount} rows, Tags: {tags.RowCount}, Stats: {stats.RowCount}.");
 
             GameDataLog.Info("Parsing English stat descriptions…");
-            (Dictionary<string, string> statTemplates, HashSet<string> mapStatIds) =
+            (StatDescriptionCatalog statDescriptions, HashSet<string> mapStatIds) =
                 StatDescriptionParser.ParseEnglishTemplatesFromFiles(statDescriptionFiles);
-            GameDataLog.Info($"Stat description templates: {statTemplates.Count} ({mapStatIds.Count} map/atlas stat ids).");
+            GameDataLog.Info($"Stat description templates: {statDescriptions.StatCount} ({mapStatIds.Count} map/atlas stat ids).");
 
             string?[] tagIds = BuildTagIds(tags);
             string?[] statIds = BuildStatIds(stats);
@@ -103,7 +103,7 @@ namespace PoE.dlls.GameData
                     if (string.IsNullOrWhiteSpace(eldritchName))
                         continue;
 
-                    IReadOnlyList<string> lines = BuildEldritchDescriptionLines(mods, statIds, statTemplates, row);
+                    IReadOnlyList<string> lines = BuildEldritchDescriptionLines(mods, statIds, statDescriptions, row);
                     if (lines.Count == 0)
                         continue;
 
@@ -150,7 +150,7 @@ namespace PoE.dlls.GameData
 
                 AddSuggestion(entries, name, string.Empty, isMap, ModEldritchInfluence.None, domain, itemKind, positiveSpawnTags);
 
-                foreach (string line in BuildDescriptionLines(mods, statIds, statTemplates, row))
+                foreach (string line in BuildDescriptionLines(mods, statIds, statDescriptions, row))
                 {
                     AddSuggestion(
                         entries,
@@ -171,7 +171,7 @@ namespace PoE.dlls.GameData
                     mods,
                     tagIds,
                     statIds,
-                    statTemplates,
+                    statDescriptions,
                     entries,
                     ref includedMods);
 
@@ -199,7 +199,7 @@ namespace PoE.dlls.GameData
             LibDat2DatTable mods,
             string?[] tagIds,
             string?[] statIds,
-            Dictionary<string, string> statTemplates,
+            StatDescriptionCatalog statDescriptions,
             Dictionary<(string ModName, string ModContent, ModEldritchInfluence Eldritch), ModCatalogAccumulator> entries,
             ref int includedMods)
         {
@@ -258,7 +258,7 @@ namespace PoE.dlls.GameData
                     itemKind,
                     combinedTags);
 
-                foreach (string line in BuildDescriptionLines(mods, statIds, statTemplates, modRow))
+                foreach (string line in BuildDescriptionLines(mods, statIds, statDescriptions, modRow))
                 {
                     AddSuggestion(
                         entries,
@@ -534,13 +534,14 @@ namespace PoE.dlls.GameData
         private static IReadOnlyList<string> BuildEldritchDescriptionLines(
             LibDat2DatTable mods,
             string?[] statIds,
-            Dictionary<string, string> statTemplates,
+            StatDescriptionCatalog statDescriptions,
             int row)
         {
             var lines = new List<string>(StatKeyColumns.Length * 2);
             var seen = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
             var effectTemplates = new List<string>();
             var modStatIds = new List<string?>(StatKeyColumns.Length);
+            Dictionary<string, (int Min, int Max)> modStatRanges = CollectModStatRanges(mods, statIds, row);
 
             foreach (string column in StatKeyColumns)
             {
@@ -553,7 +554,11 @@ namespace PoE.dlls.GameData
                 if (string.IsNullOrWhiteSpace(statId) || EldritchPresenceRequirementStats.Contains(statId))
                     continue;
 
-                if (!statTemplates.TryGetValue(statId, out string? template) || string.IsNullOrWhiteSpace(template))
+                if (!modStatRanges.TryGetValue(statId, out (int Min, int Max) range))
+                    continue;
+
+                string? template = statDescriptions.ResolveTemplate(statId, range.Min, range.Max, modStatRanges);
+                if (string.IsNullOrWhiteSpace(template))
                     continue;
 
                 if (seen.Add(template))
@@ -604,11 +609,13 @@ namespace PoE.dlls.GameData
         private static IReadOnlyList<string> BuildDescriptionLines(
             LibDat2DatTable mods,
             string?[] statIds,
-            Dictionary<string, string> statTemplates,
+            StatDescriptionCatalog statDescriptions,
             int row)
         {
             var lines = new List<string>(StatKeyColumns.Length);
             var seen = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+            Dictionary<string, (int Min, int Max)> modStatRanges = CollectModStatRanges(mods, statIds, row);
+
             foreach (string column in StatKeyColumns)
             {
                 int? statRow = mods.GetForeignKey(row, column);
@@ -619,7 +626,11 @@ namespace PoE.dlls.GameData
                 if (string.IsNullOrWhiteSpace(statId))
                     continue;
 
-                if (!statTemplates.TryGetValue(statId, out string? template) || string.IsNullOrWhiteSpace(template))
+                if (!modStatRanges.TryGetValue(statId, out (int Min, int Max) range))
+                    continue;
+
+                string? template = statDescriptions.ResolveTemplate(statId, range.Min, range.Max, modStatRanges);
+                if (string.IsNullOrWhiteSpace(template))
                     continue;
 
                 if (seen.Add(template))
@@ -627,6 +638,30 @@ namespace PoE.dlls.GameData
             }
 
             return lines;
+        }
+
+        private static Dictionary<string, (int Min, int Max)> CollectModStatRanges(
+            LibDat2DatTable mods,
+            string?[] statIds,
+            int row)
+        {
+            var ranges = new Dictionary<string, (int Min, int Max)>(StringComparer.OrdinalIgnoreCase);
+            for (int i = 0; i < StatKeyColumns.Length; i++)
+            {
+                int? statRow = mods.GetForeignKey(row, StatKeyColumns[i]);
+                if (statRow is null or < 0)
+                    continue;
+
+                string? statId = StatId(statIds, statRow.Value);
+                if (string.IsNullOrWhiteSpace(statId))
+                    continue;
+
+                int min = mods.GetInt32(row, $"Stat{i + 1}Min");
+                int max = mods.GetInt32(row, $"Stat{i + 1}Max");
+                ranges[statId] = (min, max);
+            }
+
+            return ranges;
         }
 
         private static string?[] BuildTagIds(LibDat2DatTable tags)

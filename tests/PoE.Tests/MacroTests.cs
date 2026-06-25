@@ -95,6 +95,109 @@ public class MacroSettingsHelperTests
     }
 }
 
+public class MacroRuntimeSettingsBuilderTests
+{
+    [Fact]
+    public void Build_includes_only_active_build_profile_in_runtime()
+    {
+        var activeId = Guid.NewGuid();
+        var inactiveId = Guid.NewGuid();
+        var settings = new MacroSettings
+        {
+            ActiveBuildProfileName = "Active",
+            GlobalProfile = new MacroProfile
+            {
+                Name = MacroProfile.GlobalName,
+                Triggers = [CreateTrigger(active: false)],
+            },
+            BuildProfiles =
+            [
+                new MacroProfile
+                {
+                    Name = "Active",
+                    Triggers = [CreateTrigger(active: true, id: activeId)],
+                },
+                new MacroProfile
+                {
+                    Name = "Inactive",
+                    Triggers = [CreateTrigger(active: true, id: inactiveId)],
+                },
+            ],
+        };
+
+        MacroSettings runtime = MacroRuntimeSettingsBuilder.Build(settings);
+
+        Assert.Single(runtime.BuildProfiles);
+        Assert.Equal("Active", runtime.BuildProfiles[0].Name);
+        Assert.Contains(runtime.BuildProfiles[0].Triggers, t => t.Id == activeId);
+        Assert.DoesNotContain(runtime.BuildProfiles[0].Triggers, t => t.Id == inactiveId);
+        Assert.Contains(settings.BuildProfiles.First(p => p.Name == "Inactive").Triggers, t => t.Id == inactiveId && t.Active);
+    }
+
+    [Fact]
+    public void Build_global_only_excludes_all_build_profiles_from_runtime()
+    {
+        var settings = new MacroSettings
+        {
+            ActiveBuildProfileName = MacroProfile.GlobalName,
+            GlobalProfile = new MacroProfile
+            {
+                Name = MacroProfile.GlobalName,
+                Triggers = [CreateTrigger(active: true)],
+            },
+            BuildProfiles =
+            [
+                new MacroProfile
+                {
+                    Name = "Other",
+                    Triggers = [CreateTrigger(active: true)],
+                },
+            ],
+        };
+
+        MacroSettings runtime = MacroRuntimeSettingsBuilder.Build(settings);
+
+        Assert.Empty(runtime.BuildProfiles);
+    }
+
+    [Fact]
+    public void Build_runtime_engine_does_not_resolve_inactive_profile_triggers()
+    {
+        var inactiveId = Guid.NewGuid();
+        var settings = new MacroSettings
+        {
+            ActiveBuildProfileName = "Active",
+            BuildProfiles =
+            [
+                new MacroProfile
+                {
+                    Name = "Active",
+                    Triggers = [CreateTrigger(active: true)],
+                },
+                new MacroProfile
+                {
+                    Name = "Inactive",
+                    Triggers = [CreateTrigger(active: true, id: inactiveId)],
+                },
+            ],
+        };
+
+        var engine = new MacroEngine(new PoE.dlls.Automation.InputSimulatorHost());
+        engine.ApplySettings(MacroRuntimeSettingsBuilder.Build(settings));
+
+        Assert.Null(engine.FindTrigger(inactiveId));
+    }
+
+    private static MacroTrigger CreateTrigger(bool active, Guid? id = null) => new()
+    {
+        Id = id ?? Guid.NewGuid(),
+        Active = active,
+        TriggerKey = "F1",
+        FireSequence = "LButton Down\nLButton Up",
+        Behavior = MacroBehavior.Single,
+    };
+}
+
 public class MacroEngineToggleTests
 {
     [Fact]

@@ -127,7 +127,7 @@ namespace PoE
             _macroProfileBar.ProfileChanged += (_, _) =>
             {
                 LoadSelectedProfileIntoUi();
-                RefreshMacroOverlay();
+                ApplyMacrosRuntime();
             };
 
             tabPage_Macros.Controls.Add(label_MacrosEnableKey);

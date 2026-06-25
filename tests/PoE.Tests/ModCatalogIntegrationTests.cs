@@ -94,6 +94,28 @@ public class ModCatalogIntegrationTests
 
         Assert.Contains(
             entries,
+            e => e.ItemKind == ModItemKind.Flask
+                 && e.ModContent.Contains("reduced Effect of Curses", StringComparison.OrdinalIgnoreCase));
+
+        Assert.Contains(
+            entries,
+            e => e.ItemKind == ModItemKind.Flask
+                 && e.ModContent.Contains("increased effect", StringComparison.OrdinalIgnoreCase)
+                 && !e.ModContent.Contains("to this value when used", StringComparison.OrdinalIgnoreCase));
+
+        Assert.Contains(
+            entries,
+            e => e.ItemKind == ModItemKind.Flask
+                 && e.ModContent.Contains("reduced Duration", StringComparison.OrdinalIgnoreCase)
+                 && !e.ModContent.Contains("to this value when used", StringComparison.OrdinalIgnoreCase));
+
+        Assert.DoesNotContain(
+            entries,
+            e => e.ItemKind == ModItemKind.Flask
+                 && e.ModContent.Contains("to this value when used", StringComparison.OrdinalIgnoreCase));
+
+        Assert.Contains(
+            entries,
             e => e.ItemKind == ModItemKind.ClusterJewel
                  && (e.ModContent.Contains("Feasting Fiends", StringComparison.OrdinalIgnoreCase)
                      || e.ModName.Contains("Feasting Fiends", StringComparison.OrdinalIgnoreCase)));

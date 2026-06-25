@@ -23,16 +23,19 @@ namespace PoE.dlls.Macros
                         .Select(CloneTrigger)
                         .ToList(),
                 },
-                BuildProfiles = source.BuildProfiles
-                    .Select(profile => new MacroProfile
-                    {
-                        Name = profile.Name,
-                        Triggers = buildActive
-                            && string.Equals(profile.Name, activeName, StringComparison.OrdinalIgnoreCase)
-                            ? profile.Triggers.Select(MacroTriggerRuntimeHelper.ToRuntimeTrigger).Select(CloneTrigger).ToList()
-                            : profile.Triggers.Select(CloneTrigger).ToList(),
-                    })
-                    .ToList(),
+                BuildProfiles = buildActive
+                    ? source.BuildProfiles
+                        .Where(profile => string.Equals(profile.Name, activeName, StringComparison.OrdinalIgnoreCase))
+                        .Select(profile => new MacroProfile
+                        {
+                            Name = profile.Name,
+                            Triggers = profile.Triggers
+                                .Select(MacroTriggerRuntimeHelper.ToRuntimeTrigger)
+                                .Select(CloneTrigger)
+                                .ToList(),
+                        })
+                        .ToList()
+                    : [],
             };
         }
 

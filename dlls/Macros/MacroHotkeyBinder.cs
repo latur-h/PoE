@@ -24,6 +24,7 @@ namespace PoE.dlls.Macros
         {
             MacroSettings macros = settings.Macros;
             MacroSettingsHelper.EnsureInitialized(macros);
+            MacroSettings runtime = MacroRuntimeSettingsBuilder.Build(macros);
 
             if (KeyBindingHelper.TryResolveStored(macros.EnableKey, out _, out _))
                 _hotkeys.Change(EnableHotkeyId, macros.EnableKey);
@@ -33,7 +34,7 @@ namespace PoE.dlls.Macros
 
             _registeredToggleIds.Clear();
 
-            foreach (var (profile, trigger) in MacroSettingsHelper.EnumerateTriggers(macros, true, true))
+            foreach (var (profile, trigger) in MacroSettingsHelper.EnumerateTriggers(runtime, includeGlobal: true, includeActiveBuild: true))
             {
                 if (string.IsNullOrWhiteSpace(trigger.ToggleKey))
                     continue;

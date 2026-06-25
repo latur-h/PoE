@@ -1,30 +1,26 @@
-Item Class: Gloves
-Rarity: Rare
-Soul Vise
-Slink Gloves
+Item Class: Utility Flasks
+Rarity: Magic
+Alchemist's Topaz Flask of the Owl
 --------
 Quality: +20% (augmented)
-Evasion Rating: 323 (augmented)
+Lasts 7.10 (augmented) Seconds
+Consumes 20 of 50 Charges on use
+Currently has 34 Charges
++5% to maximum Lightning Resistance
+(Maximum Resistances cannot be raised above 90%)
++40% to Lightning Resistance
 --------
 Requirements:
-Level: 70
-Dex: 95
+Level: 67
 --------
-Sockets: G-G-G-G 
+Item Level: 85
 --------
-Item Level: 82
+Used when Charges reach full (enchant)
 --------
-{ Eater of Worlds Implicit Modifier (Lesser) }
-Projectiles Pierce an additional Target
+{ Prefix Modifier "Alchemist's" (Tier: 1) }
+26(27-23)% reduced Duration
+25% increased effect
+{ Suffix Modifier "of the Owl" (Tier: 1) }
+60(65-60)% reduced Effect of Curses on you during Effect
 --------
-{ Prefix Modifier "Athlete's" (Tier: 1) — Life }
-+125(115-129) to maximum Life
-{ Master Crafted Prefix Modifier "Upgraded" — Damage }
-27(24-28)% increased Damage during any Flask Effect
-{ Suffix Modifier "of Exile" (Tier: 2) — Chaos, Resistance }
-+28(26-30)% to Chaos Resistance
-{ Suffix Modifier "of the Furnace" (Tier: 4) — Elemental, Fire, Resistance }
-+34(30-35)% to Fire Resistance
-{ Suffix Modifier "of the Tempest" (Tier: 4) — Elemental, Lightning, Resistance }
-+35(30-35)% to Lightning Resistance
-Eater of Worlds Item
+Right click to drink. Can only hold charges while in belt. Refills as you kill monsters.
