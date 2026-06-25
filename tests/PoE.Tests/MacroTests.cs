@@ -48,45 +48,6 @@ public class MacroKeyInputTests
     }
 }
 
-public class MacroKeyConflictCheckerTests
-{
-    [Fact]
-    public void FindConflicts_reports_duplicate_macro_trigger_and_flask_key()
-    {
-        var settings = new Settings();
-        MacroSettingsHelper.EnsureInitialized(settings.Macros);
-        settings.Flasks["1"].Key = "F1";
-        settings.Macros.GlobalProfile.Triggers.Add(new MacroTrigger
-        {
-            Active = true,
-            TriggerKey = "F1",
-            FireSequence = "Q Down\nQ Up",
-            Behavior = MacroBehavior.Single,
-        });
-
-        var conflicts = MacroKeyConflictChecker.FindConflicts(settings);
-
-        Assert.Contains(conflicts, c => c.Key == "F1");
-    }
-
-    [Fact]
-    public void FindConflicts_ignores_repeat_without_toggle_key()
-    {
-        var settings = new Settings();
-        MacroSettingsHelper.EnsureInitialized(settings.Macros);
-        settings.Macros.GlobalProfile.Triggers.Add(new MacroTrigger
-        {
-            Active = true,
-            Behavior = MacroBehavior.Repeat,
-            FireSequence = "Q Down\nQ Up",
-            ToggleKey = string.Empty,
-        });
-
-        var usages = MacroKeyConflictChecker.CollectUsages(settings);
-        Assert.DoesNotContain(usages, u => u.Label.Contains("toggle active", StringComparison.Ordinal) && u.MacroTrigger?.Behavior == MacroBehavior.Repeat);
-    }
-}
-
 public class MacroSettingsHelperTests
 {
     [Fact]

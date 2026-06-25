@@ -578,11 +578,7 @@ namespace PoE
 
         private void Main_FormClosing(object sender, FormClosingEventArgs e)
         {
-            if (!TryCommitMacrosTab(showConflictDialog: true))
-            {
-                e.Cancel = true;
-                return;
-            }
+            CommitMacrosTab();
 
             _hotkeys.Stop();
             CancelUpdateOperation();

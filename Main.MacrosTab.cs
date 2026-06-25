@@ -395,72 +395,14 @@ namespace PoE
             RefreshMacroOverlay();
         }
 
-        private bool TryCommitMacrosTab(bool showConflictDialog)
+        private void CommitMacrosTab()
         {
             if (!_macrosTabUiReady)
-                return true;
+                return;
 
             _macrosPanel.Commit();
             MacroSettingsHelper.EnsureInitialized(_settings.Macros);
-
-            var conflicts = MacroKeyConflictChecker.FindConflicts(_settings);
-            if (conflicts.Count == 0)
-            {
-                ApplyMacrosRuntime();
-                return true;
-            }
-
-            if (!showConflictDialog)
-            {
-                ApplyMacrosRuntime();
-                return true;
-            }
-
-            string message = BuildMacroConflictMessage(conflicts);
-            DialogResult result = MessageBox.Show(
-                this,
-                message,
-                "Macro key conflicts",
-                MessageBoxButtons.OKCancel,
-                MessageBoxIcon.Warning);
-
-            if (result == DialogResult.OK)
-            {
-                ApplyMacrosRuntime();
-                return true;
-            }
-
-            foreach (var trigger in conflicts.SelectMany(c => c.MacroTriggers).Distinct())
-            {
-                if (trigger.Active)
-                    trigger.Active = false;
-            }
-
-            _macrosPanel.Commit();
-            _macrosPanel.RefreshActiveStates();
             ApplyMacrosRuntime();
-            return false;
-        }
-
-        private static string BuildMacroConflictMessage(IReadOnlyList<MacroKeyConflict> conflicts)
-        {
-            var lines = new List<string>
-            {
-                "The same key is assigned to multiple actions:",
-                string.Empty,
-            };
-
-            foreach (var conflict in conflicts)
-            {
-                lines.Add($"• {conflict.Key}");
-                foreach (string label in conflict.Labels)
-                    lines.Add($"    - {label}");
-                lines.Add(string.Empty);
-            }
-
-            lines.Add("OK keeps these bindings (multiple handlers may run).");
-            lines.Add("Cancel deactivates conflicting macros that are currently active.");
-            return string.Join(Environment.NewLine, lines);
         }
 
         private void MacrosTab_Selecting(object? sender, TabControlCancelEventArgs e)
@@ -468,8 +410,7 @@ namespace PoE
             if (tabControl_Main.SelectedTab != tabPage_Macros || e.TabPage == tabPage_Macros)
                 return;
 
-            if (!TryCommitMacrosTab(showConflictDialog: true))
-                e.Cancel = true;
+            CommitMacrosTab();
         }
 
         private void MacrosEngine_SettingsChanged()
