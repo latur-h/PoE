@@ -84,6 +84,9 @@ namespace PoE.dlls.GameData
                     positiveSpawnTags = EnsureJewelSpawnTag(positiveSpawnTags);
                 else if (ModCatalogTagHelper.IsAbyssJewelDomain(domain))
                     positiveSpawnTags = AbyssJewelSubtypeTags.EnrichSpawnTags(modId, positiveSpawnTags);
+                else if (ModCatalogTagHelper.IsFlaskDomain(domain)
+                         || ModCatalogTagHelper.HasFlaskPositiveSpawn(positiveSpawnTags))
+                    positiveSpawnTags = EnsureFlaskSpawnTag(positiveSpawnTags);
 
                 if (eldritchInfluence != ModEldritchInfluence.None)
                 {
@@ -427,6 +430,25 @@ namespace PoE.dlls.GameData
             return withJewel;
         }
 
+        private static IReadOnlyList<string> EnsureFlaskSpawnTag(IReadOnlyList<string> tags)
+        {
+            if (tags.Count == 0)
+                return tags;
+
+            bool hasGenericFlask = tags.Any(t => string.Equals(t, "flask", StringComparison.OrdinalIgnoreCase));
+            if (hasGenericFlask)
+                return tags;
+
+            bool hasFlaskTag = tags.Any(ModCatalogTagHelper.IsFlaskSpawnTag);
+            if (!hasFlaskTag && !tags.Any(t => string.Equals(t, "default", StringComparison.OrdinalIgnoreCase)))
+                return tags;
+
+            var enriched = new List<string>(tags.Count + 1);
+            enriched.AddRange(tags);
+            enriched.Add("flask");
+            return enriched;
+        }
+
         private static bool HasAnyNonUniquePositiveSpawn(LibDat2DatTable mods, string?[] tagIds, int row) =>
             CollectPositiveSpawnTags(mods, tagIds, row).Count > 0;
 
@@ -498,7 +520,7 @@ namespace PoE.dlls.GameData
                 return positiveSpawnTags.Count > 0;
 
             if (ModCatalogTagHelper.IsFlaskDomain(domain))
-                return ModCatalogTagHelper.HasFlaskPositiveSpawn(positiveSpawnTags);
+                return positiveSpawnTags.Count > 0;
 
             if (ModCatalogTagHelper.IsJewelDomain(domain))
                 return positiveSpawnTags.Count > 0;

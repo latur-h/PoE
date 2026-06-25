@@ -40,6 +40,19 @@ namespace PoE.dlls.GameData
             if (string.IsNullOrWhiteSpace(normalizedFilter))
                 return [];
 
+            if (string.Equals(normalizedFilter, "flask", StringComparison.OrdinalIgnoreCase))
+            {
+                return CombineTags(
+                    "flask",
+                    "life_flask",
+                    "mana_flask",
+                    "utility_flask",
+                    "hybrid_flask",
+                    "critical_utility_flask",
+                    "tincture",
+                    "default");
+            }
+
             if (ModCatalogTagHelper.IsFlaskSpawnTag(normalizedFilter))
                 return CombineTags(normalizedFilter, "flask", "default");
 

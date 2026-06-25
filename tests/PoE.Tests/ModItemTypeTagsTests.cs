@@ -6,6 +6,17 @@ namespace PoE.Tests;
 public class ModItemTypeTagsTests
 {
     [Fact]
+    public void Generic_flask_filter_includes_all_flask_subtypes()
+    {
+        IReadOnlyList<string> tags = ModItemTypeTags.GetMatchTags("flask");
+
+        Assert.Contains(tags, t => string.Equals(t, "flask", StringComparison.OrdinalIgnoreCase));
+        Assert.Contains(tags, t => string.Equals(t, "life_flask", StringComparison.OrdinalIgnoreCase));
+        Assert.Contains(tags, t => string.Equals(t, "utility_flask", StringComparison.OrdinalIgnoreCase));
+        Assert.Contains(tags, t => string.Equals(t, "default", StringComparison.OrdinalIgnoreCase));
+    }
+
+    [Fact]
     public void Claw_includes_shared_weapon_tags_but_not_default()
     {
         IReadOnlyList<string> tags = ModItemTypeTags.GetMatchTags("claw");

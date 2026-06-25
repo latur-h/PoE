@@ -328,10 +328,28 @@ namespace PoE.dlls.GameData
 
                 IEnumerable<string> ordered = results
                     .Where(tag => !eldritchArmourOnly || ModItemTypeTags.IsEldritchEligibleItemType(tag))
+                    .Where(TagIsSelectable)
                     .OrderBy(tag => ModSpawnTagDisplay.GetDisplayName(tag), StringComparer.OrdinalIgnoreCase)
                     .Take(limit);
 
                 return ordered.ToList();
+            }
+        }
+
+        private bool TagIsSelectable(string tag) =>
+            HasAnyModForItemTypeFilter(ModSpawnTagFilter.Normalize(tag) ?? tag)
+            || (!ModItemTypeTags.HasKnownProfile(tag) && SpawnTagExistsInIndex(tag));
+
+        private bool SpawnTagExistsInIndex(string tag)
+        {
+            lock (_sync)
+            {
+                EnsureOpen();
+                EnsureSpawnTagIndex();
+                using var command = _connection!.CreateCommand();
+                command.CommandText = "SELECT EXISTS(SELECT 1 FROM spawn_tag_index WHERE lower(tag) = lower($tag));";
+                command.Parameters.AddWithValue("$tag", tag);
+                return Convert.ToInt64(command.ExecuteScalar()) > 0;
             }
         }
 
