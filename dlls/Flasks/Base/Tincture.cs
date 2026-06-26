@@ -11,6 +11,7 @@ namespace PoE.dlls.Flasks.Base
 
         private readonly InputSimulatorHost _inputHost;
         private readonly FlaskTiming _timing;
+        private bool _isReady;
 
         public Tincture(InputSimulatorHost inputHost, string key, int number, FlaskTiming timing, FlaskRegistration? saved = null)
         {
@@ -37,24 +38,26 @@ namespace PoE.dlls.Flasks.Base
                 key);
         }
 
-        public bool IsReady =>
-            FlaskDualPixelReadiness.TinctureIsReady(
-                InteropHelper.GetColorAt(Flask.X, Flask.Y),
-                InteropHelper.GetColorAt(Flask.X_Bottom, Flask.Y_Bottom),
+        public bool IsReady => _isReady;
+
+        public void UpdateReadiness(ScreenPixelCapture capture) =>
+            _isReady = FlaskDualPixelReadiness.TinctureIsReady(
+                capture.GetColorAt(Flask.X, Flask.Y),
+                capture.GetColorAt(Flask.X_Bottom, Flask.Y_Bottom),
                 Flask.Top);
 
-        public async Task Drink()
+        public async Task Drink(CancellationToken cancellationToken)
         {
             if (Flask.LastUsed + _timing.TinctureCooldown > DateTimeOffset.Now)
                 return;
 
-            if (!IsReady)
+            if (!_isReady)
                 return;
 
             Input.Send(Flask.Key + " Down");
-            await Task.Delay(_timing.KeyPressDelay);
+            await Task.Delay(_timing.KeyPressDelay, cancellationToken).ConfigureAwait(false);
             Input.Send(Flask.Key + " Up");
-            await Task.Delay(_timing.KeyPressDelay);
+            await Task.Delay(_timing.KeyPressDelay, cancellationToken).ConfigureAwait(false);
 
             Flask.LastUsed = DateTimeOffset.Now;
         }

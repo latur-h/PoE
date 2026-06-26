@@ -29,15 +29,8 @@ namespace PoE.dlls.InteropServices
         }
         public static Color GetColorAt(int x, int y)
         {
-            IntPtr hdc = Interop.GetDC(IntPtr.Zero);
-            uint pixel = Interop.GetPixel(hdc, x, y);
-            Interop.ReleaseDC(IntPtr.Zero, hdc);
-
-            int red = (int)(pixel & 0x000000FF);
-            int green = (int)(pixel & 0x0000FF00) >> 8;
-            int blue = (int)(pixel & 0x00FF0000) >> 16;
-
-            return Color.FromArgb(red, green, blue);
+            using var capture = new ScreenPixelCapture();
+            return capture.GetColorAt(x, y);
         }
         public static void ShowConsole()
         {

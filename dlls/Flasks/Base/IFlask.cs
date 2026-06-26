@@ -1,9 +1,5 @@
-﻿using Poss.Win.Automation.Input;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using PoE.dlls.InteropServices;
+using Poss.Win.Automation.Input;
 
 namespace PoE.dlls.Flasks.Base
 {
@@ -13,8 +9,11 @@ namespace PoE.dlls.Flasks.Base
 
         InputSimulator Input { get; }
 
+        /// <summary>Last readiness from the drink-loop poll; does not read the screen.</summary>
         bool IsReady { get; }
 
-        Task Drink();
+        void UpdateReadiness(ScreenPixelCapture capture);
+
+        Task Drink(CancellationToken cancellationToken);
     }
 }

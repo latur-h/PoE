@@ -12,6 +12,7 @@ namespace PoE.dlls.Flasks.Base
 
         private readonly InputSimulatorHost _inputHost;
         private readonly FlaskTiming _timing;
+        private bool _shouldDrink;
 
         public HP(InputSimulatorHost inputHost, string key, int percent, FlaskTiming timing, FlaskRegistration? saved = null)
         {
@@ -28,20 +29,23 @@ namespace PoE.dlls.Flasks.Base
 
         public bool IsReady => true;
 
-        public async Task Drink()
+        public void UpdateReadiness(ScreenPixelCapture capture) =>
+            _shouldDrink = capture.GetColorAt(Flask.X, Flask.Y) != Flask.Top;
+
+        public async Task Drink(CancellationToken cancellationToken)
         {
             if (Flask.LastUsed + _timing.HpMpCooldown > DateTimeOffset.Now)
                 return;
 
-            if (InteropHelper.GetColorAt(Flask.X, Flask.Y) != Flask.Top)
-            {
-                Input.Send(Flask.Key + " Down");
-                await Task.Delay(_timing.KeyPressDelay);
-                Input.Send(Flask.Key + " Up");
-                await Task.Delay(_timing.KeyPressDelay);
+            if (!_shouldDrink)
+                return;
 
-                Flask.LastUsed = DateTimeOffset.Now;
-            }
+            Input.Send(Flask.Key + " Down");
+            await Task.Delay(_timing.KeyPressDelay, cancellationToken).ConfigureAwait(false);
+            Input.Send(Flask.Key + " Up");
+            await Task.Delay(_timing.KeyPressDelay, cancellationToken).ConfigureAwait(false);
+
+            Flask.LastUsed = DateTimeOffset.Now;
         }
 
         private (int x, int y) GetCoordinates(ResolutionType resolution, int percent)
